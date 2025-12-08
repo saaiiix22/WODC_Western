@@ -1,0 +1,57 @@
+import { useState } from "react";
+import { Outlet } from "react-router-dom";
+import Navbar from "../components/Navbar";
+import Sidebar from "../components/Sidebar";
+import Breadcrumb from "../components/common/Breadcrumb";
+
+const MainLayout = () => {
+  const [collapse, setCollapse] = useState(false);
+
+  const sidebarWidth = collapse ? 80 : 250;
+
+  return (
+    <div className="flex min-h-screen bg-[#f5f6fa]">
+
+      {/* SIDEBAR */}
+      <aside
+        className="fixed top-0 left-0 h-screen transition-all duration-300 z-50"
+        style={{
+          width: `${sidebarWidth}px`,
+        }}
+      >
+        <Sidebar collapse={collapse} setCollapse={setCollapse} />
+      </aside>
+
+      {/* RIGHT SECTION */}
+      <div
+        className="flex flex-col w-full transition-all duration-300"
+        style={{
+          marginLeft: `${sidebarWidth}px`,
+        }}
+      >
+        {/* NAVBAR */}
+        <div
+          className="fixed top-0 right-0 h-16 backdrop-blur bg-white/70 shadow-md transition-all duration-300 z-40"
+          style={{
+            left: `${sidebarWidth}px`,
+          }}
+        >
+          <Navbar collapse={collapse} setCollapse={setCollapse} />
+        </div>
+
+        {/* CONTENT */}
+        <main
+          className="overflow-y-auto p-5 mt-16"
+          style={{
+            height: "calc(100vh - 80px)",
+          }}
+        >
+          <Breadcrumb />
+          <Outlet />
+        </main>
+      </div>
+    </div>
+  );
+};
+
+export default MainLayout;
