@@ -100,11 +100,6 @@ const Sidebar = ({ collapse, setCollapse }) => {
         { title: "Project Agency Milestone Map", link: "/projectAgencyMilestoneMapping" },
       ],
     },
-    {
-      title: "Settings",
-      icon: <RiSettings3Fill className="text-lg" />,
-      link: "/settings",
-    },
   ];
 
   const [activeMenu, setActiveMenu] = React.useState(null);

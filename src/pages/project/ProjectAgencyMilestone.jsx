@@ -219,7 +219,7 @@ const ProjectAgencyMilestone = () => {
   };
   const [projectOpts, setProjectOpts] = useState([]);
   const [agencyopts, setAgencyOpts] = useState([]);
-  const [vendorOpts,setVendorOpts] = useState([])
+  const [vendorOpts, setVendorOpts] = useState([]);
 
   const getAllProjectOpts = async () => {
     try {
@@ -241,18 +241,18 @@ const ProjectAgencyMilestone = () => {
       throw error;
     }
   };
-  const getAllVendorList=async() => {
+  const getAllVendorList = async () => {
     try {
-      const payload = encryptPayload({isActive:true})
-      const res = await getVendorDataService(payload)
+      const payload = encryptPayload({ isActive: true });
+      const res = await getVendorDataService(payload);
       // console.log(res);
-      if(res?.status === 200 && res?.data.outcome){
-        setVendorOpts(res?.data.data)
+      if (res?.status === 200 && res?.data.outcome) {
+        setVendorOpts(res?.data.data);
       }
     } catch (error) {
-      throw error
+      throw error;
     }
-  }
+  };
   useEffect(() => {
     getAllProjectOpts();
     getAllAgencyList();
@@ -355,6 +355,9 @@ const ProjectAgencyMilestone = () => {
                         <td className="text-center text-sm font-semibold px-4 py-1 border-r border-slate-200">
                           Actual Amount
                         </td>
+                        <td className="text-center text-sm font-semibold px-4 py-1 border-r border-slate-200">
+                          Status
+                        </td>
                         <td className="w-[60px] text-center text-sm px-4 py-1 border-r border-slate-200">
                           <button type="button" onClick={handleAddRow}>
                             <MdOutlineAddCircle className="inline text-green-600 text-xl" />
@@ -406,11 +409,7 @@ const ProjectAgencyMilestone = () => {
                                 name="vendorId"
                                 value={i.vendorId}
                                 onChange={(e) =>
-                                  handleInput(
-                                    index,
-                                    "vendorId",
-                                    e.target.value
-                                  )
+                                  handleInput(index, "vendorId", e.target.value)
                                 }
                                 options={vendorOpts?.map((d) => ({
                                   value: d.vendorId,
@@ -542,6 +541,20 @@ const ProjectAgencyMilestone = () => {
                                 }
                                 disabled={true}
                                 className="w-full rounded-md border border-gray-300 px-2.5 py-1.5 mt-1 text-sm text-gray-600 bg-gray-100 cursor-not-allowed"
+                              />
+                            </td>
+                            <td>
+                              <SelectField
+                                name="vendorId"
+                                value={i.vendorId}
+                                onChange={(e) =>
+                                  handleInput(index, "vendorId", e.target.value)
+                                }
+                                options={vendorOpts?.map((d) => ({
+                                  value: d.vendorId,
+                                  label: d.vendorName,
+                                }))}
+                                placeholder="Select"
                               />
                             </td>
                             <td className="border-r border-slate-200 px-2 py-1">
