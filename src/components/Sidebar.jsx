@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { RiMenu2Fill, RiSettings3Fill } from "react-icons/ri";
 import { MdDashboard, MdApartment } from "react-icons/md";
@@ -7,6 +7,8 @@ import { TbReportAnalytics } from "react-icons/tb";
 import { RxCross2 } from "react-icons/rx";
 import { RiAdminFill } from "react-icons/ri";
 import { MdManageAccounts } from "react-icons/md";
+import { encryptPayload } from "../crypto.js/encryption";
+import { MenuList } from "../services/authService";
 
 const iconColors = [
   "#ff6b6b",
@@ -21,6 +23,20 @@ const iconColors = [
 
 const Sidebar = ({ collapse, setCollapse }) => {
   // const { collapse, setCollapse } = props;
+
+  // const getAllMenus=async()=>{
+  //   try {
+  //     const payload = encryptPayload("roleCode")
+  //     const res = await MenuList(payload)
+  //     console.log(res);
+  //   } catch (error) {
+  //     throw error
+  //   }
+
+  // }
+  // useEffect(()=>{
+  //   getAllMenus()
+  // },[])
 
   const staticMenu = [
     {
@@ -48,6 +64,10 @@ const Sidebar = ({ collapse, setCollapse }) => {
       icon: <MdManageAccounts   className="text-lg" />,
       subMenu: [
         { title: "Add User", link: "/addUser" },
+        { title: "Access Role", link: "/get-role-access" },
+        { title: "Manage Role", link: "/get-manage-user" },
+        { title: "Role Menu Map", link: "/roleMenuMapping" },
+        { title: "User Profile", link: "/userProfile" },
       ],
     },
     {
@@ -78,7 +98,6 @@ const Sidebar = ({ collapse, setCollapse }) => {
         { title: "Create Project ", link: "/project" },
         { title: "Project List", link: "/project-list" },
         { title: "Project Agency Milestone Map", link: "/projectAgencyMilestoneMapping" },
-        // { title: "Monthly Report", link: "/monthly" },
       ],
     },
     {

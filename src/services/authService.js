@@ -4,6 +4,6 @@ import endpoints from "../api/endpoints";
 export const loginService = (data) => Api.post(endpoints.auth.login,{obj:data})
 export const logoutService = (data) => Api.post(endpoints.auth.logout,data)
 
-export const MenuList = () =>  apiClient.get(endpoints.menu.getMenuList)
+export const MenuList = (data) =>  Api.get(endpoints.menu.getMenuList,{params:{cipherText:data}})
 
-export const UserProfileDetails= () => apiClient.get(endpoints.menu.UserDetails)
+export const UserProfileDetails= () => Api.get(endpoints.menu.UserDetails)

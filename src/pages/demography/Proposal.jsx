@@ -295,7 +295,7 @@ const Proposal = () => {
 
               <div className="col-span-3">
                 <InputField
-                  label="Proposal Name"
+                  label="Proposed By Name"
                   name="proposalName"
                   placeholder="Enter Name"
                   value={avoidSpecialCharUtil(proposalName)}

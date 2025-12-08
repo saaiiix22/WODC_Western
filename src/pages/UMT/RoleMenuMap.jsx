@@ -40,6 +40,9 @@ const RoleMenuMap = () => {
         <Box>
           <SimpleTreeView
             checkboxSelection
+            onItemSelectionToggle={(event, itemId) => {
+              console.log("Clicked Node:", itemId);
+            }}
             sx={{
               "& .MuiTreeItem-root": {
                 borderRadius: "10px",

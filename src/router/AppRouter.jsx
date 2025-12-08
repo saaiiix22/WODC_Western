@@ -42,6 +42,8 @@ const AppRouter = () => {
         <Route element={<ProtectedRoutes />}>
           <Route element={<MainLayout />}>
             <Route path={routes.dashboard.path} element={<Dashboard />} />
+
+            {/* DEOGRAPHY */}
             <Route path={routes.getDistrict.path} element={<GetDistrict />} />
             <Route path={routes.block.path} element={<Block />} />
             <Route path={routes.gramPanchayat.path} element={<GramPanchayatPage />} />
@@ -49,25 +51,34 @@ const AppRouter = () => {
             <Route path={routes.ward.path} element={<Ward />} />
             <Route path={routes.village.path} element={<VillagePage />} />
             <Route path={routes.constituencyPage.path} element={<ConstituencyPage />} />
+
+            {/* PROJECT  */}
+            <Route path={routes.projectList.path} element={<ProjectList />} />
+            <Route path={routes.projectManagementPage.path} element={<Project />} />
+            <Route path={routes.projectAgencyMilestone.path} element={<ProjectAgencyMilestone />} />
+
+            {/* MASTER */}
             <Route path={routes.proposalPage.path} element={<Proposal />} />
             <Route path={routes.giaPage.path} element={<GIApage />} />
-            <Route path={routes.budgetPage.path} element={<BudgetDetails />} />
-            <Route path={routes.editBudgetPage.path} element={<EditBudget />} />
-            <Route path={routes.projectManagementPage.path} element={<Project />} />
-            <Route path={routes.projectList.path} element={<ProjectList />} />
             <Route path={routes.milestone.path} element={<Milestone />} />
             <Route path={routes.agency.path} element={<Agency />} />
             <Route path={routes.sectorPage.path} element={<SectorPage />} />
             <Route path={routes.vendorPage.path} element={<VendorPage />} />
             <Route path={routes.beneficiary.path} element={<Beneficiary/>} />
-            <Route path={routes.roleMenuMapping.path} element={<RoleMenuMap/>} />
-            
             <Route path={routes.sectorMilestoneMapping.path} element={<SectorMilestoneMapping />} />
+            
+            {/* BUDGET */}
+            <Route path={routes.budgetPage.path} element={<BudgetDetails />} />
+            <Route path={routes.editBudgetPage.path} element={<EditBudget />} />
+            
+            {/* UMT - USER MANAGEMENT */}
             <Route path={routes.manageRole.path} element={<ManageRole />} />
+            <Route path={routes.roleMenuMapping.path} element={<RoleMenuMap/>} />
             <Route path={routes.roleAccess.path} element={<AccessRole />} />
             <Route path={routes.addUser.path} element={<AddUser />} />
             <Route path={routes.userProfile.path} element={<UserProfilePage />} />
-            <Route path={routes.projectAgencyMilestone.path} element={<ProjectAgencyMilestone />} />
+
+
           </Route>
         </Route>
       </Routes>

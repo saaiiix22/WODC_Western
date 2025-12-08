@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { encryptPayload } from "../crypto.js/encryption";
 import { useNavigate } from "react-router-dom";
 import { logoutUser } from "../redux/slices/authThunks";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import { FiUser, FiLogOut, FiKey, FiChevronDown } from "react-icons/fi";
 import { images } from "../assets/images";
@@ -11,6 +11,9 @@ const Navbar = () => {
   const token = localStorage.getItem("token");
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const selectState = useSelector(state=>state?.menu.userDetails)
+  console.log(selectState);
+  
 
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -78,7 +81,7 @@ const Navbar = () => {
               src={images.profileImage}
               className="w-9 h-9 rounded-full border border-white/20"
             />
-            <span className="text-sm">Admin</span>
+            <span className="text-sm">{selectState?.description}</span>
             <FiChevronDown
               className={`transition-transform ${open ? "rotate-180" : ""}`}
               size={16}
@@ -97,8 +100,8 @@ const Navbar = () => {
             >
               {/* HEADER GRADIENT LIKE SIDEBAR SUBMENU */}
               <div className="px-4 py-3 bg-light-dark text-white">
-                <p className="text-sm font-semibold">Admin</p>
-                <p className="text-xs opacity-80">user@example.com</p>
+                <p className="text-sm font-semibold">{selectState?.description}</p>
+                <p className="text-xs opacity-80">{selectState?.roleCode}</p>
               </div>
 
               <ul className="py-1">

@@ -4,8 +4,8 @@ const endpoints = {
         logout:'/logout',
     },
     menu:{
-        getMenuList:'',
-        UserDetails:'',
+        getMenuList:'/admin/menu/get-menus-for-role-map',
+        UserDetails:'/admin/role/getCurrentRole',
     },
     getDistrict:{
         saveDistrict:'/mst/save-n-update-district-details',

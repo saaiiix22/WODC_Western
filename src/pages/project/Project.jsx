@@ -229,10 +229,10 @@ const Project = () => {
       releaseAmount: "",
       giaYear: "",
       giaTypeId: "",
-      sanctionOrderNo: "",
-      sanctionOrderDate: "",
-      releaseLetterNo: "",
-      releaseLetterDate: "",
+      // sanctionOrderNo: "",
+      // sanctionOrderDate: "",
+      // releaseLetterNo: "",
+      // releaseLetterDate: "",
       remarks: "",
       fundAllocDate: "",
     },
@@ -246,11 +246,11 @@ const Project = () => {
         // item.favourOf &&
         item.releaseAmount &&
         item.giaYear &&
-        item.giaTypeId &&
-        item.sanctionOrderNo &&
-        item.sanctionOrderDate &&
-        item.releaseLetterNo &&
-        item.releaseLetterDate
+        item.giaTypeId
+      // item.sanctionOrderNo &&
+      // item.sanctionOrderDate &&
+      // item.releaseLetterNo &&
+      // item.releaseLetterDate
     );
 
     if (!allFilled) {
@@ -269,10 +269,10 @@ const Project = () => {
           releaseAmount: "",
           giaYear: "",
           giaTypeId: "",
-          sanctionOrderNo: "",
-          sanctionOrderDate: "",
-          releaseLetterNo: "",
-          releaseLetterDate: "",
+          // sanctionOrderNo: "",
+          // sanctionOrderDate: "",
+          // releaseLetterNo: "",
+          // releaseLetterDate: "",
           remarks: "",
           fundAllocDate: "",
         },
@@ -378,7 +378,7 @@ const Project = () => {
           ...prev,
           endDate: "End Date cannot be before Start Date",
         }));
-        return; // ⛔ Do not update state
+        return;
       }
     }
 
@@ -388,7 +388,7 @@ const Project = () => {
           ...prev,
           actualEndDate: "Actual End Date cannot be before Actual Start Date",
         }));
-        return; // ⛔ Do not update state
+        return;
       }
     }
 
@@ -614,14 +614,14 @@ const Project = () => {
             fundReleaseInfoId: null,
             bankId: "",
             modeOfTransfer: "",
-            favourOf: "",
+            // favourOf: "",
             releaseAmount: "",
             giaYear: "",
             giaTypeId: "",
-            sanctionOrderNo: "",
-            sanctionOrderDate: "",
-            releaseLetterNo: "",
-            releaseLetterDate: "",
+            // sanctionOrderNo: "",
+            // sanctionOrderDate: "",
+            // releaseLetterNo: "",
+            // releaseLetterDate: "",
             remarks: "",
             fundAllocDate: "",
           },
@@ -1251,7 +1251,6 @@ const Project = () => {
                         //     : false
                         // }
                         checked={formData.fundReleaseTo === "EXECUTIVE_AGENCY"}
-
                         onChange={handleChangeInput}
                       />
                       <label
@@ -1278,20 +1277,11 @@ const Project = () => {
                   </h1>
                 </div>
               </div>
-              <div className="flex justify-end mt-3">
-                <button
-                  className="p-2 text-green-600 text-2xl mb-10"
-                  type="button"
-                  onClick={handleAddRow}
-                  title="Add Fund Release Informations"
-                >
-                  <IoMdAddCircle />
-                </button>
-              </div>
+
               {fundReleaseRows.map((i, index) => {
                 return (
                   <div
-                    className="grid grid-cols-12 gap-6 p-3 rounded-sm mb-10 border border-orange-200 bg-[#fffcfc] relative"
+                    className="grid grid-cols-12 gap-6 p-3 rounded-sm mt-10 border border-orange-200 bg-[#fffcfc] relative"
                     key={index}
                   >
                     {fundReleaseRows.length > 1 && (
@@ -1381,12 +1371,6 @@ const Project = () => {
                           </span>
                         </div>
                       )} */}
-                      {i.maxamount && (
-                        <div className="text-sm text-blue-700">
-                          Total Amount:{" "}
-                          <span className="font-semibold">{i.maxamount}</span>
-                        </div>
-                      )}
                     </div>
                     <div className="col-span-2">
                       <InputField
@@ -1399,17 +1383,25 @@ const Project = () => {
                         onChange={(e) => handleRowChange(e, index)}
                         //   error={errors.blockNameEN}
                       />
-                      {i.maxamount !== undefined && (
-                        <div className="text-sm text-blue-700">
-                          Remaining Amount:{" "}
-                          <span className="font-semibold">
-                            {Number(i.maxamount) -
-                              (Number(i.releaseAmount) || 0)}
-                          </span>
-                        </div>
-                      )}
+                      <div className="flex justify-between">
+                        {i.maxamount && (
+                          <div className="text-[11px] text-blue-700">
+                            Total :{" "}
+                            <span className="font-semibold">{i.maxamount}</span>
+                          </div>
+                        )}
+                        {i.maxamount !== undefined && (
+                          <div className="text-[11px] text-blue-700">
+                            Remaining :{" "}
+                            <span className="font-semibold">
+                              {Number(i.maxamount) -
+                                (Number(i.releaseAmount) || 0)}
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <div className="col-span-2">
+                    {/* <div className="col-span-2">
                       <InputField
                         label="Sanction Order No."
                         required={true}
@@ -1450,8 +1442,8 @@ const Project = () => {
                         onChange={(e) => handleRowChange(e, index)}
                         //   error={errors.blockNameEN}
                       />
-                    </div>
-                    <div className="col-span-6">
+                    </div> */}
+                    <div className="col-span-2">
                       <InputField
                         label="Description"
                         required={true}
@@ -1465,6 +1457,16 @@ const Project = () => {
                   </div>
                 );
               })}
+              <div className="flex justify-end mt-3">
+                <button
+                  className="p-1 rounded-sm text-white bg-green-600 text-md"
+                  type="button"
+                  onClick={handleAddRow}
+                  title="Add Fund Release Informations"
+                >
+                  <IoMdAddCircle />
+                </button>
+              </div>
             </div>
             <div className=" mt-3">
               <div className="flex justify-center gap-2 text-[13px] bg-[#42001d0f] border-t border-[#ebbea6] px-4 py-3 rounded-b-md">

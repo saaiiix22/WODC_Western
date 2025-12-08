@@ -5,6 +5,7 @@ import { encryptPayload } from "../../crypto.js/encryption";
 import { loginService } from "../../services/authService";
 import { loginUser } from "../../redux/slices/authThunks";
 import { useNavigate } from "react-router-dom";
+import { fetchUserDetails } from "../../redux/slices/menuSlice";
 
 const Login = () => {
   const generateCaptcha = () => {
@@ -39,28 +40,56 @@ const Login = () => {
 
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const payload = encryptPayload(formData);
-      
-      const res = await dispatch(loginUser(payload));
-      console.log(res);
-      
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   try {
+  //     const payload = encryptPayload(formData);
 
-      if (res?.payload?.outcome) {
-        navigate("/dashboard");
-      }
-    } catch (error) {
-      throw error;
+  //     const res = await dispatch(loginUser(payload));
+  //     const roleRes = await dispatch(fetchUserDetails());
+  //     console.log(roleRes);
+
+  //     if (res?.payload?.outcome) {
+  //       if (roleRes) {
+  //         localStorage.setItem("token", res.payload.token);
+  //         navigate("/dashboard");
+  //       }
+  //     }
+  //   } catch (error) {
+  //     throw error;
+  //   }
+  // };
+
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+  try {
+    const payload = encryptPayload(formData);
+
+    const res = await dispatch(loginUser(payload)).unwrap();
+    // console.log(res);
+    
+
+    if (res?.outcome) {
+      localStorage.setItem("token", res.data);
+      await dispatch(fetchUserDetails());
+      navigate("/dashboard");
     }
-  };
+  } catch (error) {
+    console.error(error);
+  }
+};
+
 
   return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-center px-4 relative"
-      style={{ backgroundImage: "url(https://apps.odishatourism.gov.in/Application/uploadDocuments/UserContribution/Thumb20230508_103106.jpg)", backgroundSize: "cover", backgroundPosition:"center" }}>
-
-
+    <div
+      className="min-h-screen w-full flex flex-col items-center justify-center px-4 relative"
+      style={{
+        backgroundImage:
+          "url(https://apps.odishatourism.gov.in/Application/uploadDocuments/UserContribution/Thumb20230508_103106.jpg)",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
       <form
         onSubmit={handleSubmit}
         className="

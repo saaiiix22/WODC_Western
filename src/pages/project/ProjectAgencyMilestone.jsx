@@ -13,8 +13,13 @@ import { MdOutlineAddCircle } from "react-icons/md";
 import { getAgencyDetailsService } from "../../services/agencyService";
 import { FaMinusCircle } from "react-icons/fa";
 import { toast } from "react-toastify";
+import { useSelector } from "react-redux";
+import { getVendorDataService } from "../../services/vendorService";
 
 const ProjectAgencyMilestone = () => {
+  const userSelection = useSelector((state) => state?.menu.userDetails);
+  // console.log(userSelection);
+
   const [formData, setFormData] = useState({
     projectId: "",
   });
@@ -56,6 +61,7 @@ const ProjectAgencyMilestone = () => {
       projectAgencyMilestoneMapId: null,
       agencyId: "",
       milestoneId: "",
+      vendorId: "",
       order: "",
       budgetPercentage: "",
       amount: "",
@@ -128,6 +134,7 @@ const ProjectAgencyMilestone = () => {
         projectAgencyMilestoneMapId: null,
         agencyId: "",
         milestoneId: "",
+        vendorId: "",
         order: "",
         budgetPercentage: "",
         amount: "",
@@ -175,6 +182,7 @@ const ProjectAgencyMilestone = () => {
             projectAgencyMilestoneMapId: null,
             agencyId: "",
             milestoneId: "",
+            vendorId: "",
             order: "",
             budgetPercentage: "",
             amount: "",
@@ -194,6 +202,7 @@ const ProjectAgencyMilestone = () => {
             projectAgencyMilestoneMapId: null,
             agencyId: "",
             milestoneId: "",
+            vendorId: "",
             order: "",
             budgetPercentage: "",
             amount: "",
@@ -210,6 +219,7 @@ const ProjectAgencyMilestone = () => {
   };
   const [projectOpts, setProjectOpts] = useState([]);
   const [agencyopts, setAgencyOpts] = useState([]);
+  const [vendorOpts,setVendorOpts] = useState([])
 
   const getAllProjectOpts = async () => {
     try {
@@ -231,9 +241,22 @@ const ProjectAgencyMilestone = () => {
       throw error;
     }
   };
+  const getAllVendorList=async() => {
+    try {
+      const payload = encryptPayload({isActive:true})
+      const res = await getVendorDataService(payload)
+      // console.log(res);
+      if(res?.status === 200 && res?.data.outcome){
+        setVendorOpts(res?.data.data)
+      }
+    } catch (error) {
+      throw error
+    }
+  }
   useEffect(() => {
     getAllProjectOpts();
     getAllAgencyList();
+    getAllVendorList();
   }, []);
 
   useEffect(() => {
@@ -300,13 +323,16 @@ const ProjectAgencyMilestone = () => {
                     <thead className="bg-slate-100">
                       <tr>
                         <td className="w-[60px] text-center text-sm font-semibold px-2 py-1 border-r border-slate-200">
-                          SL No
+                          Sl. No
                         </td>
                         <td className="text-center text-sm font-semibold px-4 py-1 border-r border-slate-200">
                           Agency Name
                         </td>
                         <td className="text-center text-sm font-semibold px-4 py-1 border-r border-slate-200">
                           Milestone
+                        </td>
+                        <td className="text-center text-sm font-semibold px-4 py-1 border-r border-slate-200">
+                          Vendor Name
                         </td>
                         <td className="text-center text-sm font-semibold px-4 py-1 border-r border-slate-200">
                           Order
@@ -324,7 +350,7 @@ const ProjectAgencyMilestone = () => {
                           Actual End Date
                         </td>
                         <td className="text-center text-sm font-semibold px-4 py-1 border-r border-slate-200">
-                          Percentage of Budget
+                          {"Budget (%)"}
                         </td>
                         <td className="text-center text-sm font-semibold px-4 py-1 border-r border-slate-200">
                           Actual Amount
@@ -376,6 +402,25 @@ const ProjectAgencyMilestone = () => {
                               />
                             </td>
                             <td className="border-r border-slate-200 px-2 py-1">
+                              <SelectField
+                                name="vendorId"
+                                value={i.vendorId}
+                                onChange={(e) =>
+                                  handleInput(
+                                    index,
+                                    "vendorId",
+                                    e.target.value
+                                  )
+                                }
+                                options={vendorOpts?.map((d) => ({
+                                  value: d.vendorId,
+                                  label: d.vendorName,
+                                }))}
+                                placeholder="Select"
+                              />
+                            </td>
+
+                            <td className="border-r border-slate-200 px-2 py-1">
                               <input
                                 name="order"
                                 value={i.order}
@@ -390,6 +435,9 @@ const ProjectAgencyMilestone = () => {
                               <input
                                 name="startDate"
                                 value={i.startDate}
+                                disabled={
+                                  userSelection.roleCode === "ROLE_ADMIN"
+                                }
                                 onChange={(e) =>
                                   handleInput(
                                     index,
@@ -398,7 +446,17 @@ const ProjectAgencyMilestone = () => {
                                   )
                                 }
                                 type="date"
-                                className="w-full rounded-md border border-gray-300 px-2.5 py-1.5 mt-1 text-sm text-gray-600"
+                                className={`
+                                  w-full rounded-md border border-gray-300 
+                                  px-2.5 py-1.5 text-sm
+                                  outline-none transition-all duration-200
+                                  placeholder:text-gray-400
+                                  ${
+                                    userSelection.roleCode === "ROLE_ADMIN"
+                                      ? "bg-gray-100 cursor-not-allowed"
+                                      : "focus:border-blue-200 focus:ring-2 focus:ring-blue-200"
+                                  }
+                                `}
                               />
                             </td>
 
@@ -407,11 +465,24 @@ const ProjectAgencyMilestone = () => {
                                 name="endDate"
                                 value={i.endDate}
                                 min={i.startDate}
+                                disabled={
+                                  userSelection.roleCode === "ROLE_ADMIN"
+                                }
                                 onChange={(e) =>
                                   handleInput(index, "endDate", e.target.value)
                                 }
                                 type="date"
-                                className="w-full rounded-md border border-gray-300 px-2.5 py-1.5 mt-1 text-sm text-gray-600"
+                                className={`
+                                  w-full rounded-md border border-gray-300 
+                                  px-2.5 py-1.5 text-sm
+                                  outline-none transition-all duration-200
+                                  placeholder:text-gray-400
+                                  ${
+                                    userSelection.roleCode === "ROLE_ADMIN"
+                                      ? "bg-gray-100 cursor-not-allowed"
+                                      : "focus:border-blue-200 focus:ring-2 focus:ring-blue-200"
+                                  }
+                                `}
                               />
                             </td>
                             <td className="border-r border-slate-200 px-2 py-1">
@@ -490,27 +561,27 @@ const ProjectAgencyMilestone = () => {
                     </tbody>
                   </table>
                 </div>
-                <div className="col-span-12 text-center mt-2">
-                  <div className="space-y-1 text-sm text-gray-700">
-                    <div className="flex justify-between">
-                      <span className="font-medium">Max Budget</span>
-                      <span className="text-red-600 font-semibold">
+                <div className="col-span-12 bg-white border border-slate-200 rounded-sm p-6 mt-6">
+                  <div className="grid grid-cols-12">
+                    <div className="col-span-4 flex flex-col items-center border-r border-slate-300">
+                      <p className="text-gray-500 text-sm">Max Budget</p>
+                      <p className="text-xl font-bold text-red-600 mt-1">
                         ₹{budgetAmount.toLocaleString("en-IN")}
-                      </span>
+                      </p>
                     </div>
 
-                    <div className="flex justify-between">
-                      <span className="font-medium">Allocated</span>
-                      <span className="text-blue-700 font-semibold">
+                    <div className="col-span-4 flex flex-col items-center border-r border-slate-300">
+                      <p className="text-gray-500 text-sm">Allocated</p>
+                      <p className="text-xl font-bold text-blue-700 mt-1">
                         ₹{totalActualAmount.toLocaleString("en-IN")}
-                      </span>
+                      </p>
                     </div>
 
-                    <div className="flex justify-between">
-                      <span className="font-medium">Remaining</span>
-                      <span className="text-green-700 font-semibold">
+                    <div className="col-span-4 flex flex-col items-center">
+                      <p className="text-gray-500 text-sm">Remaining</p>
+                      <p className="text-xl font-bold text-green-700 mt-1">
                         ₹{remainingBudget.toLocaleString("en-IN")}
-                      </span>
+                      </p>
                     </div>
                   </div>
                 </div>

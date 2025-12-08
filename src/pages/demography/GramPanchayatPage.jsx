@@ -1,11 +1,4 @@
 import React, { useState } from "react";
-import { styled } from "@mui/material/styles";
-import ArrowForwardIosSharpIcon from "@mui/icons-material/ArrowForwardIosSharp";
-import MuiAccordion from "@mui/material/Accordion";
-import MuiAccordionSummary, {
-  accordionSummaryClasses,
-} from "@mui/material/AccordionSummary";
-import MuiAccordionDetails from "@mui/material/AccordionDetails";
 import Typography from "@mui/material/Typography";
 import { FiFileText } from "react-icons/fi";
 import InputField from "../../components/common/InputField";
@@ -17,13 +10,7 @@ import { GoPencil } from "react-icons/go";
 import { MdLockOutline } from "react-icons/md";
 import { MdLockOpen } from "react-icons/md";
 import SelectField from "../../components/common/SelectField";
-import {
-  saveUpdateBlockService,
-  getAllDists,
-  getAllBlockListService,
-  editBlockDataService,
-  toggleBlockStatusService,
-} from "../../services/blockService";
+import { getAllDists } from "../../services/blockService";
 import {
   editGpService,
   getBlockThroughDistrictService,
@@ -39,6 +26,7 @@ import {
 } from "../../components/common/CommonAccordion";
 import { ResetBackBtn, SubmitBtn } from "../../components/common/CommonButtons";
 import { avoidSpecialCharUtil } from "../../utils/validationUtils";
+import Loader from "../../components/common/Loader";
 
 const GramPanchayatPage = () => {
   const [expanded, setExpanded] = useState("panel2");
@@ -346,6 +334,11 @@ const GramPanchayatPage = () => {
   }, []);
   return (
     <div className="mt-3">
+      {loading && (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+          <Loader />
+        </div>
+      )}
       <Accordion
         expanded={expanded === "panel1"}
         onChange={handleChange("panel1")}
