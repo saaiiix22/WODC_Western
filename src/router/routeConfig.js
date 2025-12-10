@@ -32,5 +32,7 @@ export const routes = {
    userProfile:{path: "/userProfile", label: "User Profile", protected: true},
    roleMenuMapping:{path: "/roleMenuMapping", label: "Role Menu Mapping", protected: true},
    projectAgencyMilestone:{path: "/projectAgencyMilestoneMapping", label: "Project Agency Milestone Mapping", protected: true},
+   
+   addBeneficiary:{path: "/addBeneficiary", label: "Add Beneficiary", protected: true},
 
 }

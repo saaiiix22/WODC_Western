@@ -31,6 +31,7 @@ import UserProfilePage from "../pages/UMT/UserProfilePage";
 import Beneficiary from "../pages/master/Beneficiary";
 import RoleMenuMap from "../pages/UMT/RoleMenuMap";
 import ProjectAgencyMilestone from "../pages/project/ProjectAgencyMilestone";
+import AddBeneficiary from "../pages/beneficiary/AddBeneficiary";
 
 const AppRouter = () => {
   return (
@@ -77,6 +78,10 @@ const AppRouter = () => {
             <Route path={routes.roleAccess.path} element={<AccessRole />} />
             <Route path={routes.addUser.path} element={<AddUser />} />
             <Route path={routes.userProfile.path} element={<UserProfilePage />} />
+
+
+            {/* ADD BENEFICIARY */}
+            <Route path={routes.addBeneficiary.path} element={<AddBeneficiary />} />
 
 
           </Route>

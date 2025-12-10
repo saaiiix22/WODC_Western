@@ -1,13 +1,30 @@
-import { useState } from "react";
-import { Outlet } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import { Outlet, useLocation } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import Breadcrumb from "../components/common/Breadcrumb";
 
 const MainLayout = () => {
   const [collapse, setCollapse] = useState(false);
-
   const sidebarWidth = collapse ? 80 : 250;
+
+  const location = useLocation();
+  const pageRef = useRef(null);
+
+  useEffect(() => {
+    const node = pageRef.current;
+    if (!node) return;
+
+    node.classList.add("page-enter");
+
+    requestAnimationFrame(() => {
+      node.classList.add("page-enter-active");
+    });
+
+    return () => {
+      node.classList.remove("page-enter", "page-enter-active");
+    };
+  }, [location.pathname]);
 
   return (
     <div className="flex min-h-screen bg-[#f5f6fa]">
@@ -47,7 +64,10 @@ const MainLayout = () => {
           }}
         >
           <Breadcrumb />
-          <Outlet />
+
+          <div ref={pageRef}>
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

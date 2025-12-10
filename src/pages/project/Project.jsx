@@ -22,7 +22,7 @@ import { getGpByBlockService } from "../../services/villageService";
 import {
   generateProjectCodeService,
   getConsThroughDistService,
-  getFavourANDmodeOfTransferService,
+  // getFavourANDmodeOfTransferService,
   getProjectDetailsByProjectIdService,
   getProposalByDistService,
   getSectorService,
@@ -30,6 +30,7 @@ import {
   getVillageThroughGpService,
   getWardByMunicipalityService,
   maxBudgetService,
+  projectAlllookUpValueService,
   saveProjectService,
   totalBudgetService,
 } from "../../services/projectService";
@@ -206,14 +207,14 @@ const Project = () => {
   const getGIATypeOpts = () =>
     load(getGIAtypeList, { isActive: true }, setGIAoptions);
 
-  const [favourList, setFavourList] = useState([]);
+  // const [favourList, setFavourList] = useState([]);
   const [modeOfTransferList, setModeOfTransferList] = useState([]);
   const getFavourandModeOpts = async () => {
     try {
       const payload = encryptPayload({ isActive: true });
-      const res = await getFavourANDmodeOfTransferService(payload);
+      const res = await projectAlllookUpValueService(payload);
       // console.log(res?.data.data);
-      setFavourList(res?.data.data.favourUpList);
+      // setFavourList(res?.data.data.favourUpList);
       setModeOfTransferList(res?.data.data.modeOfTransfer);
     } catch (error) {
       throw error;
@@ -571,6 +572,7 @@ const Project = () => {
       const res = await saveProjectService(payload);
       console.log(res);
       if (res?.status === 200 && res?.data.outcome) {
+        setOpenSubmit(false)
         toast.success(res?.data.message);
         setFormData({
           districtId: "",

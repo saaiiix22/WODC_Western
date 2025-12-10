@@ -7,6 +7,8 @@ import {
   getBudgetByProjectService,
   getMilestoneService,
   getProjectListService,
+  getProjectMapByProjectIdService,
+  projectAlllookUpValueService,
   saveProjectAgencyMilestoneService,
 } from "../../services/projectService";
 import { MdOutlineAddCircle } from "react-icons/md";
@@ -15,6 +17,8 @@ import { FaMinusCircle } from "react-icons/fa";
 import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
 import { getVendorDataService } from "../../services/vendorService";
+import InputField from "../../components/common/InputField";
+import { IoMdAddCircle } from "react-icons/io";
 
 const ProjectAgencyMilestone = () => {
   const userSelection = useSelector((state) => state?.menu.userDetails);
@@ -23,6 +27,12 @@ const ProjectAgencyMilestone = () => {
   const [formData, setFormData] = useState({
     projectId: "",
   });
+
+  const formatToYYYYMMDD = (dateStr) => {
+    if (!dateStr) return "";
+    const [day, month, year] = dateStr.split("/");
+    return `${year}-${month}-${day}`;
+  };
 
   const [milestoneOpts, setMilestoneOpts] = useState([]);
   const [budgetAmount, setBudgetAmount] = useState("");
@@ -40,11 +50,50 @@ const ProjectAgencyMilestone = () => {
           projectId: value,
           isActive: true,
         });
+        const payload3 = encryptPayload({
+          projectId: value,
+          isActive: true,
+        });
         const res = await getMilestoneService(payload);
         const res2 = await getBudgetByProjectService(payload2);
-        console.log(res2);
+        const res3 = await getProjectMapByProjectIdService(payload3);
+        console.log(res3);
         setMilestoneOpts(res?.data.data);
         setBudgetAmount(res2?.data.data);
+        // const mappedRows = res3?.data?.data?.map((row) => ({
+        //   ...row,
+        //   startDate: formatToYYYYMMDD(row.startDate),
+        //   endDate: formatToYYYYMMDD(row.endDate),
+        //   actualStartDate: formatToYYYYMMDD(row.actualStartDate),
+        //   actualEndDate: formatToYYYYMMDD(row.actualEndDate),
+        // }));
+
+        const mappedRows = Array.isArray(res3?.data?.data)
+          ? res3.data.data.map((row) => ({
+              ...row,
+              startDate: formatToYYYYMMDD(row.startDate),
+              endDate: formatToYYYYMMDD(row.endDate),
+              actualStartDate: formatToYYYYMMDD(row.actualStartDate),
+              actualEndDate: formatToYYYYMMDD(row.actualEndDate),
+            }))
+          : [
+              {
+                projectAgencyMilestoneMapId: null,
+                agencyId: "",
+                milestoneId: "",
+                vendorId: "",
+                order: "",
+                budgetPercentage: "",
+                amount: "",
+                milestoneStatus: "",
+                startDate: "",
+                endDate: "",
+                actualStartDate: "",
+                actualEndDate: "",
+              },
+            ];
+
+        setRows(mappedRows);
       } catch (error) {
         throw error;
       }
@@ -65,6 +114,7 @@ const ProjectAgencyMilestone = () => {
       order: "",
       budgetPercentage: "",
       amount: "",
+      milestoneStatus: "",
       startDate: "",
       endDate: "",
       actualStartDate: "",
@@ -138,6 +188,7 @@ const ProjectAgencyMilestone = () => {
         order: "",
         budgetPercentage: "",
         amount: "",
+        milestoneStatus: "",
         startDate: "",
         endDate: "",
         actualStartDate: "",
@@ -155,12 +206,18 @@ const ProjectAgencyMilestone = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const isAdmin = userSelection.roleCode === "ROLE_WODC_ADMIN";
+    const isAgency = userSelection.roleCode === "ROLE_AGENCY";
+
     const transformedRows = rows.map((row) => ({
       ...row,
       startDate: formatToDDMMYYYY(row.startDate),
       endDate: formatToDDMMYYYY(row.endDate),
-      actualStartDate: formatToDDMMYYYY(row.actualStartDate),
-      actualEndDate: formatToDDMMYYYY(row.actualEndDate),
+
+      actualStartDate: isAdmin ? null : formatToDDMMYYYY(row.actualStartDate),
+      actualEndDate: isAdmin ? null : formatToDDMMYYYY(row.actualEndDate),
+      vendorId: isAdmin ? null : row.vendorId,
+      milestoneStatus: isAdmin? row.milestoneStatus: row.milestoneStatus,
     }));
 
     const sendData = {
@@ -172,54 +229,38 @@ const ProjectAgencyMilestone = () => {
       const payload = encryptPayload(sendData);
       const res = await saveProjectAgencyMilestoneService(payload);
       console.log(res);
+
       if (res?.status === 200 && res?.data.outcome) {
         toast.success(res?.data.message);
-        setFormData({
-          projectId: "",
-        });
-        setRows([
-          {
-            projectAgencyMilestoneMapId: null,
-            agencyId: "",
-            milestoneId: "",
-            vendorId: "",
-            order: "",
-            budgetPercentage: "",
-            amount: "",
-            startDate: "",
-            endDate: "",
-            actualStartDate: "",
-            actualEndDate: "",
-          },
-        ]);
       } else {
         toast.error(res?.data.message);
-        setFormData({
-          projectId: "",
-        });
-        setRows([
-          {
-            projectAgencyMilestoneMapId: null,
-            agencyId: "",
-            milestoneId: "",
-            vendorId: "",
-            order: "",
-            budgetPercentage: "",
-            amount: "",
-            startDate: "",
-            endDate: "",
-            actualStartDate: "",
-            actualEndDate: "",
-          },
-        ]);
       }
+
+      setFormData({ projectId: "" });
+      setRows([
+        {
+          projectAgencyMilestoneMapId: null,
+          agencyId: "",
+          milestoneId: "",
+          vendorId: "",
+          order: "",
+          budgetPercentage: "",
+          amount: "",
+          startDate: "",
+          endDate: "",
+          actualStartDate: "",
+          actualEndDate: "",
+        },
+      ]);
     } catch (error) {
       throw error;
     }
   };
+
   const [projectOpts, setProjectOpts] = useState([]);
   const [agencyopts, setAgencyOpts] = useState([]);
   const [vendorOpts, setVendorOpts] = useState([]);
+  const [statusOpts, setStatusOpts] = useState([]);
 
   const getAllProjectOpts = async () => {
     try {
@@ -253,10 +294,21 @@ const ProjectAgencyMilestone = () => {
       throw error;
     }
   };
+  const getAllStatusOptions = async () => {
+    try {
+      const payload = encryptPayload({ isActive: true });
+      const res = await projectAlllookUpValueService(payload);
+      console.log(res?.data.data.milestioneStatusList);
+      setStatusOpts(res?.data.data.milestioneStatusList);
+    } catch (error) {
+      throw error;
+    }
+  };
   useEffect(() => {
     getAllProjectOpts();
     getAllAgencyList();
     getAllVendorList();
+    getAllStatusOptions();
   }, []);
 
   useEffect(() => {
@@ -319,261 +371,280 @@ const ProjectAgencyMilestone = () => {
             {formData.projectId && (
               <>
                 <div className="col-span-12">
-                  <table className="table-fixed w-full border border-slate-300 mt-5">
-                    <thead className="bg-slate-100">
-                      <tr>
-                        <td className="w-[60px] text-center text-sm font-semibold px-2 py-1 border-r border-slate-200">
-                          Sl. No
-                        </td>
-                        <td className="text-center text-sm font-semibold px-4 py-1 border-r border-slate-200">
-                          Agency Name
-                        </td>
-                        <td className="text-center text-sm font-semibold px-4 py-1 border-r border-slate-200">
-                          Milestone
-                        </td>
-                        <td className="text-center text-sm font-semibold px-4 py-1 border-r border-slate-200">
-                          Vendor Name
-                        </td>
-                        <td className="text-center text-sm font-semibold px-4 py-1 border-r border-slate-200">
-                          Order
-                        </td>
-                        <td className="text-center text-sm font-semibold px-4 py-1 border-r border-slate-200">
-                          Start Date
-                        </td>
-                        <td className="text-center text-sm font-semibold px-4 py-1 border-r border-slate-200">
-                          End Date
-                        </td>
-                        <td className="text-center text-sm font-semibold px-4 py-1 border-r border-slate-200">
-                          Actual Start Date
-                        </td>
-                        <td className="text-center text-sm font-semibold px-4 py-1 border-r border-slate-200">
-                          Actual End Date
-                        </td>
-                        <td className="text-center text-sm font-semibold px-4 py-1 border-r border-slate-200">
-                          {"Budget (%)"}
-                        </td>
-                        <td className="text-center text-sm font-semibold px-4 py-1 border-r border-slate-200">
-                          Actual Amount
-                        </td>
-                        <td className="text-center text-sm font-semibold px-4 py-1 border-r border-slate-200">
-                          Status
-                        </td>
-                        <td className="w-[60px] text-center text-sm px-4 py-1 border-r border-slate-200">
-                          <button type="button" onClick={handleAddRow}>
-                            <MdOutlineAddCircle className="inline text-green-600 text-xl" />
-                          </button>
-                        </td>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {rows?.map((i, index) => {
-                        return (
-                          <tr key={index} className="border-b border-slate-200">
-                            <td className="border-r border-slate-200 px-2 py-1">
-                              {index + 1}
-                            </td>
-                            <td className="border-r border-slate-200 px-2 py-1">
-                              <SelectField
-                                name="agencyId"
-                                value={i.agencyId}
-                                onChange={(e) =>
-                                  handleInput(index, "agencyId", e.target.value)
-                                }
-                                options={agencyopts?.map((d) => ({
-                                  value: d.agencyId,
-                                  label: d.agencyName,
-                                }))}
-                                placeholder="Select"
-                              />
-                            </td>
-                            <td className="border-r border-slate-200 px-2 py-1">
-                              <SelectField
-                                name="milestoneId"
-                                value={i.milestoneId}
-                                onChange={(e) =>
-                                  handleInput(
-                                    index,
-                                    "milestoneId",
-                                    e.target.value
-                                  )
-                                }
-                                options={milestoneOpts?.map((d) => ({
-                                  value: d.milestoneId,
-                                  label: d.milestoneName,
-                                }))}
-                                placeholder="Select"
-                              />
-                            </td>
-                            <td className="border-r border-slate-200 px-2 py-1">
-                              <SelectField
-                                name="vendorId"
-                                value={i.vendorId}
-                                onChange={(e) =>
-                                  handleInput(index, "vendorId", e.target.value)
-                                }
-                                options={vendorOpts?.map((d) => ({
-                                  value: d.vendorId,
-                                  label: d.vendorName,
-                                }))}
-                                placeholder="Select"
-                              />
-                            </td>
-
-                            <td className="border-r border-slate-200 px-2 py-1">
-                              <input
-                                name="order"
-                                value={i.order}
-                                onChange={(e) =>
-                                  handleInput(index, "order", e.target.value)
-                                }
-                                type="text"
-                                className="w-full rounded-md border border-gray-300 px-2.5 py-1.5 mt-1 text-sm text-gray-600"
-                              />
-                            </td>
-                            <td className="border-r border-slate-200 px-2 py-1">
-                              <input
-                                name="startDate"
-                                value={i.startDate}
-                                disabled={
-                                  userSelection.roleCode === "ROLE_ADMIN"
-                                }
-                                onChange={(e) =>
-                                  handleInput(
-                                    index,
-                                    "startDate",
-                                    e.target.value
-                                  )
-                                }
-                                type="date"
-                                className={`
+                  {rows.map((i, index) => {
+                    return (
+                      <div
+                        className="grid grid-cols-12 gap-6 p-3 rounded-sm mt-10 border border-orange-200 bg-[#fffcfc] relative"
+                        key={index}
+                      >
+                        {(rows.length > 1 ||
+                          userSelection.roleCode === "ROLE_WODC_ADMIN") && (
+                          <span
+                            className="absolute text-xl  p-2 text-red-500 flex justify-center items-center rounded-full"
+                            style={{ top: "-17px", right: "-14px" }}
+                            onClick={() => handleRemoveRow(index)}
+                          >
+                            <FaMinusCircle />
+                          </span>
+                        )}
+                        <div className="col-span-2">
+                          <SelectField
+                            label={"Agency Name"}
+                            required={true}
+                            name="agencyId"
+                            value={i.agencyId}
+                            onChange={(e) =>
+                              handleInput(index, "agencyId", e.target.value)
+                            }
+                            options={agencyopts?.map((d) => ({
+                              value: d.agencyId,
+                              label: d.agencyName,
+                            }))}
+                            placeholder="Select"
+                            disabled={
+                              userSelection.roleCode === "ROLE_AGENCY"
+                                ? true
+                                : false
+                            }
+                          />
+                        </div>
+                        <div className="col-span-2">
+                          <SelectField
+                            label={"Milestone"}
+                            name="milestoneId"
+                            value={i.milestoneId}
+                            onChange={(e) =>
+                              handleInput(index, "milestoneId", e.target.value)
+                            }
+                            options={milestoneOpts?.map((d) => ({
+                              value: d.milestoneId,
+                              label: d.milestoneName,
+                            }))}
+                            placeholder="Select"
+                            disabled={
+                              userSelection.roleCode === "ROLE_AGENCY"
+                                ? true
+                                : false
+                            }
+                          />
+                        </div>
+                        <div className="col-span-2">
+                          <SelectField
+                            label={"Status"}
+                            name="milestoneStatus"
+                            value={i.milestoneStatus}
+                            onChange={(e) =>
+                              handleInput(
+                                index,
+                                "milestoneStatus",
+                                e.target.value
+                              )
+                            }
+                            options={statusOpts?.map((d) => ({
+                              value: d.lookupValueCode,
+                              label: d.lookupValueEn,
+                            }))}
+                            disabled={
+                              userSelection.roleCode === "ROLE_WODC_ADMIN"
+                                ? true
+                                : false
+                            }
+                            placeholder="Select"
+                          />
+                        </div>
+                        <div className="col-span-2">
+                          <InputField
+                            label={"Order"}
+                            name="order"
+                            value={i.order}
+                            onChange={(e) =>
+                              handleInput(index, "order", e.target.value)
+                            }
+                            disabled={
+                              userSelection.roleCode === "ROLE_AGENCY"
+                                ? true
+                                : false
+                            }
+                            type="number"
+                          />
+                        </div>
+                        <div className="col-span-2">
+                          <label className="text-[13px] font-medium text-gray-700">
+                            Start Date
+                          </label>
+                          <input
+                            name="startDate"
+                            value={i.startDate}
+                            onChange={(e) =>
+                              handleInput(index, "startDate", e.target.value)
+                            }
+                            type="date"
+                            className={`
                                   w-full rounded-md border border-gray-300 
                                   px-2.5 py-1.5 text-sm
                                   outline-none transition-all duration-200
                                   placeholder:text-gray-400
                                   ${
-                                    userSelection.roleCode === "ROLE_ADMIN"
+                                    userSelection.roleCode === "ROLE_AGENCY"
                                       ? "bg-gray-100 cursor-not-allowed"
                                       : "focus:border-blue-200 focus:ring-2 focus:ring-blue-200"
                                   }
                                 `}
-                              />
-                            </td>
-
-                            <td className="border-r border-slate-200 px-2 py-1">
-                              <input
-                                name="endDate"
-                                value={i.endDate}
-                                min={i.startDate}
-                                disabled={
-                                  userSelection.roleCode === "ROLE_ADMIN"
-                                }
-                                onChange={(e) =>
-                                  handleInput(index, "endDate", e.target.value)
-                                }
-                                type="date"
-                                className={`
+                          />
+                        </div>
+                        <div className="col-span-2">
+                          <label className="text-[13px] font-medium text-gray-700">
+                            End Date
+                          </label>
+                          <input
+                            name="endDate"
+                            value={i.endDate}
+                            min={i.startDate}
+                            onChange={(e) =>
+                              handleInput(index, "endDate", e.target.value)
+                            }
+                            type="date"
+                            className={`
                                   w-full rounded-md border border-gray-300 
                                   px-2.5 py-1.5 text-sm
                                   outline-none transition-all duration-200
                                   placeholder:text-gray-400
                                   ${
-                                    userSelection.roleCode === "ROLE_ADMIN"
+                                    userSelection.roleCode === "ROLE_AGENCY"
                                       ? "bg-gray-100 cursor-not-allowed"
                                       : "focus:border-blue-200 focus:ring-2 focus:ring-blue-200"
                                   }
                                 `}
-                              />
-                            </td>
-                            <td className="border-r border-slate-200 px-2 py-1">
-                              <input
-                                name="actualStartDate"
-                                value={i.actualStartDate}
-                                onChange={(e) =>
-                                  handleInput(
-                                    index,
-                                    "actualStartDate",
-                                    e.target.value
-                                  )
-                                }
-                                type="date"
-                                className="w-full rounded-md border border-gray-300 px-2.5 py-1.5 mt-1 text-sm text-gray-600"
-                              />
-                            </td>
-                            <td className="border-r border-slate-200 px-2 py-1">
-                              <input
-                                name="actualEndDate"
-                                value={i.actualEndDate}
-                                min={i.actualStartDate}
-                                onChange={(e) =>
-                                  handleInput(
-                                    index,
-                                    "actualEndDate",
-                                    e.target.value
-                                  )
-                                }
-                                type="date"
-                                className="w-full rounded-md border border-gray-300 px-2.5 py-1.5 mt-1 text-sm text-gray-600"
-                              />
-                            </td>
-                            <td className="border-r border-slate-200 px-2 py-1 relative">
-                              <input
-                                type="number"
-                                name="budgetPercentage"
-                                value={i.budgetPercentage}
-                                onChange={(e) =>
-                                  handleInput(
-                                    index,
-                                    "budgetPercentage",
-                                    e.target.value
-                                  )
-                                }
-                                max={100}
-                                className="w-full rounded-md border border-gray-300 px-2.5 py-1.5 mt-1 text-sm text-gray-600"
-                              />
-                            </td>
-                            <td className="border-r border-slate-200 px-2 py-1">
-                              <input
-                                type="text"
-                                name="amount"
-                                value={i.amount}
-                                onChange={(e) =>
-                                  handleInput(index, "amount", e.target.value)
-                                }
-                                disabled={true}
-                                className="w-full rounded-md border border-gray-300 px-2.5 py-1.5 mt-1 text-sm text-gray-600 bg-gray-100 cursor-not-allowed"
-                              />
-                            </td>
-                            <td>
-                              <SelectField
-                                name="vendorId"
-                                value={i.vendorId}
-                                onChange={(e) =>
-                                  handleInput(index, "vendorId", e.target.value)
-                                }
-                                options={vendorOpts?.map((d) => ({
-                                  value: d.vendorId,
-                                  label: d.vendorName,
-                                }))}
-                                placeholder="Select"
-                              />
-                            </td>
-                            <td className="border-r border-slate-200 px-2 py-1">
-                              {rows.length > 1 && (
-                                <button
-                                  type="button"
-                                  className="text-red-500"
-                                  onClick={() => handleRemoveRow(index)}
-                                >
-                                  <FaMinusCircle />
-                                </button>
-                              )}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+                          />
+                        </div>
+                        <div className="col-span-2">
+                          <label className="text-[13px] font-medium text-gray-700">
+                            Actual Start Date
+                          </label>
+                          <input
+                            name="actualStartDate"
+                            value={i.actualStartDate}
+                            onChange={(e) =>
+                              handleInput(
+                                index,
+                                "actualStartDate",
+                                e.target.value
+                              )
+                            }
+                            type="date"
+                            className={`
+                                  w-full rounded-md border border-gray-300 
+                                  px-2.5 py-1.5 text-sm
+                                  outline-none transition-all duration-200
+                                  placeholder:text-gray-400
+                                  ${
+                                    userSelection.roleCode === "ROLE_WODC_ADMIN"
+                                      ? "bg-gray-100 cursor-not-allowed"
+                                      : "focus:border-blue-200 focus:ring-2 focus:ring-blue-200"
+                                  }
+                                `}
+                          />
+                        </div>
+                        <div className="col-span-2">
+                          <label className="text-[13px] font-medium text-gray-700">
+                            Actual End Date
+                          </label>
+                          <input
+                            name="actualEndDate"
+                            value={i.actualEndDate}
+                            min={i.actualStartDate}
+                            onChange={(e) =>
+                              handleInput(
+                                index,
+                                "actualEndDate",
+                                e.target.value
+                              )
+                            }
+                            type="date"
+                            className={`
+                                  w-full rounded-md border border-gray-300 
+                                  px-2.5 py-1.5 text-sm
+                                  outline-none transition-all duration-200
+                                  placeholder:text-gray-400
+                                  ${
+                                    userSelection.roleCode === "ROLE_WODC_ADMIN"
+                                      ? "bg-gray-100 cursor-not-allowed"
+                                      : "focus:border-blue-200 focus:ring-2 focus:ring-blue-200"
+                                  }
+                                `}
+                          />
+                        </div>
+                        <div className="col-span-2">
+                          <InputField
+                            label={"Budget (%)"}
+                            required={true}
+                            type="number"
+                            name="budgetPercentage"
+                            value={i.budgetPercentage}
+                            onChange={(e) =>
+                              handleInput(
+                                index,
+                                "budgetPercentage",
+                                e.target.value
+                              )
+                            }
+                            disabled={
+                              userSelection.roleCode === "ROLE_AGENCY"
+                                ? true
+                                : false
+                            }
+                            max={100}
+                          />
+                        </div>
+                        <div className="col-span-2">
+                          <InputField
+                            label={"Amount"}
+                            type="text"
+                            name="amount"
+                            value={i.amount}
+                            onChange={(e) =>
+                              handleInput(index, "amount", e.target.value)
+                            }
+                            disabled={true}
+                          />
+                        </div>
+                        <div className="col-span-2">
+                          <SelectField
+                            name="vendorId"
+                            label={"Vendor Name"}
+                            value={i.vendorId}
+                            onChange={(e) =>
+                              handleInput(index, "vendorId", e.target.value)
+                            }
+                            disabled={
+                              userSelection.roleCode === "ROLE_WODC_ADMIN"
+                                ? true
+                                : false
+                            }
+                            options={vendorOpts?.map((d) => ({
+                              value: d.vendorId,
+                              label: d.vendorName,
+                            }))}
+                            placeholder="Select"
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {userSelection.roleCode === "ROLE_WODC_ADMIN" && (
+                    <div className="flex justify-end mt-3">
+                      <button
+                        className="p-1 rounded-sm text-white bg-green-600 text-md"
+                        type="button"
+                        onClick={handleAddRow}
+                        title="Add Fund Release Informations"
+                      >
+                        <IoMdAddCircle />
+                      </button>
+                    </div>
+                  )}
                 </div>
+
                 <div className="col-span-12 bg-white border border-slate-200 rounded-sm p-6 mt-6">
                   <div className="grid grid-cols-12">
                     <div className="col-span-4 flex flex-col items-center border-r border-slate-300">
@@ -593,7 +664,7 @@ const ProjectAgencyMilestone = () => {
                     <div className="col-span-4 flex flex-col items-center">
                       <p className="text-gray-500 text-sm">Remaining</p>
                       <p className="text-xl font-bold text-green-700 mt-1">
-                        ₹{remainingBudget.toLocaleString("en-IN")}
+                        ₹{Number(remainingBudget).toLocaleString("en-IN")}
                       </p>
                     </div>
                   </div>

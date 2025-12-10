@@ -7,4 +7,4 @@ export const getDistById=(data)=>Api.get(endpoints.getDistrict.getDistById,{para
 export const updateStatus=(data)=>Api.get(endpoints.getDistrict.updateStatus,{params:{cipherText:data}})
 
 
-export const getAllDists =(data)=> Api.get(endpoints.getDistrict.getAllDists,{params:{cipherText:data}})
+// export const getAllDists =(data)=> Api.get(endpoints.getDistrict.getAllDists,{params:{cipherText:data}})

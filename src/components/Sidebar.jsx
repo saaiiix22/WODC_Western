@@ -9,6 +9,7 @@ import { RiAdminFill } from "react-icons/ri";
 import { MdManageAccounts } from "react-icons/md";
 import { encryptPayload } from "../crypto.js/encryption";
 import { MenuList } from "../services/authService";
+import { images } from "../assets/images";
 
 const iconColors = [
   "#ff6b6b",
@@ -112,7 +113,7 @@ const Sidebar = ({ collapse, setCollapse }) => {
     <div
       // bg-[#22262b]
       className={`
-        h-full flex flex-col transition-all duration-300 shadow-xl
+        h-full flex flex-col transition-all duration-300 shadow-xl relative
         bg-[#141414]
         ${collapse ? "w-20 min-w-20 p-2" : "w-64 min-w-64 p-3"}
       `}
@@ -147,7 +148,7 @@ const Sidebar = ({ collapse, setCollapse }) => {
       )}
 
       {/* MAIN MENU */}
-      <ul className="flex flex-col gap-1 w-full">
+      <ul className="flex flex-col gap-1 w-full z-50">
         {staticMenu.map((item, index) => {
           const hasSubMenu = item.subMenu?.length;
           const isOpen = activeMenu === item.title;
@@ -237,6 +238,9 @@ const Sidebar = ({ collapse, setCollapse }) => {
         })}
 
       </ul>
+      {
+        !collapse && <img src={images.project} className="absolute bottom-0 opacity-20 left-0 w-full" alt="" />
+      }
     </div>
   );
 };

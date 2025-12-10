@@ -16,7 +16,6 @@ import {
 } from "../../components/common/CommonAccordion";
 import { ResetBackBtn, SubmitBtn } from "../../components/common/CommonButtons";
 import SelectField from "../../components/common/SelectField";
-import { districtList } from "../../services/demographyService";
 import { FaMinusCircle } from "react-icons/fa";
 import { getBankNamesService } from "../../services/budgetService";
 import {
@@ -33,6 +32,14 @@ import {
   validateContactNoUtil,
   validateIfscUtil,
 } from "../../utils/validationUtils";
+import { getBlockThroughDistrictService } from "../../services/gpService";
+import { getGpByBlockService } from "../../services/villageService";
+import {
+  getVillageThroughGpService,
+  getWardByMunicipalityService,
+} from "../../services/projectService";
+import { getMunicipalityViaDistrictsService } from "../../services/wardService";
+import { getAllDists } from "../../services/blockService";
 
 const Beneficiary = () => {
   const [expanded, setExpanded] = useState("panel2");
@@ -44,6 +51,12 @@ const Beneficiary = () => {
   // FORM HANDLING
 
   const [formData, setFormData] = useState({
+    districtId: "",
+    blockId: "",
+    gpId: "",
+    municipalityId: "",
+    areaType:"BLOCK",
+    objectId:"",
     beneficiaryId: null,
     beneficiaryName: "",
     contactNo: "",
@@ -53,6 +66,12 @@ const Beneficiary = () => {
     dob: "",
   });
   const {
+    districtId,
+    blockId,
+    gpId,
+    municipalityId,
+    areaType,
+    objectId,
     beneficiaryId,
     beneficiaryName,
     contactNo,
@@ -90,17 +109,52 @@ const Beneficiary = () => {
     setFormData({ ...formData, [name]: updatedValue });
   };
 
-  const [distOptions, setDistOptions] = useState([]);
-  const getAllDistsOptions = async () => {
+  const [distListOpts, setDistListOpts] = useState([]);
+  const [blockOpts, setBlockOpts] = useState([]);
+  const [gpOpts, setGpOptions] = useState([]);
+  const [villageOpts, setVillageOpts] = useState([]);
+  const [municipalityOpts, setMunicipalityOpts] = useState([]);
+  const [wardOpts, setWardOpts] = useState([]);
+
+  const load = async (serviceFn, payload, setter) => {
     try {
-      const payload = encryptPayload({ isActive: true });
-      const res = await districtList(payload);
-      // console.log(res);
-      setDistOptions(res?.data.data);
-    } catch (error) {
-      throw error;
+      const res = await serviceFn(encryptPayload(payload));
+      setter(res?.data.data || []);
+    } catch (err) {
+      console.error(err);
     }
   };
+
+  const getAllDistOpts = () =>
+    load(getAllDists, { isActive: true }, setDistListOpts);
+
+  const getAllBlockOpts = () =>
+    load(
+      getBlockThroughDistrictService,
+      { isActive: true, districtId },
+      setBlockOpts
+    );
+
+  const getAllGPoptions = () =>
+    load(getGpByBlockService, { isActive: true, blockId }, setGpOptions);
+
+  const getVillageList = () =>
+    load(getVillageThroughGpService, { isActive: true, gpId }, setVillageOpts);
+
+  const getAllMunicipalityList = () =>
+    load(
+      getMunicipalityViaDistrictsService,
+      { isActive: true, districtId },
+      setMunicipalityOpts
+    );
+
+  const getAllWardOptions = () =>
+    load(
+      getWardByMunicipalityService,
+      { isActive: true, municipalityId },
+      setWardOpts
+    );
+
   const [bankNameOptions, setBankNameOptions] = useState([]);
   const getAllBankOptions = async () => {
     try {
@@ -242,6 +296,10 @@ const Beneficiary = () => {
     e.preventDefault();
 
     const sendData = {
+      districtId,
+      areaType,
+      objectType: areaType === "BLOCK" ? "VILLAGE" : "WARD",
+      objectId: objectId,
       beneficiaryId,
       beneficiaryName,
       contactNo,
@@ -292,12 +350,10 @@ const Beneficiary = () => {
     try {
       const payload = encryptPayload(false);
       const res = await getBeneficiaryDetailsService(payload);
-      console.log(res);
+      // console.log(res);
       if (res?.status === 200 && res?.data.outcome) {
         setTableData(res?.data.data || []);
-      } else {
-        toast.error(res?.data.message);
-      }
+      } 
     } catch (error) {
       throw error;
     }
@@ -305,9 +361,28 @@ const Beneficiary = () => {
 
   useEffect(() => {
     getBeneficiaryTable();
-    getAllDistsOptions();
     getAllBankOptions();
+    getAllDistOpts();
   }, []);
+
+  useEffect(() => {
+    if (districtId) {
+      getAllBlockOpts();
+      getAllMunicipalityList();
+    }
+
+    if (blockId) {
+      getAllGPoptions();
+    }
+
+    if (gpId) {
+      getVillageList();
+    }
+
+    if (municipalityId) {
+      getAllWardOptions();
+    }
+  }, [districtId, blockId, gpId, municipalityId]);
 
   const [openModal, setOpenModal] = useState(false);
 
@@ -448,7 +523,155 @@ const Beneficiary = () => {
 
         <AccordionDetails>
           <div className="p-3">
-            <form className="grid grid-cols-12 gap-6" onSubmit={handleSubmitConfirmModal}>
+            <form
+              className="grid grid-cols-12 gap-6"
+              onSubmit={handleSubmitConfirmModal}
+            >
+              {console.log(distListOpts)}
+              <div className="col-span-2">
+                <SelectField
+                  label="District"
+                  required={true}
+                  name="districtId"
+                  value={districtId}
+                  onChange={handleChangeInput}
+                  options={distListOpts?.map((d) => ({
+                    value: d.districtId,
+                    label: d.districtName,
+                  }))}
+                  error={errors.districtId}
+                  placeholder="Select"
+                />
+              </div>
+              <div className="col-span-2">
+                <label className="text-[13px] font-medium text-gray-700">
+                  Select Area Type <span className="text-red-500">*</span>
+                </label>
+                <div className="flex gap-5 items-center">
+                  <div className="flex gap-1">
+                    <input
+                      type="radio"
+                      value={"BLOCK"}
+                      name="areaType"
+                      // checked={
+                      //   stateSelect?.areaType === "BLOCK" ? true : false
+                      // }
+                      checked={formData.areaType === "BLOCK"}
+                      id="radio1"
+                      onChange={handleChangeInput}
+                    />
+                    <label htmlFor="radio1" className="text-sm text-slate-800">
+                      Block
+                    </label>
+                  </div>
+                  <div className="flex gap-1">
+                    <input
+                      type="radio"
+                      value={"MUNICIPALITY"}
+                      name="areaType"
+                      // checked={
+                      //   stateSelect?.areaType === "MUNICIPALITY"
+                      //     ? true
+                      //     : false
+                      // }
+                      checked={formData.areaType === "MUNICIPALITY"}
+                      id="radio2"
+                      onChange={handleChangeInput}
+                    />
+                    <label htmlFor="radio2" className="text-sm text-slate-800">
+                      Municipality
+                    </label>
+                  </div>
+                </div>
+              </div>
+              {areaType === "BLOCK" && (
+                <>
+                  <div className="col-span-2">
+                    <SelectField
+                      label="Block Name"
+                      required={true}
+                      name="blockId"
+                      value={blockId}
+                      onChange={handleChangeInput}
+                      options={blockOpts?.map((d) => ({
+                        value: d.blockId,
+                        label: d.blockNameEN,
+                      }))}
+                      disabled={districtId ? false : true}
+                      //   error={errors.districtId}
+                      placeholder="Select "
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <SelectField
+                      label="GP Name"
+                      required={true}
+                      name="gpId"
+                      value={gpId}
+                      onChange={handleChangeInput}
+                      options={gpOpts?.map((d) => ({
+                        value: d.gpId,
+                        label: d.gpNameEN,
+                      }))}
+                      disabled={blockId ? false : true}
+                      //   error={errors.districtId}
+                      placeholder="Select "
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <SelectField
+                      label="Village Name"
+                      required={true}
+                      name="objectId"
+                      value={objectId}
+                      onChange={handleChangeInput}
+                      options={villageOpts?.map((d) => ({
+                        value: d.villageId,
+                        label: d.villageNameEn,
+                      }))}
+                      disabled={gpId ? false : true}
+                      error={errors.objectId}
+                      placeholder="Select"
+                    />
+                  </div>
+                </>
+              )}
+              {areaType === "MUNICIPALITY" && (
+                <>
+                  <div className="col-span-2">
+                    <SelectField
+                      label="Municipality Name"
+                      required={true}
+                      name="municipalityId"
+                      value={municipalityId}
+                      onChange={handleChangeInput}
+                      options={municipalityOpts?.map((d) => ({
+                        value: d.municipalityId,
+                        label: d.municipalityName,
+                      }))}
+                      disabled={districtId ? false : true}
+                      //   error={errors.districtId}
+                      placeholder="Select"
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <SelectField
+                      label="Ward Name"
+                      required={true}
+                      name="objectId"
+                      value={objectId}
+                      onChange={handleChangeInput}
+                      options={wardOpts?.map((d) => ({
+                        value: d.wardId,
+                        label: d.wardName,
+                      }))}
+                      disabled={municipalityId ? false : true}
+                      error={errors.objectId}
+                      placeholder="Select "
+                    />
+                  </div>
+                </>
+              )}
               <div className="col-span-2">
                 <InputField
                   label="Beneficiary Name"
