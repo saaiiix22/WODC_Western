@@ -32,6 +32,7 @@ import Beneficiary from "../pages/master/Beneficiary";
 import RoleMenuMap from "../pages/UMT/RoleMenuMap";
 import ProjectAgencyMilestone from "../pages/project/ProjectAgencyMilestone";
 import AddBeneficiary from "../pages/beneficiary/AddBeneficiary";
+import WorkOrderGeneration from "../pages/project/WorkOrderGeneration";
 
 const AppRouter = () => {
   return (
@@ -57,6 +58,7 @@ const AppRouter = () => {
             <Route path={routes.projectList.path} element={<ProjectList />} />
             <Route path={routes.projectManagementPage.path} element={<Project />} />
             <Route path={routes.projectAgencyMilestone.path} element={<ProjectAgencyMilestone />} />
+            <Route path={routes.workOrderGeneration.path} element={<WorkOrderGeneration />} />
 
             {/* MASTER */}
             <Route path={routes.proposalPage.path} element={<Proposal />} />

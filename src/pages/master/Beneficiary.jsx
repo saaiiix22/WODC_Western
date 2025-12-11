@@ -390,7 +390,7 @@ const Beneficiary = () => {
     try {
       const payload = encryptPayload({ beneficiaryId: id });
       const res = await editBeneficiarySerice(payload);
-      // console.log(res);
+      console.log(res);
       if (res?.status === 200 && res?.data.outcome) {
         setFormData(res?.data.data);
         setFormData((prev) => ({ ...prev, dob: formatDateMMDDYY(prev.dob) }));

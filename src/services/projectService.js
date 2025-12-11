@@ -25,4 +25,8 @@ export const getBudgetByProjectService=(data)=>Api.get(endpoints.project.getBudg
 export const saveProjectAgencyMilestoneService =(data)=>Api.post(endpoints.project.saveProjectAgencyMilestone,{obj:data})
 export const getProjectMapByProjectIdService=(data)=>Api.get(endpoints.project.getAllProjectMapById,{params:{cipherText:data}})
 export const projectAlllookUpValueService=(data)=>Api.get(endpoints.project.projectAlllookUpValue,{params:{cipherText:data}})
-
+export const getMilestoneByProjectIdService =(data)=>Api.get(endpoints.project.getMilestoneByProjectId,{params:{cipherText:data}})
+export const getProjectAgencyMilestoneMapDetailsService=(data)=>Api.get(endpoints.project.getProjectAgencyMilestoneMapDetails,{params:{cipherText:data}})
+export const getBeneficaryDetailsServiceInProject=(data)=>Api.get(endpoints.project.getBeneficiaryDetails,{params:{cipherText:data}})
+export const saveUpdateAgencyMilestoneService=(data)=>Api.post(endpoints.project.saveUpdateAgencyMilestone,{obj:data})
+export const getBeneficiaryByIdsService=(data)=>Api.get(endpoints.project.getBeneficiaryByIds,{params:{cipherText:data}})

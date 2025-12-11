@@ -124,6 +124,25 @@ const ProjectAgencyMilestone = () => {
   const handleInput = (index, name, value) => {
     const updated = [...rows];
 
+    updated[index][name] = value;
+
+    const newAgencyId = Number(updated[index].agencyId);
+    const newMilestoneId = Number(updated[index].milestoneId);
+
+    if (newAgencyId && newMilestoneId) {
+      const isDuplicate = updated.some(
+        (row, idx) =>
+          idx !== index &&
+          Number(row.agencyId) === newAgencyId &&
+          Number(row.milestoneId) === newMilestoneId
+      );
+
+      if (isDuplicate) {
+        toast.error("This agency and milestone combination is already added!");
+        return;
+      }
+    }
+
     // Prevent percentage > 100
     if (name === "budgetPercentage") {
       let percent = parseFloat(value) || 0;
@@ -178,6 +197,12 @@ const ProjectAgencyMilestone = () => {
       return;
     }
 
+    const hasEmptyCombo = rows.some((row) => !row.agencyId || !row.milestoneId);
+    if (hasEmptyCombo) {
+      toast.error("Please fill the existing row before adding a new one.");
+      return;
+    }
+
     setRows([
       ...rows,
       {
@@ -217,7 +242,7 @@ const ProjectAgencyMilestone = () => {
       actualStartDate: isAdmin ? null : formatToDDMMYYYY(row.actualStartDate),
       actualEndDate: isAdmin ? null : formatToDDMMYYYY(row.actualEndDate),
       vendorId: isAdmin ? null : row.vendorId,
-      milestoneStatus: isAdmin? row.milestoneStatus: row.milestoneStatus,
+      milestoneStatus: isAdmin ? row.milestoneStatus : row.milestoneStatus,
     }));
 
     const sendData = {
@@ -645,25 +670,34 @@ const ProjectAgencyMilestone = () => {
                   )}
                 </div>
 
-                <div className="col-span-12 bg-white border border-slate-200 rounded-sm p-6 mt-6">
-                  <div className="grid grid-cols-12">
-                    <div className="col-span-4 flex flex-col items-center border-r border-slate-300">
-                      <p className="text-gray-500 text-sm">Max Budget</p>
-                      <p className="text-xl font-bold text-red-600 mt-1">
+                <div className="col-span-12 bg-white border border-slate-200 rounded-xl p-6 mt-6 shadow-sm">
+                  <div className="grid grid-cols-12 divide-x divide-slate-200">
+                    {/* Max Budget */}
+                    <div className="col-span-4 flex flex-col items-center px-4">
+                      <p className="text-xs uppercase tracking-wide text-gray-500 font-semibold">
+                        Max Budget
+                      </p>
+                      <p className="text-2xl font-bold text-red-600 mt-1">
                         ₹{budgetAmount.toLocaleString("en-IN")}
                       </p>
                     </div>
 
-                    <div className="col-span-4 flex flex-col items-center border-r border-slate-300">
-                      <p className="text-gray-500 text-sm">Allocated</p>
-                      <p className="text-xl font-bold text-blue-700 mt-1">
+                    {/* Allocated */}
+                    <div className="col-span-4 flex flex-col items-center px-4">
+                      <p className="text-xs uppercase tracking-wide text-gray-500 font-semibold">
+                        Allocated
+                      </p>
+                      <p className="text-2xl font-bold text-blue-700 mt-1">
                         ₹{totalActualAmount.toLocaleString("en-IN")}
                       </p>
                     </div>
 
-                    <div className="col-span-4 flex flex-col items-center">
-                      <p className="text-gray-500 text-sm">Remaining</p>
-                      <p className="text-xl font-bold text-green-700 mt-1">
+                    {/* Remaining */}
+                    <div className="col-span-4 flex flex-col items-center px-4">
+                      <p className="text-xs uppercase tracking-wide text-gray-500 font-semibold">
+                        Remaining
+                      </p>
+                      <p className="text-2xl font-bold text-green-700 mt-1">
                         ₹{Number(remainingBudget).toLocaleString("en-IN")}
                       </p>
                     </div>

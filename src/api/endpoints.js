@@ -94,7 +94,14 @@ const endpoints = {
         getBudgetByProject: '/project/get-total-fund-by-projectid',
         saveProjectAgencyMilestone: '/project/save-update-project-agency-milestone',
         getAllProjectMapById: '/project/project-agency-milestone-list-by-projectid',
-        projectAlllookUpValue: '/cmn/get-all-lookup-value'
+        projectAlllookUpValue: '/cmn/get-all-lookup-value',
+        getMilestoneByProjectId:'/project/get-milestone-list-by-projectid',
+        
+
+        getProjectAgencyMilestoneMapDetails:"/project/get-projagymlst-by-projectid-and-mlstnid",
+        getBeneficiaryDetails:"/mst/get-beneficiary-list-by-districtid",
+        saveUpdateAgencyMilestone:"/project/save-or-update-milestone-beneficiary",
+        getBeneficiaryByIds:"/project/get-beneficiary-ids-by-id"
 
     },
     milesStone: {

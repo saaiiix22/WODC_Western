@@ -12,7 +12,7 @@ const Navbar = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const selectState = useSelector(state=>state?.menu.userDetails)
-  console.log(selectState);
+  // console.log(selectState);
   
 
   const [open, setOpen] = useState(false);
