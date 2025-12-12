@@ -26,7 +26,7 @@ import {
   AccordionSummary,
 } from "../../components/common/CommonAccordion";
 import { ResetBackBtn, SubmitBtn } from "../../components/common/CommonButtons";
-import { avoidSpecialCharUtil } from "../../utils/validationUtils";
+import { avoidSpecialCharUtil, LGDutil } from "../../utils/validationUtils";
 
 const VillagePage = () => {
   const [expanded, setExpanded] = useState("panel2");
@@ -107,12 +107,12 @@ const VillagePage = () => {
       setErrors(newErrors);
       return;
     }
-    if (!blockId || !blockId.trim()) {
+    if (!blockId) {
       newErrors.blockId = "Block name is required";
       setErrors(newErrors);
       return;
     }
-    if (!gpId || !gpId.trim()) {
+    if (!gpId) {
       newErrors.gpId = "Gram Panchayat name is required";
       setErrors(newErrors);
       return;
@@ -185,12 +185,12 @@ const VillagePage = () => {
       setErrors(newErrors);
       return;
     }
-    if (!blockId || !blockId.trim()) {
+    if (!blockId) {
       newErrors.blockId = "Block name is required";
       setErrors(newErrors);
       return;
     }
-    if (!gpId || !gpId.trim()) {
+    if (!gpId) {
       newErrors.gpId = "Gram Panchayat name is required";
       setErrors(newErrors);
       return;
@@ -418,9 +418,9 @@ const VillagePage = () => {
         <AccordionDetails>
           <div className="p-3">
             <form className="grid grid-cols-12 gap-6" onSubmit={handleSubmitConfirmModal}>
-              <div className="col-span-3">
+              <div className="col-span-2">
                 <SelectField
-                  label="Select District"
+                  label="District Name"
                   required={true}
                   name="districtId"
                   value={districtId}
@@ -430,11 +430,11 @@ const VillagePage = () => {
                     label: d.districtName,
                   }))}
                   error={errors.districtId}
-                  placeholder="Select an option"
+                  placeholder="Select"
                 />
               </div>
 
-              <div className="col-span-3">
+              <div className="col-span-2">
                 <SelectField
                   label="Block Name"
                   required={true}
@@ -447,11 +447,11 @@ const VillagePage = () => {
                   }))}
                   disabled={districtId ? false : true}
                   error={errors.blockId}
-                  placeholder="Select an option"
+                  placeholder="Select"
                 />
               </div>
 
-              <div className="col-span-3">
+              <div className="col-span-2">
                 <SelectField
                   label="Gram Panchayat Name"
                   required={true}
@@ -464,11 +464,11 @@ const VillagePage = () => {
                   }))}
                   disabled={blockId ? false : true}
                   error={errors.gpId}
-                  placeholder="Select an option"
+                  placeholder="Select "
                 />
               </div>
 
-              <div className="col-span-3">
+              <div className="col-span-2">
                 <InputField
                   label="Village Name"
                   required={true}
@@ -477,24 +477,24 @@ const VillagePage = () => {
                   value={avoidSpecialCharUtil(villageNameEn)}
                   onChange={handleChangeInput}
                   error={errors.villageNameEn}
-                  maxLength={30}
+                  maxLength={50}
                 />
               </div>
 
-              <div className="col-span-3">
+              <div className="col-span-2">
                 <InputField
                   label="Village LGD Code"
                   required={true}
                   name="villageLgdCode"
                   placeholder="Village LGD Code"
-                  value={villageLgdCode}
+                  value={LGDutil(villageLgdCode)}
                   onChange={handleChangeInput}
                   error={errors.villageLgdCode}
                   maxLength={30}
                 />
               </div>
 
-              <div className="col-span-4">
+              <div className="col-span-2">
                 <InputField
                   label="Description"
                   textarea={true}
@@ -502,13 +502,13 @@ const VillagePage = () => {
                   placeholder="Write Remarks..."
                   value={remarks}
                   onChange={handleChangeInput}
-                  maxLength={500}
+                  maxLength={255}
                   // error={errors.remark}
                 />
               </div>
 
-              <div className="col-span-2">
-                <div className="flex justify-start gap-2 mt-7">
+              <div className="col-span-12">
+                <div className="flex justify-center gap-2 text-[13px] bg-[#42001d0f] border-t border-[#ebbea6] px-4 py-3 rounded-b-md">
                   <ResetBackBtn />
                   <SubmitBtn type={"submit"} btnText={villageId} />
                 </div>

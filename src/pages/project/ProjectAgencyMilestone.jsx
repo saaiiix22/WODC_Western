@@ -124,56 +124,101 @@ const ProjectAgencyMilestone = () => {
   const handleInput = (index, name, value) => {
     const updated = [...rows];
 
-    updated[index][name] = value;
+    // -----------------------------
+    // 1. CHECK DUPLICATE ORDER
+    // -----------------------------
+    if (name === "order") {
+      const newOrder = Number(value);
 
-    const newAgencyId = Number(updated[index].agencyId);
-    const newMilestoneId = Number(updated[index].milestoneId);
+      const isOrderDuplicate = rows.some(
+        (row, idx) => idx !== index && Number(row.order) === newOrder
+      );
+
+      if (isOrderDuplicate) {
+        toast.error(
+          "This order number is already used. Please enter a unique number."
+        );
+        return;
+      }
+    }
+
+    // -----------------------------
+    // 2. CHECK DUPLICATE AGENCY + MILESTONE
+    // -----------------------------
+    const newAgencyId = Number(
+      name === "agencyId" ? value : updated[index].agencyId
+    );
+    const newMilestoneId = Number(
+      name === "milestoneId" ? value : updated[index].milestoneId
+    );
 
     if (newAgencyId && newMilestoneId) {
-      const isDuplicate = updated.some(
+      const isDuplicateCombo = rows.some(
         (row, idx) =>
           idx !== index &&
           Number(row.agencyId) === newAgencyId &&
           Number(row.milestoneId) === newMilestoneId
       );
 
-      if (isDuplicate) {
+      if (isDuplicateCombo) {
         toast.error("This agency and milestone combination is already added!");
         return;
       }
     }
 
-    // Prevent percentage > 100
+    // -----------------------------
+    // 3. BUDGET PERCENTAGE LOGIC (REMAINING BUDGET)
+    // -----------------------------
     if (name === "budgetPercentage") {
       let percent = parseFloat(value) || 0;
+
       if (percent > 100) {
         toast.error("Percentage cannot exceed 100%");
         return;
       }
 
-      const calcAmount = ((budgetAmount * percent) / 100).toFixed(2);
-
-      const totalExceptCurrent = rows.reduce((sum, row, idx) => {
+      // RULE: TOTAL PERCENT (JUST FOR LIMIT CHECK)
+      const totalPercentExceptCurrent = rows.reduce((sum, row, idx) => {
         if (idx === index) return sum;
         return sum + (parseFloat(row.budgetPercentage) || 0);
       }, 0);
 
-      if (totalExceptCurrent + percent > 100) {
-        alert("Total budget percentage cannot exceed 100%");
+      if (totalPercentExceptCurrent + percent > 100) {
+        toast.error("Total budget percentage cannot exceed 100%");
         return;
       }
 
-      updated[index][name] = percent;
-      updated[index].amount = calcAmount;
+      // -------------------------
+      // NEW LOGIC:
+      // Calculate amount based on remaining budget
+      // -------------------------
 
-      const totalAfterUpdate = totalExceptCurrent + percent;
-      if (totalAfterUpdate === 100) {
-        console.log("No more rows can be added. Total = 100%");
-      }
-    } else {
-      updated[index][name] = value;
+      // Amount used in all other rows
+      const usedAmountExceptCurrent = rows.reduce((sum, row, idx) => {
+        if (idx === index) return sum;
+        return sum + (parseFloat(row.amount) || 0);
+      }, 0);
+
+      // Remaining before applying current row
+      const remainingBeforeCurrent = budgetAmount - usedAmountExceptCurrent;
+
+      // Amount = percentage of remaining budget
+      const calculatedAmount = (
+        (remainingBeforeCurrent * percent) /
+        100
+      ).toFixed(2);
+
+      updated[index].budgetPercentage = percent;
+      updated[index].amount = calculatedAmount;
+
+      setRows(updated);
+      return;
     }
 
+    // -----------------------------
+    // 4. NORMAL FIELD UPDATE
+    // -----------------------------
+    updated[index][name] = value;
     setRows(updated);
   };
 
@@ -415,7 +460,7 @@ const ProjectAgencyMilestone = () => {
                         <div className="col-span-2">
                           <SelectField
                             label={"Agency Name"}
-                            required={true}
+                            // required={true}
                             name="agencyId"
                             value={i.agencyId}
                             onChange={(e) =>

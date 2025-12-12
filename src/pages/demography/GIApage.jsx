@@ -254,7 +254,7 @@ const GIApage = () => {
                   value={giaTypeName}
                   onChange={handleChangeInput}
                   error={errors.giaTypeName}
-                  maxLength={20}
+                  maxLength={30}
                 />
               </div>
 
@@ -266,6 +266,7 @@ const GIApage = () => {
                   placeholder="Write Remarks..."
                   value={remark}
                   onChange={handleChangeInput}
+                  maxLength={255}
                   //   error={errors.remark}
                 />
               </div>

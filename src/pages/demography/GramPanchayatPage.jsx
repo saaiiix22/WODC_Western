@@ -25,7 +25,7 @@ import {
   AccordionSummary,
 } from "../../components/common/CommonAccordion";
 import { ResetBackBtn, SubmitBtn } from "../../components/common/CommonButtons";
-import { avoidSpecialCharUtil } from "../../utils/validationUtils";
+import { avoidSpecialCharUtil, LGDutil } from "../../utils/validationUtils";
 import Loader from "../../components/common/Loader";
 
 const GramPanchayatPage = () => {
@@ -148,7 +148,7 @@ const GramPanchayatPage = () => {
       setErrors(newErrors);
       return;
     }
-    if (!blockId || !blockId.trim()) {
+    if (!blockId) {
       newErrors.blockId = "Block name is required";
       setErrors(newErrors);
       return;
@@ -368,7 +368,7 @@ const GramPanchayatPage = () => {
             >
               <div className="col-span-2">
                 <SelectField
-                  label="Select District"
+                  label="District Name"
                   required={true}
                   name="districtId"
                   onChange={handleChangeInput}
@@ -378,13 +378,13 @@ const GramPanchayatPage = () => {
                   }))}
                   value={districtId}
                   error={errors.districtId}
-                  placeholder="Select an option"
+                  placeholder="Select"
                 />
               </div>
 
               <div className="col-span-2">
                 <SelectField
-                  label="Select Block"
+                  label="Block Name"
                   required={true}
                   name="blockId"
                   onChange={handleChangeInput}
@@ -395,7 +395,7 @@ const GramPanchayatPage = () => {
                   value={blockId}
                   disabled={districtId ? false : true}
                   error={errors.blockId}
-                  placeholder="Select an option"
+                  placeholder="Select"
                 />
               </div>
 
@@ -404,7 +404,7 @@ const GramPanchayatPage = () => {
                   label="Gram Panchayat Name"
                   required={true}
                   name="gpNameEN"
-                  placeholder="Enter Gram Panchayat Name"
+                  placeholder="Enter gram panchayat name"
                   value={avoidSpecialCharUtil(gpNameEN)}
                   onChange={handleChangeInput}
                   error={errors.gpNameEN}
@@ -417,11 +417,11 @@ const GramPanchayatPage = () => {
                   label="LGD Code"
                   required={true}
                   name="gpLgdCode"
-                  placeholder="Enter LGD Code"
-                  value={gpLgdCode}
+                  placeholder="Enter LGD code"
+                  value={LGDutil(gpLgdCode)}
                   onChange={handleChangeInput}
                   error={errors.gpLgdCode}
-                  maxLength={50}
+                  maxLength={30}
                 />
               </div>
 
@@ -430,10 +430,10 @@ const GramPanchayatPage = () => {
                   label="Description"
                   textarea={true}
                   name="remark"
-                  placeholder="Write Remarks..."
+                  placeholder="Write remarks..."
                   value={remark}
                   onChange={handleChangeInput}
-                  maxLength={500}
+                  maxLength={255}
                   minLength={10}
                 />
               </div>

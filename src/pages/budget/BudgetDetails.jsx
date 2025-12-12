@@ -17,6 +17,7 @@ import ReusableDataTable from "../../components/common/ReusableDataTable";
 import {
   alphaNumericUtil,
   convertIntoINRutil,
+  IFSCutil,
   prevDateUtil,
 } from "../../utils/validationUtils";
 
@@ -258,7 +259,7 @@ const BudgetDetails = () => {
                   label="Select Financial Year"
                   required={true}
                   name="finyearId"
-                  placeholder="Choose Financial Year"
+                  placeholder="Select"
                   value={finyearId}
                   options={finyearOption?.map((d) => ({
                     value: d.finyearId,
@@ -326,7 +327,7 @@ const BudgetDetails = () => {
                           )
                         }
                         options={filteredGiaOptions(row.giaTypeId)}
-                        placeholder="Choose GIA Type"
+                        placeholder="Select"
                       />
                     </td>
 
@@ -378,7 +379,8 @@ const BudgetDetails = () => {
                     {/* Branch */}
                     <td className="border-r border-slate-200 px-2 py-1">
                       <input
-                        type="text"
+                        type="number"
+                        maxLength={17}
                         value={row.branch}
                         onChange={(e) =>
                           handleInput(index, "branch", e.target.value)
@@ -405,7 +407,7 @@ const BudgetDetails = () => {
                     <td className="border-r border-slate-200 px-2 py-1">
                       <input
                         type="text"
-                        value={row.ifsc}
+                        value={IFSCutil(row.ifsc)}
                         maxLength={11}
                         onChange={(e) => {
                           const cleaned = alphaNumericUtil(

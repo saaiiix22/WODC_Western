@@ -311,7 +311,7 @@ const GetDistrict = () => {
                   placeholder="Write remarks"
                   value={remark}
                   onChange={handleChangeInput}
-                  maxLength={500}
+                  maxLength={255}
                 />
               </div>
 

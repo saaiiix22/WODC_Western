@@ -800,7 +800,7 @@ const Beneficiary = () => {
                                 value: opt.bankId,
                                 label: opt.bankName,
                               }))}
-                              placeholder="Choose bank name"
+                              placeholder="Select"
                             />
                           </td>
                           <td className="border-r border-slate-200 px-2 py-1">

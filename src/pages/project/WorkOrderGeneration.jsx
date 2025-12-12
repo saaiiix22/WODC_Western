@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { FiFileText } from "react-icons/fi";
 import { ResetBackBtn, SubmitBtn } from "../../components/common/CommonButtons";
 import SelectField from "../../components/common/SelectField";
+import InputField from "../../components/common/InputField";
 
 const WorkOrderGeneration = () => {
   const [formData, setFormData] = useState({
@@ -75,6 +76,26 @@ const WorkOrderGeneration = () => {
                 required={true}
                 name="vendorId"
                 placeholder="Select"
+                onChange={handleChangeInput}
+              />
+            </div>
+            <div className="col-span-2">
+              <InputField
+                label={"Work Order Number"}
+                required={true}
+                name="vendorId"
+                type="number"
+                placeholder="WON"
+                onChange={handleChangeInput}
+              />
+            </div>
+            <div className="col-span-2">
+              <InputField
+                label={"Work Order Date"}
+                required={true}
+                name="vendorId"
+                type="number"
+                placeholder="WOD"
                 onChange={handleChangeInput}
               />
             </div>

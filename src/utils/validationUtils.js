@@ -37,7 +37,20 @@ export const formatDateToDDMMYYYY = (dateStr = "") => {
   const [yyyy, mm, dd] = dateStr.split("-");
   return `${dd}/${mm}/${yyyy}`;
 };
+export const LGDutil = (value) => {
+  if (!value) return "";
 
+  return value.toUpperCase().replace(/[^0-9A-Z]/g, "");
+};
+export const IFSCutil = (value) => {
+  if (!value) return "";
+
+  return value.toUpperCase().replace(/[^0-9A-Z]/g, "");
+};
+export const onlyNumberUtil=(str ='')=>{
+  if (!str) return "";
+  return str.toUpperCase().replace(/[^0-9]/g, "");
+}
 
 
 /* --------------------------

@@ -35,7 +35,7 @@ import {
   saveVendorDetailsService,
   toggleVendorStatusService,
 } from "../../services/vendorService";
-import { numberOnlyUtil } from "../../utils/validationUtils";
+import { IFSCutil, numberOnlyUtil, onlyNumberUtil } from "../../utils/validationUtils";
 
 const VendorPage = () => {
   const [expanded, setExpanded] = useState("panel2");
@@ -212,8 +212,8 @@ const VendorPage = () => {
       const res = await saveVendorDetailsService(payload);
 
       if (res?.status === 200 && res?.data.outcome) {
-        setOpenSubmit(false)
-        setExpanded('panel2')
+        setOpenSubmit(false);
+        setExpanded("panel2");
         toast.success(res?.data.message);
         setFormData({
           vendorId: null,
@@ -422,22 +422,13 @@ const VendorPage = () => {
 
         <AccordionDetails>
           <div className="p-3">
-            <form className="grid grid-cols-12 gap-6" onSubmit={handleSubmitConfirmModal}>
-              <div className="col-span-2">
-                <InputField
-                  label="Vendor Name"
-                  required={true}
-                  name="vendorName"
-                  placeholder="Name"
-                  value={vendorName}
-                  onChange={handleChangeInput}
-                  error={errors.vendorName}
-                />
-              </div>
-
+            <form
+              className="grid grid-cols-12 gap-6"
+              onSubmit={handleSubmitConfirmModal}
+            >
               <div className="col-span-2">
                 <SelectField
-                  label="Select District"
+                  label="District"
                   required={true}
                   name="districtId"
                   value={districtId}
@@ -448,6 +439,18 @@ const VendorPage = () => {
                   }))}
                   error={errors.districtId}
                   placeholder="Select"
+                />
+              </div>
+
+              <div className="col-span-2">
+                <InputField
+                  label="Vendor Name"
+                  required={true}
+                  name="vendorName"
+                  placeholder="Name"
+                  value={vendorName}
+                  onChange={handleChangeInput}
+                  error={errors.vendorName}
                 />
               </div>
 
@@ -571,7 +574,7 @@ const VendorPage = () => {
                                 value: opt.bankId,
                                 label: opt.bankName,
                               }))}
-                              placeholder="Choose bank name"
+                              placeholder="Select"
                             />
                           </td>
                           <td className="border-r border-slate-200 px-2 py-1">
@@ -586,8 +589,8 @@ const VendorPage = () => {
                           </td>
                           <td className="border-r border-slate-200 px-2 py-1">
                             <input
-                              name="accountNo"
-                              value={i.accountNo}
+                              value={onlyNumberUtil(i.accountNo)}
+                              maxLength={17}
                               onChange={(e) =>
                                 handleInput(index, "accountNo", e.target.value)
                               }
@@ -597,7 +600,8 @@ const VendorPage = () => {
                           <td className="border-r border-slate-200 px-2 py-1">
                             <input
                               name="ifscCode"
-                              value={i.ifscCode}
+                              value={IFSCutil(i.ifscCode)}
+                              maxLength={11}
                               onChange={(e) =>
                                 handleInput(index, "ifscCode", e.target.value)
                               }
@@ -672,7 +676,6 @@ const VendorPage = () => {
         onClose={() => setOpenSubmit(false)}
         onConfirm={handleSubmit}
       />
-
     </div>
   );
 };

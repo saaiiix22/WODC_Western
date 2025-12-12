@@ -339,6 +339,7 @@ const SectorPage = () => {
                   placeholder="Sector name"
                   value={sectorName}
                   onChange={handleChangeInput}
+                  maxLength={30}
                   error={errors.sectorName}
                 />
               </div>
@@ -351,6 +352,7 @@ const SectorPage = () => {
                   placeholder="Write remarks ..."
                   value={remarks}
                   onChange={handleChangeInput}
+                  maxLength={255}
                 />
               </div>
 
@@ -404,6 +406,7 @@ const SectorPage = () => {
                                   e.target.value
                                 )
                               }
+                              maxLength={50}
                               className="w-full rounded-md border border-gray-300 px-2.5 py-1.5 mt-1 text-sm"
                             />
                           </td>
@@ -411,6 +414,7 @@ const SectorPage = () => {
                             <input
                               name="subSectorCode"
                               value={i.subSectorCode}
+                              maxLength={30}
                               onChange={(e) =>
                                 handleInput(
                                   index,
@@ -425,6 +429,7 @@ const SectorPage = () => {
                             <input
                               name="remarks"
                               value={i.remarks}
+                              maxLength={255}
                               onChange={(e) =>
                                 handleInput(index, "remarks", e.target.value)
                               }

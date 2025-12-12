@@ -23,7 +23,7 @@ import {
   AccordionSummary,
 } from "../../components/common/CommonAccordion";
 import { ResetBackBtn, SubmitBtn } from "../../components/common/CommonButtons";
-import { avoidSpecialCharUtil } from "../../utils/validationUtils";
+import { avoidSpecialCharUtil, LGDutil } from "../../utils/validationUtils";
 
 const Municipality = () => {
   const [expanded, setExpanded] = useState("panel2");
@@ -80,7 +80,7 @@ const Municipality = () => {
       setErrors(newErrors);
       return;
     }
-    if (!municipalityName || !municipalityName.trim()) {
+    if (!municipalityName) {
       newErrors.municipalityName = "Municipality name is required";
       setErrors(newErrors);
       return;
@@ -313,7 +313,7 @@ const Municipality = () => {
             >
               <div className="col-span-2">
                 <SelectField
-                  label="Select District"
+                  label="District Name"
                   required={true}
                   name="districtId"
                   onChange={handleChangeInput}
@@ -323,7 +323,7 @@ const Municipality = () => {
                   }))}
                   value={districtId}
                   error={errors.districtId}
-                  placeholder="Select an option"
+                  placeholder="Select"
                 />
               </div>
 
@@ -332,7 +332,7 @@ const Municipality = () => {
                   label="Municipality Name"
                   required={true}
                   name="municipalityName"
-                  placeholder="Enter Municipality Name"
+                  placeholder="Enter municipality name"
                   value={avoidSpecialCharUtil(municipalityName)}
                   onChange={handleChangeInput}
                   error={errors.municipalityName}
@@ -345,11 +345,11 @@ const Municipality = () => {
                   label="LGD Code"
                   required={true}
                   name="lgdCode"
-                  placeholder="Enter LGD Code"
-                  value={lgdCode}
+                  placeholder="Enter LGD code"
+                  value={LGDutil(lgdCode)}
                   onChange={handleChangeInput}
                   error={errors.lgdCode}
-                  maxLength={20}
+                  maxLength={30}
                 />
               </div>
 
@@ -358,8 +358,9 @@ const Municipality = () => {
                   label="Description"
                   textarea={true}
                   name="remarks"
-                  placeholder="Write Remarks..."
+                  placeholder="Write remarks..."
                   value={remarks}
+                  maxLength={255}
                   onChange={handleChangeInput}
                 />
               </div>

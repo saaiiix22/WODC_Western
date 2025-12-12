@@ -56,7 +56,7 @@ const Sidebar = ({ collapse, setCollapse }) => {
         { title: "Sector Milestone Mapping", link: "/get-sector-milestone" },
         { title: "Beneficiary Details", link: "/get-beneficiary" },
         { title: "Constituency Details", link: "/get-constituency" },
-        { title: "Proposal Details", link: "/get-proposal" },
+        { title: "Proposed By Details", link: "/get-proposal" },
         { title: "GIA Details", link: "/get-gia" },
       ],
     },

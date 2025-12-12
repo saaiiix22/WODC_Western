@@ -1,15 +1,27 @@
-import { FaSave } from "react-icons/fa";
-import { PiKeyReturnBold } from "react-icons/pi";
+import { GrSave } from "react-icons/gr";
+import { IoReturnDownBackSharp } from "react-icons/io5";
+import { useNavigate } from "react-router-dom";
 
-export const SubmitBtn = ({type,btnText}) => {
-    return (
-        <button type={type}  className="bg-green-600 text-white text-[13px] px-3 py-1 rounded-sm hover:bg-green-700 transition-all active:scale-95 uppercase flex items-center gap-1">
-           <FaSave/> {btnText?'update':'submit'}
-        </button>
-    )
-}
-export const ResetBackBtn =()=>{
-    return(
-        <button type="button" className="bg-red-500 text-white text-[13px] px-3 py-1 rounded-sm hover:bg-red-600 transition-all active:scale-95 uppercase flex items-center gap-1"><PiKeyReturnBold  className="text-lg"/>Back</button>
-    )
-}
+export const SubmitBtn = ({ type, btnText }) => {
+  return (
+    <button
+      type={type}
+      className="bg-green-600 text-white text-[13px] px-3 py-1 rounded-sm  hover:bg-green-700 transition-all active:scale-95 uppercase flex items-center gap-1"
+    >
+      <GrSave /> {btnText ? "update" : "submit"}
+    </button>
+  );
+};
+export const ResetBackBtn = () => {
+  const navigate = useNavigate();
+  return (
+    <button
+      onClick={() => navigate("/dashboard")}
+      type="button"
+      className="bg-light-dark text-white text-[13px] px-3 py-1 rounded-sm hover:bg-gray-900 transition-all active:scale-95 uppercase flex items-center gap-1"
+    >
+      {" "}
+      <IoReturnDownBackSharp className="text-lg" /> Back{" "}
+    </button>
+  );
+};

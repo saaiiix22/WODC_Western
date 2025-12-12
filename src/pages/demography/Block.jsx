@@ -23,7 +23,7 @@ import {
   AccordionSummary,
 } from "../../components/common/CommonAccordion";
 import { ResetBackBtn, SubmitBtn } from "../../components/common/CommonButtons";
-import { avoidSpecialCharUtil } from "../../utils/validationUtils";
+import { avoidSpecialCharUtil, LGDutil } from "../../utils/validationUtils";
 import Loader from "../../components/common/Loader";
 
 const Block = () => {
@@ -350,7 +350,7 @@ const Block = () => {
             >
               <div className="col-span-2">
                 <SelectField
-                  label="Select District"
+                  label="District Name"
                   required={true}
                   name="districtId"
                   value={districtId}
@@ -360,7 +360,7 @@ const Block = () => {
                     label: d.districtName,
                   }))}
                   error={errors.districtId}
-                  placeholder="Select an option"
+                  placeholder="Select"
                 />
               </div>
 
@@ -372,6 +372,7 @@ const Block = () => {
                   placeholder="Enter block name"
                   value={avoidSpecialCharUtil(blockNameEN)}
                   onChange={handleChangeInput}
+                  maxLength={50}
                   error={errors.blockNameEN}
                 />
               </div>
@@ -381,11 +382,11 @@ const Block = () => {
                   label="LGD Code"
                   required={true}
                   name="blocklgdCode"
-                  placeholder="Enter LGD Code"
-                  value={blocklgdCode}
+                  placeholder="Enter LGD code"
+                  value={LGDutil(blocklgdCode)}
                   onChange={handleChangeInput}
                   error={errors.blocklgdCode}
-                  maxLength={20}
+                  maxLength={30}
                 />
               </div>
 
@@ -394,12 +395,12 @@ const Block = () => {
                   label="Description"
                   textarea={true}
                   name="remark"
-                  placeholder="Write Remarks..."
+                  placeholder="Write remarks..."
                   value={remark}
                   onChange={handleChangeInput}
                   error={errors.remark}
                   minLength={10}
-                  maxLength={500}
+                  maxLength={255}
                 />
               </div>
 

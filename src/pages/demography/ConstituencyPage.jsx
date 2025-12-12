@@ -292,7 +292,7 @@ const ConstituencyPage = () => {
             >
               <div className="col-span-2">
                 <SelectField
-                  label="Select District"
+                  label="District Name"
                   required={true}
                   name="districtId"
                   value={districtId}
@@ -315,7 +315,7 @@ const ConstituencyPage = () => {
                   value={avoidSpecialCharUtil(consName)}
                   onChange={handleChangeInput}
                   error={errors.consName}
-                  maxLength={20}
+                  maxLength={50}
                 />
               </div>
 
@@ -327,7 +327,7 @@ const ConstituencyPage = () => {
                   placeholder="Write Remarks..."
                   value={remarks}
                   onChange={handleChangeInput}
-                  maxLength={500}
+                  maxLength={255}
                   // error={errors.remark}
                 />
               </div>

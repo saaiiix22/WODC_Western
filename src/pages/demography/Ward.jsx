@@ -90,7 +90,7 @@ const Ward = () => {
       setErrors(newErrors);
       return;
     }
-    if (!municipalityId || !municipalityId.trim()) {
+    if (!municipalityId) {
       newErrors.municipalityId = "Municipality name is required";
       setErrors(newErrors);
       return;
@@ -148,7 +148,7 @@ const Ward = () => {
       setErrors(newErrors);
       return;
     }
-    if (!municipalityId || !municipalityId.trim()) {
+    if (!municipalityId) {
       newErrors.municipalityId = "Municipality name is required";
       setErrors(newErrors);
       return;
@@ -365,7 +365,7 @@ const Ward = () => {
             >
               <div className="col-span-2">
                 <SelectField
-                  label="Select District"
+                  label="District Name"
                   required={true}
                   name="districtId"
                   value={districtId}
@@ -375,7 +375,7 @@ const Ward = () => {
                     label: d.districtName,
                   }))}
                   error={errors.districtId}
-                  placeholder="Select an option"
+                  placeholder="Select"
                 />
               </div>
 
@@ -392,7 +392,7 @@ const Ward = () => {
                   }))}
                   disabled={districtId ? false : true}
                   error={errors.municipalityId}
-                  placeholder="Select an option"
+                  placeholder="Select"
                 />
               </div>
 
@@ -405,7 +405,7 @@ const Ward = () => {
                   value={avoidSpecialCharUtil(wardName)}
                   onChange={handleChangeInput}
                   error={errors.wardName}
-                  maxLength={20}
+                  maxLength={30}
                 />
               </div>
 
@@ -416,6 +416,7 @@ const Ward = () => {
                   name="remarks"
                   placeholder="Write Remarks..."
                   value={remarks}
+                  maxLength={50}
                   onChange={handleChangeInput}
                 />
               </div>

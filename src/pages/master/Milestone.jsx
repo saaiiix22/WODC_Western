@@ -256,6 +256,7 @@ const Milestone = () => {
                 <InputField
                   label="Milestone Name"
                   required={true}
+                  maxLength={100}
                   name="milestoneName"
                   placeholder="Enter milestone name"
                   value={milestoneName}
@@ -270,6 +271,7 @@ const Milestone = () => {
                   required={true}
                   textarea={true}
                   name="remark"
+                  maxLength={255}
                   placeholder="Write Remarks..."
                   value={remark}
                   onChange={handleChangeInput}

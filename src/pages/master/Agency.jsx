@@ -34,6 +34,7 @@ import {
 import {
   cleanAadhaarUtil,
   cleanContactNoUtil,
+  IFSCutil,
   validateAadhaarUtil,
   validateAccountNoUtil,
   validateIfscUtil,
@@ -456,21 +457,10 @@ const Agency = () => {
         <AccordionDetails>
           <div className="p-3">
             <form className="grid grid-cols-12 gap-6" onSubmit={handleSubmitConfirmModal}>
-              <div className="col-span-2">
-                <InputField
-                  label="Agency Name"
-                  required={true}
-                  name="agencyName"
-                  placeholder="Enter Name"
-                  value={agencyName}
-                  onChange={handleChangeInput}
-                  error={errors.agencyName}
-                />
-              </div>
 
               <div className="col-span-2">
                 <SelectField
-                  label="Select District"
+                  label="District"
                   required={true}
                   name="districtId"
                   value={districtId}
@@ -483,6 +473,22 @@ const Agency = () => {
                   placeholder="Select"
                 />
               </div>
+
+
+              <div className="col-span-2">
+                <InputField
+                  label="Agency Name"
+                  required={true}
+                  name="agencyName"
+                  placeholder="Enter Name"
+                  value={agencyName}
+                  onChange={handleChangeInput}
+                  error={errors.agencyName}
+                  maxLength={50}
+                />
+              </div>
+
+              
 
               <div className="col-span-2">
                 <InputField
@@ -542,6 +548,7 @@ const Agency = () => {
                   name="address"
                   placeholder="Address"
                   value={address}
+                  maxLength={255}
                   onChange={handleChangeInput}
                 />
               </div>
@@ -603,7 +610,7 @@ const Agency = () => {
                                 value: opt.bankId,
                                 label: opt.bankName,
                               }))}
-                              placeholder="Choose bank name"
+                              placeholder="Select"
                             />
                           </td>
                           <td className="border-r border-slate-200 px-2 py-1">
@@ -629,7 +636,8 @@ const Agency = () => {
                           <td className="border-r border-slate-200 px-2 py-1">
                             <input
                               name="ifscCode"
-                              value={i.ifscCode}
+                              value={IFSCutil(i.ifscCode)}
+                              maxLength={11}
                               onChange={(e) =>
                                 handleInput(index, "ifscCode", e.target.value)
                               }

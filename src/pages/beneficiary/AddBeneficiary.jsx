@@ -358,6 +358,14 @@ const AddBeneficiary = () => {
                         </tr>
                       );
                     })}
+                    {
+                      tableData?.length === 0 &&
+                      (
+                        <tr>
+                          <td colSpan={7} className="text-sm p-2 text-center">No Data Found</td>
+                        </tr>
+                      )
+                    }
                   </tbody>
                 </table>
               </div>

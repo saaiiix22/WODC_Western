@@ -345,6 +345,30 @@ const Project = () => {
       }
     }
 
+    if (name === "releaseAmount") {
+      const entered = Number(value);
+      const max = Number(row.maxamount);
+
+      if (!row.maxamount) {
+        row[name] = value;
+        updatedRows[index] = row;
+        setFundReleaseRows(updatedRows);
+        return;
+      }
+
+      if (value === "" || value === null) {
+        row[name] = value;
+        updatedRows[index] = row;
+        setFundReleaseRows(updatedRows);
+        return;
+      }
+
+      if (entered > max) {
+        toast.error("Release amount cannot exceed the maximum amount!");
+        return;
+      }
+    }
+
     // Save updated row
     updatedRows[index] = row;
     setFundReleaseRows(updatedRows);
@@ -572,7 +596,7 @@ const Project = () => {
       const res = await saveProjectService(payload);
       console.log(res);
       if (res?.status === 200 && res?.data.outcome) {
-        setOpenSubmit(false)
+        setOpenSubmit(false);
         toast.success(res?.data.message);
         setFormData({
           districtId: "",
@@ -842,6 +866,8 @@ const Project = () => {
                     placeholder="Enter project name"
                     onChange={handleChangeInput}
                     value={projectName}
+                    maxLength={50}
+                    minLength={4}
                     error={errors.projectName}
                   />
                 </div>
@@ -854,7 +880,7 @@ const Project = () => {
                     value={projectCode}
                     disabled={true}
                     onChange={handleChangeInput}
-
+                    maxLength={50}
                     // error={errors.projectCode}
                   />
                 </div>
@@ -1104,7 +1130,6 @@ const Project = () => {
                   <InputField
                     label="Actual Start Date"
                     type="date"
-                    required={true}
                     name="actualStartDate"
                     value={actualStartDate}
                     onChange={handleChangeInput}
@@ -1115,7 +1140,6 @@ const Project = () => {
                   <InputField
                     label="Actual End Date"
                     type="date"
-                    required={true}
                     name="actualEndDate"
                     value={actualEndDate}
                     min={actualStartDate || ""}
@@ -1184,6 +1208,7 @@ const Project = () => {
                     value={proposedByName}
                     onChange={handleChangeInput}
                     error={errors.proposedByName}
+                    maxLength={50}
                   />
                 </div>
               </div>
@@ -1299,6 +1324,7 @@ const Project = () => {
                       <SelectField
                         label="Bank Name"
                         name="bankId"
+                        required={true}
                         value={i.bankId}
                         onChange={(e) => handleRowChange(e, index)}
                         options={bankListOpts?.map((d) => ({
@@ -1313,6 +1339,7 @@ const Project = () => {
                       <SelectField
                         label="Mode of transfer"
                         name="modeOfTransfer"
+                        required={true}
                         value={i.modeOfTransfer}
                         onChange={(e) => handleRowChange(e, index)}
                         options={modeOfTransferList?.map((d) => ({
@@ -1341,6 +1368,7 @@ const Project = () => {
                       <SelectField
                         label="GIA Year "
                         name="giaYear"
+                        required={true}
                         value={i.giaYear}
                         onChange={(e) => handleRowChange(e, index)}
                         options={finYearOpts?.map((d) => ({
@@ -1356,6 +1384,7 @@ const Project = () => {
                       <SelectField
                         label="GIA Type "
                         name="giaTypeId"
+                        required={true}
                         value={i.giaTypeId}
                         onChange={(e) => handleRowChange(e, index)}
                         options={giaOpts?.map((d) => ({
@@ -1386,18 +1415,18 @@ const Project = () => {
                         //   error={errors.blockNameEN}
                       />
                       <div className="flex justify-between">
-                        {i.maxamount && (
+                        
+                        {i.maxamount !== undefined && i.maxamount !== null && (
                           <div className="text-[11px] text-blue-700">
                             Total :{" "}
-                            <span className="font-semibold">{i.maxamount}</span>
+                            <span className="font-semibold">₹ {Number(i.maxamount).toLocaleString("en-IN")}</span>
                           </div>
                         )}
                         {i.maxamount !== undefined && (
                           <div className="text-[11px] text-blue-700">
                             Remaining :{" "}
                             <span className="font-semibold">
-                              {Number(i.maxamount) -
-                                (Number(i.releaseAmount) || 0)}
+                              ₹ {(Number(i.maxamount) - (Number(i.releaseAmount) || 0)).toLocaleString("en-IN")}
                             </span>
                           </div>
                         )}
@@ -1448,9 +1477,9 @@ const Project = () => {
                     <div className="col-span-2">
                       <InputField
                         label="Description"
-                        required={true}
                         textarea={true}
                         name="remarks"
+                        maxLength={255}
                         value={i.remarks}
                         placeholder="Write Remarks..."
                         onChange={(e) => handleRowChange(e, index)}
