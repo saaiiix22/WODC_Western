@@ -106,7 +106,8 @@ const endpoints = {
         saveUpdateAgencyMilestone:"/project/save-or-update-milestone-beneficiary",
         getBeneficiaryByIds:"/project/get-beneficiary-ids-by-id",
         getProjectByFinYear:"/project/get-project-list-by-finyear",
-        getUpdatedFuncDetails:"/fund/bank-by-finyear-giatype"
+        getUpdatedFuncDetails:"/fund/bank-by-finyear-giatype",
+        getBankConfigProject:"/fund/bank-config-by-finyear-giatype-bankid"
 
     },
     milesStone: {

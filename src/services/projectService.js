@@ -32,3 +32,4 @@ export const saveUpdateAgencyMilestoneService=(data)=>Api.post(endpoints.project
 export const getBeneficiaryByIdsService=(data)=>Api.get(endpoints.project.getBeneficiaryByIds,{params:{cipherText:data}})
 export const getProjectByFinYearService=(data)=>Api.get(endpoints.project.getProjectByFinYear,{params:{cipherText:data}})
 export const getUpdatedFuncDetailsService=(data)=>Api.get(endpoints.project.getUpdatedFuncDetails,{params:{cipherText:data}})
+export const getBankConfigProjectService=(data)=>Api.get(endpoints.project.getBankConfigProject,{params:{cipherText:data}})

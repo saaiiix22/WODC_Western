@@ -21,6 +21,7 @@ import { getBlockThroughDistrictService } from "../../services/gpService";
 import { getGpByBlockService } from "../../services/villageService";
 import {
   generateProjectCodeService,
+  getBankConfigProjectService,
   getConsThroughDistService,
   // getFavourANDmodeOfTransferService,
   getProjectDetailsByProjectIdService,
@@ -292,22 +293,21 @@ const Project = () => {
 
   const [rowBudgets, setRowBudgets] = useState({});
 
-  const fetchFundDetails = async (giaYear, giaTypeId) => {
-    try {
-      const payload = encryptPayload({ finyearId: giaYear, giaTypeId });
-      // const res = await maxBudgetService(payload);
-      const res = await getUpdatedFuncDetailsService(payload);
-      console.log(res);
+  // const fetchFundDetails = async (giaYear, giaTypeId) => {
+  //   try {
+  //     const payload = encryptPayload({ finyearId: giaYear, giaTypeId });
+  //     const res = await maxBudgetService(payload);
+  //     // console.log(res);
 
-      return {
-        totalBudget: res?.data?.data?.totalBudget || 0,
-        amount: res?.data?.data?.amount || 0,
-        fundAllocDate: res?.data?.data?.fundAllocDate || "",
-      };
-    } catch (error) {
-      return { totalBudget: 0, amount: 0, fundAllocDate: "" };
-    }
-  };
+  //     return {
+  //       totalBudget: res?.data?.data?.totalBudget || 0,
+  //       amount: res?.data?.data?.amount || 0,
+  //       fundAllocDate: res?.data?.data?.fundAllocDate || "",
+  //     };
+  //   } catch (error) {
+  //     return { totalBudget: 0, amount: 0, fundAllocDate: "" };
+  //   }
+  // };
 
   const handleRemoveRow = (index) => {
     setFundReleaseRows((prev) => prev.filter((_, i) => i !== index));
@@ -338,15 +338,18 @@ const Project = () => {
       if (res?.status === 200 && res?.data?.outcome) {
         setBankListOpts((prev) => ({
           ...prev,
-          [rowIndex]: res.data.data, // bank list
+          [rowIndex]: res.data.data,
         }));
       }
+
+      return res; // ✅ IMPORTANT
     } catch (err) {
       console.error(err);
+      return null; // optional but good practice
     }
   };
 
-  
+  const [configOpts,setConfigOpts] = useState([])
 
   const handleRowChange = async (e, index) => {
     const { name, value } = e.target;
@@ -383,9 +386,21 @@ const Project = () => {
       updatedRows[index] = row;
       setFundReleaseRows(updatedRows);
 
-      // 🔹 CALL SERVICE ONLY WHEN BOTH ARE PRESENT
-      const res = await getUpdatedFuncDetails(updatedYear, updatedType, index);
+      await getUpdatedFuncDetails(updatedYear, updatedType, index);
+    }
+    const updatedBankId = name === "bankId" ? value : row.bankId;
+
+    if (name === "bankId" && updatedBankId) {
+      const payload = encryptPayload({
+        finyearId: row.giaYear,
+        giaTypeId: row.giaTypeId,
+        bankId: row.bankId,
+      });
+      const res = await getBankConfigProjectService(payload)
       console.log(res);
+      if(res?.status ===200 && res?.data.outcome){
+        setConfigOpts(res?.data.data)
+      }
       
     }
 
@@ -420,23 +435,23 @@ const Project = () => {
     setFundReleaseRows(updatedRows);
 
     // ---------------- Budget calculation ----------------
-    if (updatedYear && updatedType) {
-      const data = await fetchFundDetails(updatedYear, updatedType);
-      const used = getUsedAmount(updatedYear, updatedType, index);
-      const remaining = data.amount - used;
+    // if (updatedYear && updatedType) {
+    //   const data = await fetchFundDetails(updatedYear, updatedType);
+    //   const used = getUsedAmount(updatedYear, updatedType, index);
+    //   const remaining = data.amount - used;
 
-      setFundReleaseRows((prev) => {
-        const newRows = [...prev];
-        newRows[index].maxamount = remaining;
-        newRows[index].fundAllocDate = data.fundAllocDate;
-        return newRows;
-      });
+    //   setFundReleaseRows((prev) => {
+    //     const newRows = [...prev];
+    //     newRows[index].maxamount = remaining;
+    //     newRows[index].fundAllocDate = data.fundAllocDate;
+    //     return newRows;
+    //   });
 
-      setRowBudgets((prev) => ({
-        ...prev,
-        [index]: data.totalBudget,
-      }));
-    }
+    //   setRowBudgets((prev) => ({
+    //     ...prev,
+    //     [index]: data.totalBudget,
+    //   }));
+    // }
   };
 
   const handleChangeInput = (e) => {
@@ -836,30 +851,30 @@ const Project = () => {
     });
   };
 
-  useEffect(() => {
-    if (stateSelect && stateSelect.fundReleaseInfo?.length > 0) {
-      stateSelect.fundReleaseInfo.forEach(async (row, index) => {
-        if (row.giaYear && row.giaTypeId) {
-          const data = await fetchFundDetails(row.giaYear, row.giaTypeId);
+  // useEffect(() => {
+  //   if (stateSelect && stateSelect.fundReleaseInfo?.length > 0) {
+  //     stateSelect.fundReleaseInfo.forEach(async (row, index) => {
+  //       if (row.giaYear && row.giaTypeId) {
+  //         const data = await fetchFundDetails(row.giaYear, row.giaTypeId);
 
-          const used = getUsedAmount(row.giaYear, row.giaTypeId, index);
-          const remaining = data.amount - used;
+  //         const used = getUsedAmount(row.giaYear, row.giaTypeId, index);
+  //         const remaining = data.amount - used;
 
-          setFundReleaseRows((prev) => {
-            const newRows = [...prev];
-            newRows[index].maxamount = remaining;
-            newRows[index].fundAllocDate = data.fundAllocDate;
-            return newRows;
-          });
+  //         setFundReleaseRows((prev) => {
+  //           const newRows = [...prev];
+  //           newRows[index].maxamount = remaining;
+  //           newRows[index].fundAllocDate = data.fundAllocDate;
+  //           return newRows;
+  //         });
 
-          setRowBudgets((prev) => ({
-            ...prev,
-            [index]: data.totalBudget,
-          }));
-        }
-      });
-    }
-  }, [stateSelect]);
+  //         setRowBudgets((prev) => ({
+  //           ...prev,
+  //           [index]: data.totalBudget,
+  //         }));
+  //       }
+  //     });
+  //   }
+  // }, [stateSelect]);
 
   return (
     <div className="mt-3">
@@ -1397,19 +1412,32 @@ const Project = () => {
                         placeholder="Select "
                       />
                     </div>
-                    <div className="col-span-2">
+                    <div className="col-span-3">
                       <SelectField
                         label="Bank Name"
                         name="bankId"
                         required={true}
-                        // value={i.bankId}
+                        value={fundReleaseRows[index]?.bankId || ""}
                         onChange={(e) => handleRowChange(e, index)}
-                        // options={bankListOpts?.map((d) => ({
-                        //   value: d.bankId,
-                        //   label: d.bankName,
-                        // }))}
-                        //   error={errors.districtId}
+                        options={
+                          bankListOpts[index]?.map((d) => ({
+                            value: d.bankId,
+                            label: d.bankName,
+                          })) || []
+                        }
                         placeholder="Select"
+                      />
+                    </div>
+                    <div className="col-span-3">
+                      <SelectField
+                        label={"Branch | Account Number | IFSC"}
+                        name="bankAccConfigId"
+                        onChange={(e) => handleRowChange(e, index)}
+                        placeholder="Select"
+                        options={configOpts?.map((i)=>({
+                          value:i.bankAccConfigId,
+                          label:`${i.branch} | ${i.accNo} | ${i.ifsc}`
+                        }))}
                       />
                     </div>
                     <div className="col-span-2">
@@ -1518,7 +1546,7 @@ const Project = () => {
                         //   error={errors.blockNameEN}
                       />
                     </div> */}
-                    <div className="col-span-2">
+                    <div className="col-span-4">
                       <InputField
                         label="Description"
                         textarea={true}
