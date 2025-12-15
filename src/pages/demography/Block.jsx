@@ -25,6 +25,7 @@ import {
 import { ResetBackBtn, SubmitBtn } from "../../components/common/CommonButtons";
 import { avoidSpecialCharUtil, LGDutil } from "../../utils/validationUtils";
 import Loader from "../../components/common/Loader";
+import { Tooltip } from "@mui/material";
 
 const Block = () => {
   const [expanded, setExpanded] = useState("panel2");
@@ -161,11 +162,10 @@ const Block = () => {
       setErrors(newErrors);
       return;
     }
-    if(Object.keys(newErrors).length===0){
-      setOpenSubmit(true)
-    }
-    else{
-      setOpenSubmit(false)
+    if (Object.keys(newErrors).length === 0) {
+      setOpenSubmit(true);
+    } else {
+      setOpenSubmit(false);
     }
   };
 
@@ -274,37 +274,41 @@ const Block = () => {
       cell: (row) => (
         <div className="flex items-center gap-2">
           {/* EDIT BUTTON */}
-          <button
-            type="button"
-            className="flex items-center justify-center h-8 w-8 bg-blue-500/25 text-blue-500 rounded-full"
-            // onClick={() => {console.log( row.districtId) }}
-            onClick={() => {
-              handleEditClick(row?.blockId);
-            }}
-          >
-            <GoPencil className="w-4 h-4" />
-          </button>
+          <Tooltip title="Edit" arrow>
+            <button
+              type="button"
+              className="flex items-center justify-center h-8 w-8 bg-blue-500/25 text-blue-500 rounded-full"
+              // onClick={() => {console.log( row.districtId) }}
+              onClick={() => {
+                handleEditClick(row?.blockId);
+              }}
+            >
+              <GoPencil className="w-4 h-4" />
+            </button>
+          </Tooltip>
 
           {/* ACTIVE / INACTIVE BUTTON */}
-          <button
-            className={`flex items-center justify-center h-8 w-8 rounded-full 
+          <Tooltip title={row.isActive?"Active" : "Inactive"} arrow>
+            <button
+              className={`flex items-center justify-center h-8 w-8 rounded-full 
             ${
               row.isActive
                 ? "bg-green-600/25 hover:bg-green-700/25 text-green-600"
                 : "bg-red-500/25 hover:bg-red-600/25 text-red-500 "
             }`}
-            // onClick={() => toggleStatus(row?.blockId)}
-            onClick={() => {
-              setBlockStatusId(row?.blockId);
-              setOpenModal(true);
-            }}
-          >
-            {row.isActive ? (
-              <MdLockOutline className="w-4 h-4" />
-            ) : (
-              <MdLockOpen className="w-4 h-4" />
-            )}
-          </button>
+              // onClick={() => toggleStatus(row?.blockId)}
+              onClick={() => {
+                setBlockStatusId(row?.blockId);
+                setOpenModal(true);
+              }}
+            >
+              {row.isActive ? (
+                <MdLockOutline className="w-4 h-4" />
+              ) : (
+                <MdLockOpen className="w-4 h-4" />
+              )}
+            </button>
+          </Tooltip>
         </div>
       ),
       ignoreRowClick: true,

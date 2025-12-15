@@ -58,6 +58,7 @@ const Sidebar = ({ collapse, setCollapse }) => {
         { title: "Constituency Details", link: "/get-constituency" },
         { title: "Proposed By Details", link: "/get-proposal" },
         { title: "GIA Details", link: "/get-gia" },
+        { title: "Bank Account Configuration", link: "/bankAccoutConfig" },
       ],
     },
     {

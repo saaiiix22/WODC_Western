@@ -35,5 +35,6 @@ export const routes = {
    workOrderGeneration:{path: "/workOrderGeneration", label: "Work Order Generation", protected: true},
    
    addBeneficiary:{path: "/addBeneficiary", label: "Add Beneficiary", protected: true},
+   bankAccoutConfig:{path: "/bankAccoutConfig", label: "Bank Account Configuration", protected: true},
 
 }

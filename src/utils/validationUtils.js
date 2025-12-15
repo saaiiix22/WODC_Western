@@ -51,8 +51,17 @@ export const onlyNumberUtil=(str ='')=>{
   if (!str) return "";
   return str.toUpperCase().replace(/[^0-9]/g, "");
 }
-
-
+export const accountNumberUtil = (str = "") => {
+  if (!str) return "";
+  return str.replace(/[^0-9]/g, "");
+};
+export const ifscUtil = (str = "") => {
+  if (!str) return "";
+  return str
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "")  
+    .slice(0, 11); 
+};
 /* --------------------------
     NEW VALIDATION FUNCTIONS
 ---------------------------*/

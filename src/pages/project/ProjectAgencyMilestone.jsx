@@ -6,6 +6,7 @@ import { encryptPayload } from "../../crypto.js/encryption";
 import {
   getBudgetByProjectService,
   getMilestoneService,
+  getProjectByFinYearService,
   getProjectListService,
   getProjectMapByProjectIdService,
   projectAlllookUpValueService,
@@ -19,6 +20,7 @@ import { useSelector } from "react-redux";
 import { getVendorDataService } from "../../services/vendorService";
 import InputField from "../../components/common/InputField";
 import { IoMdAddCircle } from "react-icons/io";
+import { getFinancialYearService } from "../../services/budgetService";
 
 const ProjectAgencyMilestone = () => {
   const userSelection = useSelector((state) => state?.menu.userDetails);
@@ -26,16 +28,34 @@ const ProjectAgencyMilestone = () => {
 
   const [formData, setFormData] = useState({
     projectId: "",
+    finYear: "",
   });
 
   const formatToYYYYMMDD = (dateStr) => {
     if (!dateStr) return "";
     const [day, month, year] = dateStr.split("/");
+    getFinancialYearService;
     return `${year}-${month}-${day}`;
+  };
+
+  const [getFinancialYearOpts, setFinancialYearOpts] = useState([]);
+
+  const getAllFinYearOpts = async () => {
+    try {
+      const payload = encryptPayload({ isActive: true });
+      const res = await getFinancialYearService(payload);
+      // console.log(res);
+      if (res?.status === 200 && res?.data.outcome) {
+        setFinancialYearOpts(res?.data.data);
+      }
+    } catch (error) {
+      throw error;
+    }
   };
 
   const [milestoneOpts, setMilestoneOpts] = useState([]);
   const [budgetAmount, setBudgetAmount] = useState("");
+
   const handleInputChange = async (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -124,11 +144,21 @@ const ProjectAgencyMilestone = () => {
   const handleInput = (index, name, value) => {
     const updated = [...rows];
 
-    // -----------------------------
-    // 1. CHECK DUPLICATE ORDER
-    // -----------------------------
     if (name === "order") {
+
+      if (value === "") {
+        updated[index].order = "";
+        setRows(updated);
+        return;
+      }
+
+      if (!/^\d+$/.test(value)) {
+        return;
+      }
+
       const newOrder = Number(value);
+
+      if (newOrder < 0) return;
 
       const isOrderDuplicate = rows.some(
         (row, idx) => idx !== index && Number(row.order) === newOrder
@@ -140,11 +170,12 @@ const ProjectAgencyMilestone = () => {
         );
         return;
       }
+
+      updated[index].order = newOrder;
+      setRows(updated);
+      return;
     }
 
-    // -----------------------------
-    // 2. CHECK DUPLICATE AGENCY + MILESTONE
-    // -----------------------------
     const newAgencyId = Number(
       name === "agencyId" ? value : updated[index].agencyId
     );
@@ -166,18 +197,28 @@ const ProjectAgencyMilestone = () => {
       }
     }
 
-    // -----------------------------
-    // 3. BUDGET PERCENTAGE LOGIC (REMAINING BUDGET)
-    // -----------------------------
     if (name === "budgetPercentage") {
-      let percent = parseFloat(value) || 0;
+      // allow empty (delete/backspace)
+      if (value === "") {
+        updated[index].budgetPercentage = "";
+        updated[index].amount = "";
+        setRows(updated);
+        return;
+      }
+
+      if (!/^\d+(\.\d+)?$/.test(value)) {
+        return;
+      }
+
+      const percent = parseFloat(value);
+
+      if (percent < 0) return;
 
       if (percent > 100) {
         toast.error("Percentage cannot exceed 100%");
         return;
       }
 
-      // RULE: TOTAL PERCENT (JUST FOR LIMIT CHECK)
       const totalPercentExceptCurrent = rows.reduce((sum, row, idx) => {
         if (idx === index) return sum;
         return sum + (parseFloat(row.budgetPercentage) || 0);
@@ -188,21 +229,13 @@ const ProjectAgencyMilestone = () => {
         return;
       }
 
-      // -------------------------
-      // NEW LOGIC:
-      // Calculate amount based on remaining budget
-      // -------------------------
-
-      // Amount used in all other rows
       const usedAmountExceptCurrent = rows.reduce((sum, row, idx) => {
         if (idx === index) return sum;
         return sum + (parseFloat(row.amount) || 0);
       }, 0);
 
-      // Remaining before applying current row
       const remainingBeforeCurrent = budgetAmount - usedAmountExceptCurrent;
 
-      // Amount = percentage of remaining budget
       const calculatedAmount = (
         (remainingBeforeCurrent * percent) /
         100
@@ -215,9 +248,6 @@ const ProjectAgencyMilestone = () => {
       return;
     }
 
-    // -----------------------------
-    // 4. NORMAL FIELD UPDATE
-    // -----------------------------
     updated[index][name] = value;
     setRows(updated);
   };
@@ -277,7 +307,6 @@ const ProjectAgencyMilestone = () => {
     e.preventDefault();
 
     const isAdmin = userSelection.roleCode === "ROLE_WODC_ADMIN";
-    const isAgency = userSelection.roleCode === "ROLE_AGENCY";
 
     const transformedRows = rows.map((row) => ({
       ...row,
@@ -334,10 +363,17 @@ const ProjectAgencyMilestone = () => {
 
   const getAllProjectOpts = async () => {
     try {
-      const payload = encryptPayload({ isActive: true });
-      const res = await getProjectListService(payload);
-      // console.log(res);
-      setProjectOpts(res?.data.data);
+      const payload = encryptPayload({
+        isActive: true,
+        finyearId: parseInt(formData.finYear),
+      });
+      if (formData.finYear) {
+        const res = await getProjectByFinYearService(payload);
+        // console.log(res);
+        if (res?.status === 200 && res?.data.outcome) {
+          setProjectOpts(res?.data.data);
+        }
+      }
     } catch (error) {
       throw error;
     }
@@ -368,19 +404,36 @@ const ProjectAgencyMilestone = () => {
     try {
       const payload = encryptPayload({ isActive: true });
       const res = await projectAlllookUpValueService(payload);
-      console.log(res?.data.data.milestioneStatusList);
+      // console.log(res?.data.data.milestioneStatusList);
       setStatusOpts(res?.data.data.milestioneStatusList);
     } catch (error) {
       throw error;
     }
   };
   useEffect(() => {
-    getAllProjectOpts();
+    getAllFinYearOpts();
     getAllAgencyList();
     getAllVendorList();
     getAllStatusOptions();
   }, []);
+  useEffect(() => {
+    if (formData.finYear) {
+      setProjectOpts([]);
+      setFormData((prev) => ({
+        ...prev,
+        projectId: "",
+      }));
 
+      getAllProjectOpts();
+    } else {
+      // finYear cleared
+      setProjectOpts([]);
+      setFormData((prev) => ({
+        ...prev,
+        projectId: "",
+      }));
+    }
+  }, [formData.finYear]);
   useEffect(() => {
     if (!budgetAmount) return;
 
@@ -423,11 +476,26 @@ const ProjectAgencyMilestone = () => {
 
         {/* Body */}
         <div className="min-h-[120px] py-5 px-4 text-[#444]">
-          <div className="grid grid-cols-12">
+          <div className="grid grid-cols-12 gap-6">
             <div className="col-span-2">
               <SelectField
-                label="Select Project"
+                label="Financial Year"
                 required={true}
+                name="finYear"
+                value={formData.finYear}
+                onChange={handleInputChange}
+                placeholder="Select"
+                options={getFinancialYearOpts?.map((i) => ({
+                  value: i.finyearId,
+                  label: i.finYear,
+                }))}
+              />
+            </div>
+            <div className="col-span-2">
+              <SelectField
+                label="Project"
+                required={true}
+                disabled={formData.finYear ? false : true}
                 name="projectId"
                 value={formData.projectId}
                 onChange={handleInputChange}
@@ -548,6 +616,7 @@ const ProjectAgencyMilestone = () => {
                             onChange={(e) =>
                               handleInput(index, "startDate", e.target.value)
                             }
+                            disabled={userSelection?.roleCode === "ROLE_AGENCY" ? true :false}
                             type="date"
                             className={`
                                   w-full rounded-md border border-gray-300 
@@ -570,6 +639,7 @@ const ProjectAgencyMilestone = () => {
                             name="endDate"
                             value={i.endDate}
                             min={i.startDate}
+                            disabled={userSelection?.roleCode === "ROLE_AGENCY" ? true :false}
                             onChange={(e) =>
                               handleInput(index, "endDate", e.target.value)
                             }
@@ -601,6 +671,7 @@ const ProjectAgencyMilestone = () => {
                                 e.target.value
                               )
                             }
+                            disabled={userSelection.roleCode === "ROLE_WODC_ADMIN"?true:false}
                             type="date"
                             className={`
                                   w-full rounded-md border border-gray-300 
@@ -623,6 +694,8 @@ const ProjectAgencyMilestone = () => {
                             name="actualEndDate"
                             value={i.actualEndDate}
                             min={i.actualStartDate}
+                            disabled={userSelection.roleCode === "ROLE_WODC_ADMIN"?true:false}
+
                             onChange={(e) =>
                               handleInput(
                                 index,

@@ -25,6 +25,7 @@ import {
 } from "../../components/common/CommonAccordion";
 import { ResetBackBtn, SubmitBtn } from "../../components/common/CommonButtons";
 import { avoidSpecialCharUtil } from "../../utils/validationUtils";
+import { Tooltip } from "@mui/material";
 
 const Ward = () => {
   const [expanded, setExpanded] = useState("panel2");
@@ -220,6 +221,7 @@ const Ward = () => {
       cell: (row) => (
         <div className="flex items-center gap-2">
           {/* EDIT BUTTON */}
+          <Tooltip title="Edit" arrow>
           <button
             type="button"
             className="flex items-center justify-center h-8 w-8 bg-blue-500/25 text-blue-500 rounded-full"
@@ -229,8 +231,10 @@ const Ward = () => {
           >
             <GoPencil className="w-4 h-4" />
           </button>
+          </Tooltip>
 
           {/* ACTIVE / INACTIVE BUTTON */}
+          <Tooltip title={row.isActive?"Active" : "Inactive"} arrow>
           <button
             className={`flex items-center justify-center h-8 w-8 rounded-full 
                   ${
@@ -250,6 +254,7 @@ const Ward = () => {
               <MdLockOpen className="w-4 h-4" />
             )}
           </button>
+          </Tooltip>
         </div>
       ),
       ignoreRowClick: true,
@@ -401,7 +406,7 @@ const Ward = () => {
                   label="Ward Name"
                   required={true}
                   name="wardName"
-                  placeholder="Enter Ward Name"
+                  placeholder="Enter ward name"
                   value={avoidSpecialCharUtil(wardName)}
                   onChange={handleChangeInput}
                   error={errors.wardName}
@@ -414,7 +419,7 @@ const Ward = () => {
                   label="Description"
                   textarea={true}
                   name="remarks"
-                  placeholder="Write Remarks..."
+                  placeholder="Write remarks..."
                   value={remarks}
                   maxLength={50}
                   onChange={handleChangeInput}

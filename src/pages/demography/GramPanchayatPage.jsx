@@ -11,6 +11,7 @@ import { MdLockOutline } from "react-icons/md";
 import { MdLockOpen } from "react-icons/md";
 import SelectField from "../../components/common/SelectField";
 import { getAllDists } from "../../services/blockService";
+import { Tooltip } from "@mui/material";
 import {
   editGpService,
   getBlockThroughDistrictService,
@@ -232,6 +233,7 @@ const GramPanchayatPage = () => {
       cell: (row) => (
         <div className="flex items-center gap-2">
           {/* EDIT BUTTON */}
+          <Tooltip title="Edit" arrow>
           <button
             type="button"
             className="flex items-center justify-center h-8 w-8 bg-blue-500/25 text-blue-500 rounded-full"
@@ -241,8 +243,10 @@ const GramPanchayatPage = () => {
           >
             <GoPencil className="w-4 h-4" />
           </button>
+          </Tooltip>
 
           {/* ACTIVE / INACTIVE BUTTON */}
+          <Tooltip title={row.isActive?"Active" : "Inactive"} arrow>
           <button
             className={`flex items-center justify-center h-8 w-8 rounded-full 
                 ${
@@ -261,6 +265,7 @@ const GramPanchayatPage = () => {
               <MdLockOpen className="w-4 h-4" />
             )}
           </button>
+          </Tooltip>
         </div>
       ),
       ignoreRowClick: true,

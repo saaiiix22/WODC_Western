@@ -16,8 +16,6 @@ const Login = () => {
     }
     return text;
   };
-
-  const selectUser = useSelector((state) => state);
   const dispatch = useDispatch();
 
   const [captcha, setCaptcha] = useState(generateCaptcha());

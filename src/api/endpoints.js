@@ -69,6 +69,9 @@ const endpoints = {
         getFinancialYear: '/mst/get-financial-year-list',
         getBankNames: '/mst/list-bank-master',
         saveUpdateBudget: '/fund/save-or-update-budget',
+
+        getUpdatedBankList:'/mst/get-distinct-bank-list',
+        getBankConfigByBankId:'/mst/get-bankconfig-list-by-bankid'
     },
     editBudget: {
         getBudgetByFinancialYear: '/fund/get-budget-list'
@@ -101,7 +104,9 @@ const endpoints = {
         getProjectAgencyMilestoneMapDetails:"/project/get-projagymlst-by-projectid-and-mlstnid",
         getBeneficiaryDetails:"/mst/get-beneficiary-list-by-districtid",
         saveUpdateAgencyMilestone:"/project/save-or-update-milestone-beneficiary",
-        getBeneficiaryByIds:"/project/get-beneficiary-ids-by-id"
+        getBeneficiaryByIds:"/project/get-beneficiary-ids-by-id",
+        getProjectByFinYear:"/project/get-project-list-by-finyear",
+        getUpdatedFuncDetails:"/fund/bank-by-finyear-giatype"
 
     },
     milesStone: {
@@ -137,6 +142,12 @@ const endpoints = {
     sectorMilestoneMap: {
         saveSectorMilestoneMap: '/mst/save-n-update-sector-milestone-map',
         getMilestoneBySector: '/mst/get-milestones-by-sectorid'
+    },
+    bankAccounConfigEndpoints:{
+        saveBankAccountConfig:'/mst/save-or-update-bank-config',
+        getBankList:'/mst/get-bank-config-list',
+        editBankDetails:'/mst/get-bankconfig-by-bankconfigid',
+        toggleBankStatus:'/mst/toggle-bankconfig-status-by-bankconfigid'
     },
     umtEndpoints: {
         saveRole: '/admin/role/save',

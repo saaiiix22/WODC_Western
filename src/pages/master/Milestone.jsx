@@ -21,6 +21,7 @@ import {
   saveMilesStoneService,
   toggleMilestoneStatusService,
 } from "../../services/milesStoneService";
+import { Tooltip } from "@mui/material";
 
 const Milestone = () => {
   const [expanded, setExpanded] = useState("panel2");
@@ -184,6 +185,7 @@ const Milestone = () => {
       cell: (row) => (
         <div className="flex items-center gap-2">
           {/* EDIT BUTTON */}
+          <Tooltip title="Edit" arrow>
           <button
             type="button"
             className="flex items-center justify-center h-8 w-8 bg-blue-500/25 text-blue-500 rounded-full"
@@ -193,8 +195,10 @@ const Milestone = () => {
           >
             <GoPencil className="w-4 h-4" />
           </button>
+          </Tooltip>
 
           {/* ACTIVE / INACTIVE BUTTON */}
+          <Tooltip title={row.isActive?"Active" : "Inactive"} arrow>
           <button
             className={`flex items-center justify-center h-8 w-8 rounded-full 
             ${
@@ -214,6 +218,7 @@ const Milestone = () => {
               <MdLockOpen className="w-4 h-4" />
             )}
           </button>
+          </Tooltip>
         </div>
       ),
       ignoreRowClick: true,
@@ -272,7 +277,7 @@ const Milestone = () => {
                   textarea={true}
                   name="remark"
                   maxLength={255}
-                  placeholder="Write Remarks..."
+                  placeholder="Write remarks..."
                   value={remark}
                   onChange={handleChangeInput}
                 />

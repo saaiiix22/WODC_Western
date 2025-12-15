@@ -27,6 +27,7 @@ import {
 } from "../../components/common/CommonAccordion";
 import { ResetBackBtn, SubmitBtn } from "../../components/common/CommonButtons";
 import { avoidSpecialCharUtil, LGDutil } from "../../utils/validationUtils";
+import { Tooltip } from "@mui/material";
 
 const VillagePage = () => {
   const [expanded, setExpanded] = useState("panel2");
@@ -277,36 +278,39 @@ const VillagePage = () => {
       cell: (row) => (
         <div className="flex items-center gap-2">
           {/* EDIT BUTTON */}
-          <button
-            type="button"
-            className="flex items-center justify-center h-8 w-8 bg-blue-500/25 text-blue-500 rounded-full"
-            // onClick={() => {console.log( row.districtId) }}
-            onClick={() => {
-              handleEditClick(row?.villageId);
-            }}
-          >
-            <GoPencil className="w-4 h-4" />
-          </button>
-
+          <Tooltip title="Edit" arrow>
+            <button
+              type="button"
+              className="flex items-center justify-center h-8 w-8 bg-blue-500/25 text-blue-500 rounded-full"
+              // onClick={() => {console.log( row.districtId) }}
+              onClick={() => {
+                handleEditClick(row?.villageId);
+              }}
+            >
+              <GoPencil className="w-4 h-4" />
+            </button>
+          </Tooltip>
           {/* ACTIVE / INACTIVE BUTTON */}
-          <button
-            className={`flex items-center justify-center h-8 w-8 rounded-full 
+          <Tooltip title={row.isActive ? "Active" : "Inactive"} arrow>
+            <button
+              className={`flex items-center justify-center h-8 w-8 rounded-full 
            ${
              row.isActive
                ? "bg-green-600/25 hover:bg-green-700/25 text-green-600"
                : "bg-red-500/25 hover:bg-red-600/25 text-red-500 "
            }`}
-            onClick={() => {
-              setVillageStatusId(row?.villageId);
-              setOpenModal(true);
-            }}
-          >
-            {row.isActive ? (
-              <MdLockOutline className="w-4 h-4" />
-            ) : (
-              <MdLockOpen className="w-4 h-4" />
-            )}
-          </button>
+              onClick={() => {
+                setVillageStatusId(row?.villageId);
+                setOpenModal(true);
+              }}
+            >
+              {row.isActive ? (
+                <MdLockOutline className="w-4 h-4" />
+              ) : (
+                <MdLockOpen className="w-4 h-4" />
+              )}
+            </button>
+          </Tooltip>
         </div>
       ),
       ignoreRowClick: true,
@@ -417,7 +421,10 @@ const VillagePage = () => {
 
         <AccordionDetails>
           <div className="p-3">
-            <form className="grid grid-cols-12 gap-6" onSubmit={handleSubmitConfirmModal}>
+            <form
+              className="grid grid-cols-12 gap-6"
+              onSubmit={handleSubmitConfirmModal}
+            >
               <div className="col-span-2">
                 <SelectField
                   label="District Name"
@@ -473,7 +480,7 @@ const VillagePage = () => {
                   label="Village Name"
                   required={true}
                   name="villageNameEn"
-                  placeholder="Village Name"
+                  placeholder="Enter village name"
                   value={avoidSpecialCharUtil(villageNameEn)}
                   onChange={handleChangeInput}
                   error={errors.villageNameEn}
@@ -486,7 +493,7 @@ const VillagePage = () => {
                   label="Village LGD Code"
                   required={true}
                   name="villageLgdCode"
-                  placeholder="Village LGD Code"
+                  placeholder="Enter village LGD code"
                   value={LGDutil(villageLgdCode)}
                   onChange={handleChangeInput}
                   error={errors.villageLgdCode}
@@ -499,7 +506,7 @@ const VillagePage = () => {
                   label="Description"
                   textarea={true}
                   name="remarks"
-                  placeholder="Write Remarks..."
+                  placeholder="Write remarks..."
                   value={remarks}
                   onChange={handleChangeInput}
                   maxLength={255}

@@ -36,6 +36,7 @@ import {
   toggleVendorStatusService,
 } from "../../services/vendorService";
 import { IFSCutil, numberOnlyUtil, onlyNumberUtil } from "../../utils/validationUtils";
+import { Tooltip } from "@mui/material";
 
 const VendorPage = () => {
   const [expanded, setExpanded] = useState("panel2");
@@ -52,8 +53,6 @@ const VendorPage = () => {
     contactNo: "",
     email: "",
     address: "",
-    aadhaarNo: "",
-    dob: "",
     districtId: "",
   });
   const {
@@ -62,8 +61,6 @@ const VendorPage = () => {
     contactNo,
     email,
     address,
-    aadhaarNo,
-    dob,
     districtId,
   } = formData;
   const formatDateToDDMMYYYY = (dateStr) => {
@@ -171,11 +168,11 @@ const VendorPage = () => {
       setErrors(newErrors);
       return;
     }
-    if (!aadhaarNo || !aadhaarNo.trim()) {
-      newErrors.aadhaarNo = "Aadhar number is required";
-      setErrors(newErrors);
-      return;
-    }
+    // if (!aadhaarNo || !aadhaarNo.trim()) {
+    //   newErrors.aadhaarNo = "Aadhar number is required";
+    //   setErrors(newErrors);
+    //   return;
+    // }
     if (!contactNo || !contactNo.trim()) {
       newErrors.contactNo = "Contact number is required";
       setErrors(newErrors);
@@ -201,8 +198,8 @@ const VendorPage = () => {
       contactNo,
       email,
       address,
-      aadhaarNo,
-      dob: formatDateToDDMMYYYY(dob),
+      // aadhaarNo,
+      // dob: formatDateToDDMMYYYY(dob),
       districtId,
       vendorBankDetailsDtoList: rows,
     };
@@ -221,8 +218,8 @@ const VendorPage = () => {
           contactNo: "",
           email: "",
           address: "",
-          aadhaarNo: "",
-          dob: "",
+          // aadhaarNo: "",
+          // dob: "",
           districtId: "",
         });
         setRows([
@@ -242,8 +239,8 @@ const VendorPage = () => {
           contactNo: "",
           email: "",
           address: "",
-          aadhaarNo: "",
-          dob: "",
+          // aadhaarNo: "",
+          // dob: "",
           districtId: "",
         });
         setRows([
@@ -358,6 +355,7 @@ const VendorPage = () => {
       cell: (row) => (
         <div className="flex items-center gap-2">
           {/* EDIT BUTTON */}
+          <Tooltip title="Edit" arrow>
           <button
             type="button"
             className="flex items-center justify-center h-8 w-8 bg-blue-500/25 text-blue-500 rounded-full"
@@ -367,8 +365,10 @@ const VendorPage = () => {
           >
             <GoPencil className="w-4 h-4" />
           </button>
+          </Tooltip>
 
           {/* ACTIVE / INACTIVE BUTTON */}
+          <Tooltip title={row.isActive?"Active" : "Inactive"} arrow>
           <button
             className={`flex items-center justify-center h-8 w-8 rounded-full 
             ${
@@ -388,6 +388,7 @@ const VendorPage = () => {
               <MdLockOpen className="w-4 h-4" />
             )}
           </button>
+          </Tooltip>
         </div>
       ),
       ignoreRowClick: true,
@@ -447,14 +448,14 @@ const VendorPage = () => {
                   label="Vendor Name"
                   required={true}
                   name="vendorName"
-                  placeholder="Name"
+                  placeholder="Enter vendor name"
                   value={vendorName}
                   onChange={handleChangeInput}
                   error={errors.vendorName}
                 />
               </div>
 
-              <div className="col-span-2">
+              {/* <div className="col-span-2">
                 <InputField
                   label="Aadhar Number"
                   required={true}
@@ -478,14 +479,14 @@ const VendorPage = () => {
                   onChange={handleChangeInput}
                   error={errors.dob}
                 />
-              </div>
+              </div> */}
 
               <div className="col-span-2">
                 <InputField
                   label="Contact Number"
                   required={true}
                   name="contactNo"
-                  placeholder="Contact number"
+                  placeholder="Enter contact number"
                   value={numberOnlyUtil(contactNo)}
                   maxLength={10}
                   minLength={10}
@@ -499,7 +500,7 @@ const VendorPage = () => {
                   label="Email"
                   required={true}
                   name="email"
-                  placeholder="Email"
+                  placeholder="Enter email"
                   value={email}
                   onChange={handleChangeInput}
                   error={errors.email}
@@ -511,7 +512,7 @@ const VendorPage = () => {
                   label="Address"
                   textarea={true}
                   name="address"
-                  placeholder="Address"
+                  placeholder="Enter address"
                   value={address}
                   onChange={handleChangeInput}
                 />

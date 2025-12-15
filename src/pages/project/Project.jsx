@@ -27,6 +27,7 @@ import {
   getProposalByDistService,
   getSectorService,
   getSubsectorService,
+  getUpdatedFuncDetailsService,
   getVillageThroughGpService,
   getWardByMunicipalityService,
   maxBudgetService,
@@ -86,7 +87,7 @@ const Project = () => {
     objectType: "",
     objectId: "",
 
-    fundReleaseTo: "DISTRICT",
+    // fundReleaseTo: "DISTRICT",
     approvedAmount: "",
   });
 
@@ -135,7 +136,7 @@ const Project = () => {
   );
   const [sectorOpts, setSectorOpts] = useState([]);
   const [subSectorOptions, setSubSectorOpts] = useState([]);
-  const [bankListOpts, setbankListOpts] = useState([]);
+  // const [bankListOpts, setbankListOpts] = useState([]);
   const [giaOpts, setGIAoptions] = useState([]);
 
   // --------------------------------------------------------------------------
@@ -201,8 +202,8 @@ const Project = () => {
   const getSubSectorOpts = () =>
     load(getSubsectorService, { isActive: true, sectorId }, setSubSectorOpts);
 
-  const getBankList = () =>
-    load(getBankNamesService, { isActive: true }, setbankListOpts);
+  // const getBankList = () =>
+  //   load(getBankNamesService, { isActive: true }, setbankListOpts);
 
   const getGIATypeOpts = () =>
     load(getGIAtypeList, { isActive: true }, setGIAoptions);
@@ -294,7 +295,8 @@ const Project = () => {
   const fetchFundDetails = async (giaYear, giaTypeId) => {
     try {
       const payload = encryptPayload({ finyearId: giaYear, giaTypeId });
-      const res = await maxBudgetService(payload);
+      // const res = await maxBudgetService(payload);
+      const res = await getUpdatedFuncDetailsService(payload);
       console.log(res);
 
       return {
@@ -324,6 +326,28 @@ const Project = () => {
     }, 0);
   };
 
+  const [bankListOpts, setBankListOpts] = useState({});
+  const getUpdatedFuncDetails = async (giaYear, giaTypeId, rowIndex) => {
+    try {
+      const payload = encryptPayload({
+        finyearId: giaYear,
+        giaTypeId: giaTypeId,
+      });
+      const res = await getUpdatedFuncDetailsService(payload);
+
+      if (res?.status === 200 && res?.data?.outcome) {
+        setBankListOpts((prev) => ({
+          ...prev,
+          [rowIndex]: res.data.data, // bank list
+        }));
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  
+
   const handleRowChange = async (e, index) => {
     const { name, value } = e.target;
 
@@ -333,47 +357,69 @@ const Project = () => {
     const updatedYear = name === "giaYear" ? value : row.giaYear;
     const updatedType = name === "giaTypeId" ? value : row.giaTypeId;
 
+    // ---------------- Duplicate check ----------------
     if (updatedYear && updatedType) {
       if (isDuplicateCombination(updatedYear, updatedType, index)) {
         toast.error("This GIA Year + GIA Type is already selected!");
-
         row[name] = "";
-
         updatedRows[index] = row;
         setFundReleaseRows(updatedRows);
         return;
       }
     }
 
+    // ---------------- GIA change logic ----------------
+    if (
+      (name === "giaYear" || name === "giaTypeId") &&
+      updatedYear &&
+      updatedType
+    ) {
+      // reset dependent fields
+      row.bankId = "";
+      row.releaseAmount = "";
+      row.maxamount = "";
+      row.fundAllocDate = "";
+
+      updatedRows[index] = row;
+      setFundReleaseRows(updatedRows);
+
+      // 🔹 CALL SERVICE ONLY WHEN BOTH ARE PRESENT
+      const res = await getUpdatedFuncDetails(updatedYear, updatedType, index);
+      console.log(res);
+      
+    }
+
+    // ---------------- Release Amount validation ----------------
     if (name === "releaseAmount") {
+      if (value === "") {
+        row.releaseAmount = "";
+        updatedRows[index] = row;
+        setFundReleaseRows(updatedRows);
+        return;
+      }
+
+      if (!/^\d+$/.test(value)) return;
+
       const entered = Number(value);
       const max = Number(row.maxamount);
 
-      if (!row.maxamount) {
-        row[name] = value;
-        updatedRows[index] = row;
-        setFundReleaseRows(updatedRows);
-        return;
-      }
+      if (entered < 0) return;
 
-      if (value === "" || value === null) {
-        row[name] = value;
-        updatedRows[index] = row;
-        setFundReleaseRows(updatedRows);
-        return;
-      }
-
-      if (entered > max) {
+      if (row.maxamount && entered > max) {
         toast.error("Release amount cannot exceed the maximum amount!");
         return;
       }
+
+      row.releaseAmount = value;
+    } else {
+      row[name] = value;
     }
 
-    // Save updated row
+    // ---------------- Save row ----------------
     updatedRows[index] = row;
     setFundReleaseRows(updatedRows);
 
-    // Continue existing budget logic
+    // ---------------- Budget calculation ----------------
     if (updatedYear && updatedType) {
       const data = await fetchFundDetails(updatedYear, updatedType);
       const used = getUsedAmount(updatedYear, updatedType, index);
@@ -584,7 +630,7 @@ const Project = () => {
       estimatedBudget,
       fundAllocDate,
 
-      fundReleaseTo,
+      // fundReleaseTo,
       approvedAmount: totalAmount,
 
       fundReleaseInfo: finalFundReleaseRows,
@@ -632,7 +678,7 @@ const Project = () => {
           objectType: "",
           objectId: "",
 
-          fundReleaseTo: "DISTRICT",
+          // fundReleaseTo: "DISTRICT",
           approvedAmount: "",
         });
         setFundReleaseRows([
@@ -732,7 +778,7 @@ const Project = () => {
     getFinancialYearOptions();
     getAllDistOpts();
     getAllSectors();
-    getBankList();
+    // getBankList();
     getGIATypeOpts();
     getTotalBudget();
     getFavourandModeOpts();
@@ -1239,8 +1285,8 @@ const Project = () => {
 
           <AccordionDetails>
             <div className="p-3">
-              <div className="flex justify-between items-start mt-5">
-                <div className="flex items-center gap-3 ">
+              <div className="flex justify-end items-start mt-5">
+                {/* <div className="flex items-center gap-3 ">
                   <label className="text-[13px] font-medium text-gray-700">
                     Fund Release To <span className="text-red-500">*</span>
                   </label>
@@ -1288,7 +1334,7 @@ const Project = () => {
                       </label>
                     </div>
                   </div>
-                </div>
+                </div> */}
                 <div className=" flex items-center gap-3">
                   <h1 className="font-semibold text-slate-500">
                     Total Budget :{" "}
@@ -1297,7 +1343,7 @@ const Project = () => {
                     </span>
                   </h1>
                   <h1 className="font-semibold text-slate-500">
-                    Release Budget :{" "}
+                    Released Amount :{" "}
                     <span className="font-normal text-sm text-green-800 rounded-sm px-3 py-1 bg-green-500/25 ">
                       ₹ {totalAmount}.00
                     </span>
@@ -1322,15 +1368,46 @@ const Project = () => {
                     )}
                     <div className="col-span-2">
                       <SelectField
+                        label="GIA Year "
+                        name="giaYear"
+                        required={true}
+                        value={i.giaYear}
+                        onChange={(e) => handleRowChange(e, index)}
+                        options={finYearOpts?.map((d) => ({
+                          value: d.finyearId,
+                          label: d.finYear,
+                        }))}
+                        //   error={errors.districtId}
+                        placeholder="All "
+                      />
+                    </div>
+
+                    <div className="col-span-2">
+                      <SelectField
+                        label="GIA Type "
+                        name="giaTypeId"
+                        required={true}
+                        value={i.giaTypeId}
+                        onChange={(e) => handleRowChange(e, index)}
+                        options={giaOpts?.map((d) => ({
+                          value: d.giaTypeId,
+                          label: d.giaTypeName,
+                        }))}
+                        //   error={errors.districtId}
+                        placeholder="Select "
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <SelectField
                         label="Bank Name"
                         name="bankId"
                         required={true}
-                        value={i.bankId}
+                        // value={i.bankId}
                         onChange={(e) => handleRowChange(e, index)}
-                        options={bankListOpts?.map((d) => ({
-                          value: d.bankId,
-                          label: d.bankName,
-                        }))}
+                        // options={bankListOpts?.map((d) => ({
+                        //   value: d.bankId,
+                        //   label: d.bankName,
+                        // }))}
                         //   error={errors.districtId}
                         placeholder="Select"
                       />
@@ -1364,45 +1441,7 @@ const Project = () => {
                         placeholder="Select "
                       />
                     </div> */}
-                    <div className="col-span-2">
-                      <SelectField
-                        label="GIA Year "
-                        name="giaYear"
-                        required={true}
-                        value={i.giaYear}
-                        onChange={(e) => handleRowChange(e, index)}
-                        options={finYearOpts?.map((d) => ({
-                          value: d.finyearId,
-                          label: d.finYear,
-                        }))}
-                        //   error={errors.districtId}
-                        placeholder="All "
-                      />
-                    </div>
 
-                    <div className="col-span-2">
-                      <SelectField
-                        label="GIA Type "
-                        name="giaTypeId"
-                        required={true}
-                        value={i.giaTypeId}
-                        onChange={(e) => handleRowChange(e, index)}
-                        options={giaOpts?.map((d) => ({
-                          value: d.giaTypeId,
-                          label: d.giaTypeName,
-                        }))}
-                        //   error={errors.districtId}
-                        placeholder="Select "
-                      />
-                      {/* {rowBudgets[index] && (
-                        <div className="text-sm text-blue-700">
-                          Total Budget : {" "}
-                          <span className="font-semibold">
-                            {rowBudgets[index]}
-                          </span>
-                        </div>
-                      )} */}
-                    </div>
                     <div className="col-span-2">
                       <InputField
                         type="number"
@@ -1415,18 +1454,23 @@ const Project = () => {
                         //   error={errors.blockNameEN}
                       />
                       <div className="flex justify-between">
-                        
                         {i.maxamount !== undefined && i.maxamount !== null && (
                           <div className="text-[11px] text-blue-700">
                             Total :{" "}
-                            <span className="font-semibold">₹ {Number(i.maxamount).toLocaleString("en-IN")}</span>
+                            <span className="font-semibold">
+                              ₹ {Number(i.maxamount).toLocaleString("en-IN")}
+                            </span>
                           </div>
                         )}
                         {i.maxamount !== undefined && (
                           <div className="text-[11px] text-blue-700">
                             Remaining :{" "}
                             <span className="font-semibold">
-                              ₹ {(Number(i.maxamount) - (Number(i.releaseAmount) || 0)).toLocaleString("en-IN")}
+                              ₹{" "}
+                              {(
+                                Number(i.maxamount) -
+                                (Number(i.releaseAmount) || 0)
+                              ).toLocaleString("en-IN")}
                             </span>
                           </div>
                         )}

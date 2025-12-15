@@ -6,7 +6,7 @@ export const SubmitBtn = ({ type, btnText }) => {
   return (
     <button
       type={type}
-      className="bg-green-600 text-white text-[13px] px-3 py-1 rounded-sm  hover:bg-green-700 transition-all active:scale-95 uppercase flex items-center gap-1"
+      className="bg-[#bbef7f] text-[green] text-[13px] px-3 py-1 rounded-sm border border-[green] transition-all active:scale-95 uppercase flex items-center gap-1"
     >
       <GrSave /> {btnText ? "update" : "submit"}
     </button>
@@ -18,7 +18,7 @@ export const ResetBackBtn = () => {
     <button
       onClick={() => navigate("/dashboard")}
       type="button"
-      className="bg-light-dark text-white text-[13px] px-3 py-1 rounded-sm hover:bg-gray-900 transition-all active:scale-95 uppercase flex items-center gap-1"
+      className="text-light-dark border bg-[#e3e3e3] border-light-dark text-[13px] px-3 py-1 rounded-sm transition-all active:scale-95 uppercase flex items-center gap-1"
     >
       {" "}
       <IoReturnDownBackSharp className="text-lg" /> Back{" "}

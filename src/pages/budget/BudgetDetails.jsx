@@ -8,9 +8,11 @@ import { encryptPayload } from "../../crypto.js/encryption";
 import { getGIAtypeList } from "../../services/giaService";
 import { toast } from "react-toastify";
 import {
+  getBankConfigByBankIdService,
   getBankNamesService,
   getBudgetByFinancialYearService,
   getFinancialYearService,
+  getUpdatedBankListService,
   saveUpdateBudgetService,
 } from "../../services/budgetService";
 import ReusableDataTable from "../../components/common/ReusableDataTable";
@@ -27,10 +29,8 @@ const BudgetDetails = () => {
       budgetId: null,
       budgetCreationDate: "",
       amount: "",
-      branch: "",
-      accNo: "",
       bankName: "",
-      ifsc: "",
+      bankAccConfigId: "",
       giaTypeId: "",
     },
   ]);
@@ -85,14 +85,42 @@ const BudgetDetails = () => {
   const [bankOptions, setBankOptions] = useState([]);
   const getAllBankOptions = async () => {
     try {
-      const payload = encryptPayload({ isActive: true });
-      const res = await getBankNamesService(payload);
+      const res = await getUpdatedBankListService();
       // console.log(res);
       setBankOptions(res?.data.data);
     } catch (error) {
       throw error;
     }
   };
+
+  const [configOpts, setConfigOpts] = useState({});
+  const getAllConfigOpts = async (rowIndex, id) => {
+    try {
+      const payload = encryptPayload({ bankId: Number(id) });
+      const res = await getBankConfigByBankIdService(payload);
+      console.log(res);
+
+      if (res?.status === 200 && res?.data?.outcome) {
+        const data = res.data.data;
+
+        const options = Array.isArray(data)
+          ? data.map(formatConfigOption)
+          : [formatConfigOption(data)];
+
+        setConfigOpts((prev) => ({
+          ...prev,
+          [rowIndex]: options,
+        }));
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const formatConfigOption = (item) => ({
+    value: item.bankAccConfigId,
+    label: `${item.branch} | ${item.accNo} | ${item.ifsc}`,
+  });
 
   // Prevent duplicated GIA type across rows
   const usedGiaTypes = rows.map((r) => r.giaTypeId);
@@ -107,9 +135,7 @@ const BudgetDetails = () => {
       row.amount &&
       row.budgetCreationDate &&
       row.bankName &&
-      row.branch?.trim() &&
-      row.accNo?.trim() &&
-      row.ifsc?.trim()
+      row.bankAccConfigId
     );
   };
 
@@ -129,9 +155,7 @@ const BudgetDetails = () => {
         amount: "",
         budgetCreationDate: "",
         bankName: "",
-        branch: "",
-        accNo: "",
-        ifsc: "",
+        bankAccConfigId: "",
       },
     ]);
   };
@@ -147,7 +171,9 @@ const BudgetDetails = () => {
     updated[index][name] = value;
     setRows(updated);
 
-    
+    if (name === "bankName") {
+      getAllConfigOpts(index, value);
+    }
   };
 
   const formatDateToDDMMYYYY = (dateStr) => {
@@ -186,9 +212,9 @@ const BudgetDetails = () => {
           budgetId: item.budgetId ?? null,
           budgetCreationDate: formatDateToDDMMYYYY(item.budgetCreationDate),
           amount: Number(item.amount),
-          branch: item.branch,
-          accNo: item.accNo,
-          ifsc: item.ifsc,
+          bankConfig: {
+            bankAccConfigId: item.bankAccConfigId,
+          },
           giaType: {
             giaTypeId: Number(item.giaTypeId),
           },
@@ -211,10 +237,8 @@ const BudgetDetails = () => {
               budgetId: null,
               budgetCreationDate: "",
               amount: "",
-              branch: "",
-              accNo: "",
               bankName: "",
-              ifsc: "",
+              bankAccConfigId: "",
               giaTypeId: "",
             },
           ]);
@@ -265,7 +289,7 @@ const BudgetDetails = () => {
                     value: d.finyearId,
                     label: d.finYear,
                   }))}
-                  onChange={(e) =>  setFinyearId(Number(e.target.value))}
+                  onChange={(e) => setFinyearId(Number(e.target.value))}
                   error={errors.finyearId}
                 />
               </div>
@@ -281,16 +305,20 @@ const BudgetDetails = () => {
                   <td className="text-center text-sm font-semibold px-4 py-1 border-r border-slate-200">
                     GIA Type
                   </td>
-                  <td className="text-center text-sm font-semibold px-4 py-1 border-r border-slate-200">
-                    Amount
-                  </td>
-                  <td className="text-center text-sm font-semibold px-4 py-1 border-r border-slate-200">
-                    Budget Creation Date
-                  </td>
+
                   <td className="text-center text-sm font-semibold px-4 py-1 border-r border-slate-200">
                     Bank Name
                   </td>
                   <td className="text-center text-sm font-semibold px-4 py-1 border-r border-slate-200">
+                    Branch | Account Number | IFSC
+                  </td>
+                  <td className="text-center text-sm font-semibold px-4 py-1 border-r border-slate-200">
+                    Amount
+                  </td>
+                  <td className="text-center text-sm font-semibold px-4 py-1 border-r border-slate-200">
+                    Budget Date
+                  </td>
+                  {/* <td className="text-center text-sm font-semibold px-4 py-1 border-r border-slate-200">
                     Branch
                   </td>
                   <td className="text-center text-sm font-semibold px-4 py-1 border-r border-slate-200">
@@ -298,7 +326,7 @@ const BudgetDetails = () => {
                   </td>
                   <td className="text-center text-sm font-semibold px-4 py-1 border-r border-slate-200">
                     IFSC Code
-                  </td>
+                  </td> */}
                   <td className="w-[60px] text-center text-sm px-4 py-1 border-r border-slate-200">
                     <button type="button" onClick={handleAddRow}>
                       <MdOutlineAddCircle className="inline text-green-600 text-xl" />
@@ -332,6 +360,74 @@ const BudgetDetails = () => {
                     </td>
 
                     {/* Amount */}
+                    
+
+                    {/* Bank Name */}
+                    <td className="border-r border-slate-200 px-2 py-1">
+                      <SelectField
+                        name="bankName"
+                        value={row.bankName}
+                        onChange={(e) =>
+                          handleInput(index, "bankName", e.target.value)
+                        }
+                        options={bankOptions?.map((d) => ({
+                          value: d.bankId,
+                          label: d.bankName,
+                        }))}
+                        placeholder="Select"
+                      />
+                    </td>
+                    <td className="border-r border-slate-200 px-2 py-1">
+                      <SelectField
+                        name="bankAccConfigId"
+                        value={row.bankAccConfigId}
+                        onChange={(e) =>
+                          handleInput(index, "bankAccConfigId", e.target.value)
+                        }
+                        options={configOpts[index] || []}
+                        placeholder="Select"
+                      />
+                    </td>
+
+                    {/* <td className="border-r border-slate-200 px-2 py-1">
+                      <input
+                        type="number"
+                        maxLength={17}
+                        value={row.branch}
+                        onChange={(e) =>
+                          handleInput(index, "branch", e.target.value)
+                        }
+                        className="w-full rounded-md border border-gray-300 px-2.5 py-1.5 mt-1 text-sm"
+                      />
+                    </td>
+
+                    <td className="border-r border-slate-200 px-2 py-1">
+                      <input
+                        type="text"
+                        value={row.accNo}
+                        minLength={9}
+                        maxLength={18}
+                        onChange={(e) =>
+                          handleInput(index, "accNo", e.target.value)
+                        }
+                        className="w-full rounded-md border border-gray-300 px-2.5 py-1.5 mt-1 text-sm"
+                      />
+                    </td>
+
+                    <td className="border-r border-slate-200 px-2 py-1">
+                      <input
+                        type="text"
+                        value={IFSCutil(row.ifsc)}
+                        maxLength={11}
+                        onChange={(e) => {
+                          const cleaned = alphaNumericUtil(
+                            e.target.value.toUpperCase()
+                          );
+                          handleInput(index, "ifsc", cleaned);
+                        }}
+                        className="w-full rounded-md border border-gray-300 px-2.5 py-1.5 mt-1 text-sm"
+                      />
+                    </td> */}
                     <td className="border-r border-slate-200 px-2 py-1">
                       <input
                         type="number"
@@ -357,65 +453,6 @@ const BudgetDetails = () => {
                           )
                         }
                         className="w-full rounded-md border border-gray-300 px-2.5 py-1.5 mt-1 text-sm text-gray-600"
-                      />
-                    </td>
-
-                    {/* Bank Name */}
-                    <td className="border-r border-slate-200 px-2 py-1">
-                      <SelectField
-                        name="bankName"
-                        value={row.bankName}
-                        onChange={(e) =>
-                          handleInput(index, "bankName", e.target.value)
-                        }
-                        options={bankOptions?.map((d) => ({
-                          value: d.bankId,
-                          label: d.bankName,
-                        }))}
-                        placeholder="Select Bank"
-                      />
-                    </td>
-
-                    {/* Branch */}
-                    <td className="border-r border-slate-200 px-2 py-1">
-                      <input
-                        type="number"
-                        maxLength={17}
-                        value={row.branch}
-                        onChange={(e) =>
-                          handleInput(index, "branch", e.target.value)
-                        }
-                        className="w-full rounded-md border border-gray-300 px-2.5 py-1.5 mt-1 text-sm"
-                      />
-                    </td>
-
-                    {/* Account Number */}
-                    <td className="border-r border-slate-200 px-2 py-1">
-                      <input
-                        type="text"
-                        value={row.accNo}
-                        minLength={9}
-                        maxLength={18}
-                        onChange={(e) =>
-                          handleInput(index, "accNo", e.target.value)
-                        }
-                        className="w-full rounded-md border border-gray-300 px-2.5 py-1.5 mt-1 text-sm"
-                      />
-                    </td>
-
-                    {/* IFSC */}
-                    <td className="border-r border-slate-200 px-2 py-1">
-                      <input
-                        type="text"
-                        value={IFSCutil(row.ifsc)}
-                        maxLength={11}
-                        onChange={(e) => {
-                          const cleaned = alphaNumericUtil(
-                            e.target.value.toUpperCase()
-                          );
-                          handleInput(index, "ifsc", cleaned);
-                        }}
-                        className="w-full rounded-md border border-gray-300 px-2.5 py-1.5 mt-1 text-sm"
                       />
                     </td>
 

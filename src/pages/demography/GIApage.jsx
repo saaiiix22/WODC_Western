@@ -22,6 +22,7 @@ import {
 } from "../../services/giaService";
 import { ResetBackBtn, SubmitBtn } from "../../components/common/CommonButtons";
 import { avoidSpecialCharUtil } from "../../utils/validationUtils";
+import { Tooltip } from "@mui/material";
 
 const GIApage = () => {
   const [expanded, setExpanded] = useState("panel2");
@@ -177,36 +178,40 @@ const GIApage = () => {
       cell: (row) => (
         <div className="flex items-center gap-2">
           {/* EDIT BUTTON */}
-          <button
-            type="button"
-            className="flex items-center justify-center h-8 w-8 bg-blue-500/25 text-blue-500 rounded-full"
-            // onClick={() => {console.log( row.districtId) }}
-            onClick={() => {
-              handleEditClick(row?.giaTypeId);
-            }}
-          >
-            <GoPencil className="w-4 h-4" />
-          </button>
+          <Tooltip title="Edit" arrow>
+            <button
+              type="button"
+              className="flex items-center justify-center h-8 w-8 bg-blue-500/25 text-blue-500 rounded-full"
+              // onClick={() => {console.log( row.districtId) }}
+              onClick={() => {
+                handleEditClick(row?.giaTypeId);
+              }}
+            >
+              <GoPencil className="w-4 h-4" />
+            </button>
+          </Tooltip>
 
           {/* ACTIVE / INACTIVE BUTTON */}
-          <button
-            className={`flex items-center justify-center h-8 w-8 rounded-full
+          <Tooltip title={row.isActive ? "Active" : "Inactive"} arrow>
+            <button
+              className={`flex items-center justify-center h-8 w-8 rounded-full
             ${
               row.isActive
                 ? "bg-green-600/25 hover:bg-green-700/25 text-green-600"
                 : "bg-red-500/25 hover:bg-red-600/25 text-red-500 "
             }`}
-            onClick={() => {
-              setOpenModal(true);
-              setGiaStatusId(row?.giaTypeId);
-            }}
-          >
-            {row.isActive ? (
-              <MdLockOutline className="w-4 h-4" />
-            ) : (
-              <MdLockOpen className="w-4 h-4" />
-            )}
-          </button>
+              onClick={() => {
+                setOpenModal(true);
+                setGiaStatusId(row?.giaTypeId);
+              }}
+            >
+              {row.isActive ? (
+                <MdLockOutline className="w-4 h-4" />
+              ) : (
+                <MdLockOpen className="w-4 h-4" />
+              )}
+            </button>
+          </Tooltip>
         </div>
       ),
       ignoreRowClick: true,
@@ -250,7 +255,7 @@ const GIApage = () => {
                   label="GIA Type Name"
                   required={true}
                   name="giaTypeName"
-                  placeholder="Enter Name"
+                  placeholder="Enter GIA type name"
                   value={giaTypeName}
                   onChange={handleChangeInput}
                   error={errors.giaTypeName}
@@ -263,7 +268,7 @@ const GIApage = () => {
                   label="Remarks"
                   textarea={true}
                   name="remark"
-                  placeholder="Write Remarks..."
+                  placeholder="Write remarks..."
                   value={remark}
                   onChange={handleChangeInput}
                   maxLength={255}

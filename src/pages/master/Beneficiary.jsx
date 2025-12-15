@@ -40,6 +40,7 @@ import {
 } from "../../services/projectService";
 import { getMunicipalityViaDistrictsService } from "../../services/wardService";
 import { getAllDists } from "../../services/blockService";
+import { Tooltip } from "@mui/material";
 
 const Beneficiary = () => {
   const [expanded, setExpanded] = useState("panel2");
@@ -55,8 +56,8 @@ const Beneficiary = () => {
     blockId: "",
     gpId: "",
     municipalityId: "",
-    areaType:"BLOCK",
-    objectId:"",
+    areaType: "BLOCK",
+    objectId: "",
     beneficiaryId: null,
     beneficiaryName: "",
     contactNo: "",
@@ -253,11 +254,6 @@ const Beneficiary = () => {
       setErrors(newErrors);
       return;
     }
-    if (!email || !email.trim()) {
-      newErrors.email = "Email is required";
-      setErrors(newErrors);
-      return;
-    }
 
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
@@ -353,7 +349,7 @@ const Beneficiary = () => {
       // console.log(res);
       if (res?.status === 200 && res?.data.outcome) {
         setTableData(res?.data.data || []);
-      } 
+      }
     } catch (error) {
       throw error;
     }
@@ -459,36 +455,40 @@ const Beneficiary = () => {
       cell: (row) => (
         <div className="flex items-center gap-2">
           {/* EDIT BUTTON */}
-          <button
-            type="button"
-            className="flex items-center justify-center h-8 w-8 bg-blue-500/25 text-blue-500 rounded-full"
-            onClick={() => {
-              editBeneficiary(row?.beneficiaryId);
-            }}
-          >
-            <GoPencil className="w-4 h-4" />
-          </button>
+          <Tooltip title="Edit" arrow>
+            <button
+              type="button"
+              className="flex items-center justify-center h-8 w-8 bg-blue-500/25 text-blue-500 rounded-full"
+              onClick={() => {
+                editBeneficiary(row?.beneficiaryId);
+              }}
+            >
+              <GoPencil className="w-4 h-4" />
+            </button>
+          </Tooltip>
 
           {/* ACTIVE / INACTIVE BUTTON */}
-          <button
-            className={`flex items-center justify-center h-8 w-8 rounded-full 
+          <Tooltip title={row.isActive ? "Active" : "Inactive"} arrow>
+            <button
+              className={`flex items-center justify-center h-8 w-8 rounded-full 
             ${
               row.isActive
                 ? "bg-green-600/25 hover:bg-green-700/25 text-green-600"
                 : "bg-red-500/25 hover:bg-red-600/25 text-red-500 "
             }`}
-            // onClick={() => toggleStatus(row?.blockId)}
-            onClick={() => {
-              setMilestoneId(row?.beneficiaryId);
-              setOpenModal(true);
-            }}
-          >
-            {row.isActive ? (
-              <MdLockOutline className="w-4 h-4" />
-            ) : (
-              <MdLockOpen className="w-4 h-4" />
-            )}
-          </button>
+              // onClick={() => toggleStatus(row?.blockId)}
+              onClick={() => {
+                setMilestoneId(row?.beneficiaryId);
+                setOpenModal(true);
+              }}
+            >
+              {row.isActive ? (
+                <MdLockOutline className="w-4 h-4" />
+              ) : (
+                <MdLockOpen className="w-4 h-4" />
+              )}
+            </button>
+          </Tooltip>
         </div>
       ),
       ignoreRowClick: true,
@@ -677,7 +677,7 @@ const Beneficiary = () => {
                   label="Beneficiary Name"
                   required={true}
                   name="beneficiaryName"
-                  placeholder="Enter Name"
+                  placeholder="Enter beneficiary name"
                   value={beneficiaryName}
                   onChange={handleChangeInput}
                   error={errors.beneficiaryName}
@@ -686,7 +686,8 @@ const Beneficiary = () => {
 
               <div className="col-span-2">
                 <InputField
-                  label="Aadhar Number"
+                  label="Aadhaar Number"
+                  required={true}
                   name="aadhaarNo"
                   placeholder="Enter aadhaar number"
                   value={aadhaarNo}
@@ -712,7 +713,7 @@ const Beneficiary = () => {
                   label="Contact Number"
                   required={true}
                   name="contactNo"
-                  placeholder="Contact number"
+                  placeholder="Enter contact number"
                   value={contactNo}
                   onChange={handleChangeInput}
                   error={errors.contactNo}
@@ -723,9 +724,9 @@ const Beneficiary = () => {
               <div className="col-span-2">
                 <InputField
                   label="Email"
-                  required={true}
+                  // required={true}
                   name="email"
-                  placeholder="Email"
+                  placeholder="Enter email"
                   value={email}
                   onChange={handleChangeInput}
                   error={errors.email}
@@ -737,7 +738,7 @@ const Beneficiary = () => {
                   label="Address"
                   textarea={true}
                   name="address"
-                  placeholder="Address"
+                  placeholder="Enter address"
                   value={address}
                   onChange={handleChangeInput}
                 />

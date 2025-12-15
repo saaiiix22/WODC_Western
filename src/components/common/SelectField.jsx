@@ -34,7 +34,7 @@ const SelectField = ({
         `}
       >
         <option value="">
-          {placeholder}
+          -- {placeholder} --
         </option>
 
         {options.map((opt, index) => (

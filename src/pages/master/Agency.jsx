@@ -39,6 +39,7 @@ import {
   validateAccountNoUtil,
   validateIfscUtil,
 } from "../../utils/validationUtils";
+import { Tooltip } from "@mui/material";
 
 const Agency = () => {
   const [expanded, setExpanded] = useState("panel2");
@@ -55,8 +56,6 @@ const Agency = () => {
     contactNo: "",
     email: "",
     address: "",
-    aadhaarNo: "",
-    dob: "",
     districtId: "",
   });
   const {
@@ -65,8 +64,6 @@ const Agency = () => {
     contactNo,
     email,
     address,
-    aadhaarNo,
-    dob,
     districtId,
   } = formData;
   const formatDateToDDMMYYYY = (dateStr) => {
@@ -84,9 +81,9 @@ const Agency = () => {
   const handleChangeInput = (e) => {
     const { name, value } = e.target;
     let updatedValue = value;
-    if (name === "aadhaarNo") {
-      updatedValue = cleanAadhaarUtil(value);
-    }
+    // if (name === "aadhaarNo") {
+    //   updatedValue = cleanAadhaarUtil(value);
+    // }
     if (name === "contactNo") {
       updatedValue = cleanContactNoUtil(updatedValue);
     }
@@ -185,22 +182,22 @@ const Agency = () => {
       setErrors(newErrors);
       return;
     }
-    if (!aadhaarNo || !aadhaarNo.trim()) {
-      newErrors.aadhaarNo = "Aadhar number is required";
-      setErrors(newErrors);
-      return;
-    }
-    if (!validateAadhaarUtil(aadhaarNo)) {
-      newErrors.aadhaarNo =
-        "Invalid Aadhaar number (must be 12 digits and cannot start with 0 or 1)";
-      setErrors(newErrors);
-      return;
-    }
-    if (!dob || !dob.trim()) {
-      newErrors.dob = "DOB is required";
-      setErrors(newErrors);
-      return;
-    }
+    // if (!aadhaarNo || !aadhaarNo.trim()) {
+    //   newErrors.aadhaarNo = "Aadhar number is required";
+    //   setErrors(newErrors);
+    //   return;
+    // }
+    // if (!validateAadhaarUtil(aadhaarNo)) {
+    //   newErrors.aadhaarNo =
+    //     "Invalid Aadhaar number (must be 12 digits and cannot start with 0 or 1)";
+    //   setErrors(newErrors);
+    //   return;
+    // }
+    // if (!dob || !dob.trim()) {
+    //   newErrors.dob = "DOB is required";
+    //   setErrors(newErrors);
+    //   return;
+    // }
     if (!contactNo || !contactNo.trim()) {
       newErrors.contactNo = "Agency name is required";
       setErrors(newErrors);
@@ -253,8 +250,6 @@ const Agency = () => {
       contactNo,
       email,
       address,
-      aadhaarNo,
-      dob: formatDateToDDMMYYYY(dob),
       districtId,
       agencyCode: null,
       agencyBankDetailsDtoList: rows,
@@ -262,7 +257,7 @@ const Agency = () => {
     console.log(sendData);
 
     try {
-      setOpenSubmit(false)
+      setOpenSubmit(false);
       const payload = encryptPayload(sendData);
       const res = await saveAgencySerice(payload);
       // console.log(res);
@@ -276,8 +271,6 @@ const Agency = () => {
           contactNo: "",
           email: "",
           address: "",
-          aadhaarNo: "",
-          dob: "",
           districtId: "",
         });
         setRows([
@@ -392,36 +385,40 @@ const Agency = () => {
       cell: (row) => (
         <div className="flex items-center gap-2">
           {/* EDIT BUTTON */}
-          <button
-            type="button"
-            className="flex items-center justify-center h-8 w-8 bg-blue-500/25 text-blue-500 rounded-full"
-            onClick={() => {
-              editAgency(row?.agencyId);
-            }}
-          >
-            <GoPencil className="w-4 h-4" />
-          </button>
+          <Tooltip title="Edit" arrow>
+            <button
+              type="button"
+              className="flex items-center justify-center h-8 w-8 bg-blue-500/25 text-blue-500 rounded-full"
+              onClick={() => {
+                editAgency(row?.agencyId);
+              }}
+            >
+              <GoPencil className="w-4 h-4" />
+            </button>
+          </Tooltip>
 
           {/* ACTIVE / INACTIVE BUTTON */}
-          <button
-            className={`flex items-center justify-center h-8 w-8 rounded-full 
+          <Tooltip title={row.isActive ? "Active" : "Inactive"} arrow>
+            <button
+              className={`flex items-center justify-center h-8 w-8 rounded-full 
             ${
               row.isActive
                 ? "bg-green-600/25 hover:bg-green-700/25 text-green-600"
                 : "bg-red-500/25 hover:bg-red-600/25 text-red-500 "
             }`}
-            // onClick={() => toggleStatus(row?.blockId)}
-            onClick={() => {
-              setMilestoneId(row?.agencyId);
-              setOpenModal(true);
-            }}
-          >
-            {row.isActive ? (
-              <MdLockOutline className="w-4 h-4" />
-            ) : (
-              <MdLockOpen className="w-4 h-4" />
-            )}
-          </button>
+              // onClick={() => toggleStatus(row?.blockId)}
+              onClick={() => {
+                setMilestoneId(row?.agencyId);
+                setOpenModal(true);
+              }}
+            >
+              {row.isActive ? (
+                <MdLockOutline className="w-4 h-4" />
+              ) : (
+                <MdLockOpen className="w-4 h-4" />
+              )}
+            </button>
+          </Tooltip>
         </div>
       ),
       ignoreRowClick: true,
@@ -456,8 +453,10 @@ const Agency = () => {
 
         <AccordionDetails>
           <div className="p-3">
-            <form className="grid grid-cols-12 gap-6" onSubmit={handleSubmitConfirmModal}>
-
+            <form
+              className="grid grid-cols-12 gap-6"
+              onSubmit={handleSubmitConfirmModal}
+            >
               <div className="col-span-2">
                 <SelectField
                   label="District"
@@ -474,13 +473,12 @@ const Agency = () => {
                 />
               </div>
 
-
               <div className="col-span-2">
                 <InputField
                   label="Agency Name"
                   required={true}
                   name="agencyName"
-                  placeholder="Enter Name"
+                  placeholder="Enter agency name"
                   value={agencyName}
                   onChange={handleChangeInput}
                   error={errors.agencyName}
@@ -488,9 +486,7 @@ const Agency = () => {
                 />
               </div>
 
-              
-
-              <div className="col-span-2">
+              {/* <div className="col-span-2">
                 <InputField
                   label="Aadhar Number"
                   maxLength={12}
@@ -514,14 +510,14 @@ const Agency = () => {
                   onChange={handleChangeInput}
                   error={errors.dob}
                 />
-              </div>
+              </div> */}
 
               <div className="col-span-2">
                 <InputField
                   label="Contact Number"
                   required={true}
                   name="contactNo"
-                  placeholder="Contact number"
+                  placeholder="Enter contact number"
                   value={contactNo}
                   onChange={handleChangeInput}
                   error={errors.contactNo}
@@ -534,7 +530,7 @@ const Agency = () => {
                   label="Email"
                   required={true}
                   name="email"
-                  placeholder="Email"
+                  placeholder="Enter email"
                   value={email}
                   onChange={handleChangeInput}
                   error={errors.email}
@@ -546,7 +542,7 @@ const Agency = () => {
                   label="Address"
                   textarea={true}
                   name="address"
-                  placeholder="Address"
+                  placeholder="Enter address"
                   value={address}
                   maxLength={255}
                   onChange={handleChangeInput}
@@ -712,7 +708,6 @@ const Agency = () => {
         onClose={() => setOpenSubmit(false)}
         onConfirm={handleSubmit}
       />
-
     </div>
   );
 };

@@ -33,6 +33,7 @@ import RoleMenuMap from "../pages/UMT/RoleMenuMap";
 import ProjectAgencyMilestone from "../pages/project/ProjectAgencyMilestone";
 import AddBeneficiary from "../pages/beneficiary/AddBeneficiary";
 import WorkOrderGeneration from "../pages/project/WorkOrderGeneration";
+import BankAccountConfig from "../pages/master/BankAccountConfig";
 
 const AppRouter = () => {
   return (
@@ -69,6 +70,7 @@ const AppRouter = () => {
             <Route path={routes.vendorPage.path} element={<VendorPage />} />
             <Route path={routes.beneficiary.path} element={<Beneficiary/>} />
             <Route path={routes.sectorMilestoneMapping.path} element={<SectorMilestoneMapping />} />
+            <Route path={routes.bankAccoutConfig.path} element={<BankAccountConfig />} />
             
             {/* BUDGET */}
             <Route path={routes.budgetPage.path} element={<BudgetDetails />} />
