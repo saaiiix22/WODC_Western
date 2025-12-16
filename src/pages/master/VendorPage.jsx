@@ -52,6 +52,7 @@ const VendorPage = () => {
     vendorName: "",
     contactNo: "",
     email: "",
+    aadhaarNo:"",
     address: "",
     districtId: "",
   });
@@ -61,6 +62,7 @@ const VendorPage = () => {
     contactNo,
     email,
     address,
+    aadhaarNo,
     districtId,
   } = formData;
   const formatDateToDDMMYYYY = (dateStr) => {
@@ -168,11 +170,11 @@ const VendorPage = () => {
       setErrors(newErrors);
       return;
     }
-    // if (!aadhaarNo || !aadhaarNo.trim()) {
-    //   newErrors.aadhaarNo = "Aadhar number is required";
-    //   setErrors(newErrors);
-    //   return;
-    // }
+    if (!aadhaarNo || !aadhaarNo.trim()) {
+      newErrors.aadhaarNo = "Aadhar number is required";
+      setErrors(newErrors);
+      return;
+    }
     if (!contactNo || !contactNo.trim()) {
       newErrors.contactNo = "Contact number is required";
       setErrors(newErrors);
@@ -198,7 +200,7 @@ const VendorPage = () => {
       contactNo,
       email,
       address,
-      // aadhaarNo,
+      aadhaarNo,
       // dob: formatDateToDDMMYYYY(dob),
       districtId,
       vendorBankDetailsDtoList: rows,
@@ -218,7 +220,7 @@ const VendorPage = () => {
           contactNo: "",
           email: "",
           address: "",
-          // aadhaarNo: "",
+          aadhaarNo: "",
           // dob: "",
           districtId: "",
         });
@@ -239,7 +241,7 @@ const VendorPage = () => {
           contactNo: "",
           email: "",
           address: "",
-          // aadhaarNo: "",
+          aadhaarNo: "",
           // dob: "",
           districtId: "",
         });
@@ -455,7 +457,7 @@ const VendorPage = () => {
                 />
               </div>
 
-              {/* <div className="col-span-2">
+              <div className="col-span-2">
                 <InputField
                   label="Aadhar Number"
                   required={true}
@@ -469,7 +471,7 @@ const VendorPage = () => {
                 />
               </div>
 
-              <div className="col-span-2">
+              {/* <div className="col-span-2">
                 <InputField
                   label="Date of birth"
                   required={true}

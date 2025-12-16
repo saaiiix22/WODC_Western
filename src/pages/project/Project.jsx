@@ -54,7 +54,7 @@ const Project = () => {
   const stateSelect = useSelector((state) => state.project.selectedProject);
   // console.log(stateSelect);
 
-  // FORM HANDLING
+  // FORM HANDLING 
 
   const [formData, setFormData] = useState({
     districtId: "",
@@ -232,6 +232,7 @@ const Project = () => {
       releaseAmount: "",
       giaYear: "",
       giaTypeId: "",
+      bankAccConfigId: "",
       // sanctionOrderNo: "",
       // sanctionOrderDate: "",
       // releaseLetterNo: "",
@@ -249,7 +250,8 @@ const Project = () => {
         // item.favourOf &&
         item.releaseAmount &&
         item.giaYear &&
-        item.giaTypeId
+        item.giaTypeId &&
+        item.bankAccConfigId
       // item.sanctionOrderNo &&
       // item.sanctionOrderDate &&
       // item.releaseLetterNo &&
@@ -272,6 +274,7 @@ const Project = () => {
           releaseAmount: "",
           giaYear: "",
           giaTypeId: "",
+          bankAccConfigId: "",
           // sanctionOrderNo: "",
           // sanctionOrderDate: "",
           // releaseLetterNo: "",
@@ -292,22 +295,6 @@ const Project = () => {
   };
 
   const [rowBudgets, setRowBudgets] = useState({});
-
-  // const fetchFundDetails = async (giaYear, giaTypeId) => {
-  //   try {
-  //     const payload = encryptPayload({ finyearId: giaYear, giaTypeId });
-  //     const res = await maxBudgetService(payload);
-  //     // console.log(res);
-
-  //     return {
-  //       totalBudget: res?.data?.data?.totalBudget || 0,
-  //       amount: res?.data?.data?.amount || 0,
-  //       fundAllocDate: res?.data?.data?.fundAllocDate || "",
-  //     };
-  //   } catch (error) {
-  //     return { totalBudget: 0, amount: 0, fundAllocDate: "" };
-  //   }
-  // };
 
   const handleRemoveRow = (index) => {
     setFundReleaseRows((prev) => prev.filter((_, i) => i !== index));
@@ -349,109 +336,147 @@ const Project = () => {
     }
   };
 
-  const [configOpts,setConfigOpts] = useState([])
+  // const [configOpts, setConfigOpts] = useState([]);
+  const [configOpts, setConfigOpts] = useState({});
 
   const handleRowChange = async (e, index) => {
     const { name, value } = e.target;
 
-    let updatedRows = [...fundReleaseRows];
-    let row = { ...updatedRows[index], [name]: value };
+    setFundReleaseRows((prev) => {
+      const rows = [...prev];
+      let row = { ...rows[index], [name]: value };
+
+      const updatedYear = name === "giaYear" ? value : row.giaYear;
+      const updatedType = name === "giaTypeId" ? value : row.giaTypeId;
+      const updatedBankName = name === "bankId" ? value : row.bankId;
+      const updatedBankConfig =
+        name === "bankAccConfigId" ? value : row.bankAccConfigId;
+
+      // ---------------- Duplicate check ----------------
+      if (updatedYear && updatedType && updatedBankName) {
+        if (
+          isDuplicateCombination(
+            updatedYear,
+            updatedType,
+            updatedBankName,
+            updatedBankConfig,
+            index
+          )
+        ) {
+          toast.error("This combination already selected!");
+          row[name] = "";
+          rows[index] = row;
+          return rows;
+        }
+      }
+
+      // ---------------- GIA change logic ----------------
+      if (name === "giaYear" || name === "giaTypeId") {
+        row.bankId = "";
+        row.bankAccConfigId = "";
+        row.releaseAmount = "";
+        row.maxamount = "";
+        row.fundAllocDate = "";
+      }
+
+      // ---------------- Bank change logic ----------------
+      if (name === "bankId") {
+        row.bankAccConfigId = "";
+        row.releaseAmount = "";
+        row.maxamount = "";
+      }
+
+      // ---------------- Release Amount validation ----------------
+      if (name === "releaseAmount") {
+        if (value === "") {
+          row.releaseAmount = "";
+          rows[index] = row;
+          return rows;
+        }
+
+        if (!/^\d+$/.test(value)) return rows;
+
+        const entered = Number(value);
+        const max = Number(row.maxamount);
+
+        if (entered < 0) return rows;
+
+        if (row.maxamount && entered > max) {
+          toast.error("Release amount cannot exceed the maximum amount!");
+          return rows;
+        }
+
+        row.releaseAmount = value;
+      }
+
+      rows[index] = row;
+      return rows;
+    });
+
+    // ---------------- API CALLS (SIDE EFFECTS) ----------------
+
+    const row = fundReleaseRows[index];
 
     const updatedYear = name === "giaYear" ? value : row.giaYear;
     const updatedType = name === "giaTypeId" ? value : row.giaTypeId;
+    const updatedBankName = name === "bankId" ? value : row.bankId;
+    const updatedBankConfig =
+      name === "bankAccConfigId" ? value : row.bankAccConfigId;
 
-    // ---------------- Duplicate check ----------------
-    if (updatedYear && updatedType) {
-      if (isDuplicateCombination(updatedYear, updatedType, index)) {
-        toast.error("This GIA Year + GIA Type is already selected!");
-        row[name] = "";
-        updatedRows[index] = row;
-        setFundReleaseRows(updatedRows);
-        return;
-      }
-    }
-
-    // ---------------- GIA change logic ----------------
+    // 🔹 Load banks when GIA changes
     if (
       (name === "giaYear" || name === "giaTypeId") &&
       updatedYear &&
       updatedType
     ) {
-      // reset dependent fields
-      row.bankId = "";
-      row.releaseAmount = "";
-      row.maxamount = "";
-      row.fundAllocDate = "";
-
-      updatedRows[index] = row;
-      setFundReleaseRows(updatedRows);
-
       await getUpdatedFuncDetails(updatedYear, updatedType, index);
     }
-    const updatedBankId = name === "bankId" ? value : row.bankId;
 
-    if (name === "bankId" && updatedBankId) {
+    // 🔹 Load bank configs when bank changes
+    if (name === "bankId" && updatedBankName) {
       const payload = encryptPayload({
-        finyearId: row.giaYear,
-        giaTypeId: row.giaTypeId,
-        bankId: row.bankId,
+        finyearId: updatedYear,
+        giaTypeId: updatedType,
+        bankId: updatedBankName,
       });
-      const res = await getBankConfigProjectService(payload)
-      console.log(res);
-      if(res?.status ===200 && res?.data.outcome){
-        setConfigOpts(res?.data.data)
+
+      const res = await getBankConfigProjectService(payload);
+
+      if (res?.status === 200 && res?.data?.outcome) {
+        setConfigOpts((prev) => ({
+          ...prev,
+          [index]: res.data.data,
+        }));
       }
-      
     }
 
-    // ---------------- Release Amount validation ----------------
-    if (name === "releaseAmount") {
-      if (value === "") {
-        row.releaseAmount = "";
-        updatedRows[index] = row;
-        setFundReleaseRows(updatedRows);
-        return;
+    // 🔹 Load MAX BUDGET when all selected
+    if (updatedYear && updatedType && updatedBankName && updatedBankConfig) {
+      try {
+        const payload = encryptPayload({
+          finyearId: updatedYear,
+          giaTypeId: updatedType,
+          bankId: updatedBankName,
+          bankAccConfigId: updatedBankConfig,
+        });
+
+        const res = await maxBudgetService(payload);
+
+        if (res?.status === 200 && res?.data?.outcome) {
+          setFundReleaseRows((prev) => {
+            const rows = [...prev];
+            rows[index] = {
+              ...rows[index],
+              maxamount: res.data.data.amount || 0,
+              fundAllocDate: res.data.data.fundAllocDate || "",
+            };
+            return rows;
+          });
+        }
+      } catch (err) {
+        console.error(err);
       }
-
-      if (!/^\d+$/.test(value)) return;
-
-      const entered = Number(value);
-      const max = Number(row.maxamount);
-
-      if (entered < 0) return;
-
-      if (row.maxamount && entered > max) {
-        toast.error("Release amount cannot exceed the maximum amount!");
-        return;
-      }
-
-      row.releaseAmount = value;
-    } else {
-      row[name] = value;
     }
-
-    // ---------------- Save row ----------------
-    updatedRows[index] = row;
-    setFundReleaseRows(updatedRows);
-
-    // ---------------- Budget calculation ----------------
-    // if (updatedYear && updatedType) {
-    //   const data = await fetchFundDetails(updatedYear, updatedType);
-    //   const used = getUsedAmount(updatedYear, updatedType, index);
-    //   const remaining = data.amount - used;
-
-    //   setFundReleaseRows((prev) => {
-    //     const newRows = [...prev];
-    //     newRows[index].maxamount = remaining;
-    //     newRows[index].fundAllocDate = data.fundAllocDate;
-    //     return newRows;
-    //   });
-
-    //   setRowBudgets((prev) => ({
-    //     ...prev,
-    //     [index]: data.totalBudget,
-    //   }));
-    // }
   };
 
   const handleChangeInput = (e) => {
@@ -648,7 +673,7 @@ const Project = () => {
       // fundReleaseTo,
       approvedAmount: totalAmount,
 
-      fundReleaseInfo: finalFundReleaseRows,
+      fundReleaseInfo: fundReleaseRows,
     };
     // console.log(proposedBy);
 
@@ -705,6 +730,7 @@ const Project = () => {
             releaseAmount: "",
             giaYear: "",
             giaTypeId: "",
+            bankAccConfigId: "",
             // sanctionOrderNo: "",
             // sanctionOrderDate: "",
             // releaseLetterNo: "",
@@ -773,10 +799,9 @@ const Project = () => {
   const mapFundReleaseRows = (rows) => {
     return rows.map((row) => ({
       ...row,
-      sanctionOrderDate: toYMD(row.sanctionOrderDate),
-      releaseLetterDate: toYMD(row.releaseLetterDate),
     }));
   };
+
 
   const [totalBudgetSum, setTotalBudgetSum] = useState("");
   const getTotalBudget = async () => {
@@ -797,11 +822,14 @@ const Project = () => {
     getGIATypeOpts();
     getTotalBudget();
     getFavourandModeOpts();
+    
+  }, []);
+  useEffect(()=>{
     if (stateSelect) {
       setFormData(mapProjectResponseToForm(stateSelect));
       setFundReleaseRows(mapFundReleaseRows(stateSelect.fundReleaseInfo || []));
     }
-  }, []);
+  },[stateSelect])
 
   useEffect(() => {
     const total = fundReleaseRows.reduce(
@@ -844,37 +872,84 @@ const Project = () => {
     }
   }, [districtId, blockId, gpId, municipalityId, proposeByDist, sectorId]);
 
-  const isDuplicateCombination = (year, type, excludeIndex) => {
+  const isDuplicateCombination = (
+    year,
+    type,
+    bank,
+    bankConfig,
+    excludeIndex
+  ) => {
     return fundReleaseRows.some((row, idx) => {
       if (idx === excludeIndex) return false;
-      return row.giaYear === year && row.giaTypeId === type;
+      return (
+        row.giaYear === year &&
+        row.giaTypeId === type &&
+        row.bankId == bank &&
+        row.bankAccConfigId == bankConfig
+      );
     });
   };
 
-  // useEffect(() => {
-  //   if (stateSelect && stateSelect.fundReleaseInfo?.length > 0) {
-  //     stateSelect.fundReleaseInfo.forEach(async (row, index) => {
-  //       if (row.giaYear && row.giaTypeId) {
-  //         const data = await fetchFundDetails(row.giaYear, row.giaTypeId);
 
-  //         const used = getUsedAmount(row.giaYear, row.giaTypeId, index);
-  //         const remaining = data.amount - used;
+  useEffect(() => {
+  if (!stateSelect?.fundReleaseInfo?.length) return;
 
-  //         setFundReleaseRows((prev) => {
-  //           const newRows = [...prev];
-  //           newRows[index].maxamount = remaining;
-  //           newRows[index].fundAllocDate = data.fundAllocDate;
-  //           return newRows;
-  //         });
+  stateSelect.fundReleaseInfo.forEach(async (row, index) => {
+    // 1️⃣ Load bank list
+    if (row.giaYear && row.giaTypeId) {
+      await getUpdatedFuncDetails(row.giaYear, row.giaTypeId, index);
+    }
 
-  //         setRowBudgets((prev) => ({
-  //           ...prev,
-  //           [index]: data.totalBudget,
-  //         }));
-  //       }
-  //     });
-  //   }
-  // }, [stateSelect]);
+    // 2️⃣ Load bank config list
+    if (row.giaYear && row.giaTypeId && row.bankId) {
+      const payload = encryptPayload({
+        finyearId: row.giaYear,
+        giaTypeId: row.giaTypeId,
+        bankId: row.bankId,
+      });
+
+      const res = await getBankConfigProjectService(payload);
+
+      if (res?.status === 200 && res?.data?.outcome) {
+        setConfigOpts((prev) => ({
+          ...prev,
+          [index]: res.data.data,
+        }));
+      }
+    }
+
+    // 3️⃣ Load max budget
+    if (
+      row.giaYear &&
+      row.giaTypeId &&
+      row.bankId &&
+      row.bankAccConfigId
+    ) {
+      const payload = encryptPayload({
+        finyearId: row.giaYear,
+        giaTypeId: row.giaTypeId,
+        bankId: row.bankId,
+        bankAccConfigId: row.bankAccConfigId,
+      });
+
+      const res = await maxBudgetService(payload);
+
+      if (res?.status === 200 && res?.data?.outcome) {
+        setFundReleaseRows((prev) => {
+          const rows = [...prev];
+          rows[index] = {
+            ...rows[index],
+            maxamount: res.data.data.amount || 0,
+            fundAllocDate: res.data.data.fundAllocDate || "",
+          };
+          return rows;
+        });
+      }
+    }
+  });
+}, [stateSelect]);
+
+
 
   return (
     <div className="mt-3">
@@ -1430,14 +1505,17 @@ const Project = () => {
                     </div>
                     <div className="col-span-3">
                       <SelectField
-                        label={"Branch | Account Number | IFSC"}
+                        label="Branch | Account Number | IFSC"
                         name="bankAccConfigId"
+                        value={fundReleaseRows[index]?.bankAccConfigId || ""}
                         onChange={(e) => handleRowChange(e, index)}
                         placeholder="Select"
-                        options={configOpts?.map((i)=>({
-                          value:i.bankAccConfigId,
-                          label:`${i.branch} | ${i.accNo} | ${i.ifsc}`
-                        }))}
+                        options={
+                          configOpts[index]?.map((i) => ({
+                            value: i.bankAccConfigId,
+                            label: `${i.branch} | ${i.accNo} | ${i.ifsc}`,
+                          })) || []
+                        }
                       />
                     </div>
                     <div className="col-span-2">

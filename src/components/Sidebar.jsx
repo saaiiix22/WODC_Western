@@ -100,6 +100,7 @@ const Sidebar = ({ collapse, setCollapse }) => {
         { title: "Create Project ", link: "/project" },
         { title: "Project List", link: "/project-list" },
         { title: "Project Agency Milestone Map", link: "/projectAgencyMilestoneMapping" },
+        { title: "Work Order Generation", link: "/workOrderGeneration" },
       ],
     },
   ];

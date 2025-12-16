@@ -90,7 +90,9 @@ const endpoints = {
         getProjectDetails: '/project/get-project-by-projectid',
         generateProjectCode: '/project/get-project-code',
         totalBudget: '/fund/budget-total',
-        maxBudget: '/fund/budget-by-finyear-giatype',
+        // maxBudget: '/fund/budget-by-finyear-giatype',
+        maxBudget: '/fund/budget-by-giatypeyear-bankconfig-ids',
+        
 
         getProjectList: '/project/get-project-list',
         getMilestone: '/project/get-milestone-list-by-projectid',
@@ -149,6 +151,11 @@ const endpoints = {
         getBankList:'/mst/get-bank-config-list',
         editBankDetails:'/mst/get-bankconfig-by-bankconfigid',
         toggleBankStatus:'/mst/toggle-bankconfig-status-by-bankconfigid'
+    },
+    wordOrderGeneration:{
+        saveWorkOrder:'/order/save-or-update-work-order',
+        getDetailsByProjectAndMilestoneId:'/project/get-all-details-by-projectid-and-mlstnid',
+        getAllWorkOrderData:'/order/get-work-order-list'
     },
     umtEndpoints: {
         saveRole: '/admin/role/save',
