@@ -34,6 +34,8 @@ import ProjectAgencyMilestone from "../pages/project/ProjectAgencyMilestone";
 import AddBeneficiary from "../pages/beneficiary/AddBeneficiary";
 import WorkOrderGeneration from "../pages/project/WorkOrderGeneration";
 import BankAccountConfig from "../pages/master/BankAccountConfig";
+import FundReleaseInfo from "../pages/project/FundReleaseInfo";
+import BeneficiaryList from "../pages/project/BeneficiaryList";
 
 const AppRouter = () => {
   return (
@@ -60,6 +62,8 @@ const AppRouter = () => {
             <Route path={routes.projectManagementPage.path} element={<Project />} />
             <Route path={routes.projectAgencyMilestone.path} element={<ProjectAgencyMilestone />} />
             <Route path={routes.workOrderGeneration.path} element={<WorkOrderGeneration />} />
+            <Route path={routes.fundReleaseInfo.path} element={<FundReleaseInfo />} />
+            <Route path={routes.beneficiaryList.path} element={<BeneficiaryList />} />
 
             {/* MASTER */}
             <Route path={routes.proposalPage.path} element={<Proposal />} />

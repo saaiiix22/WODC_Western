@@ -36,5 +36,7 @@ export const routes = {
    
    addBeneficiary:{path: "/addBeneficiary", label: "Add Beneficiary", protected: true},
    bankAccoutConfig:{path: "/bankAccoutConfig", label: "Bank Account Configuration", protected: true},
+   fundReleaseInfo:{path: "/fundReleaseInfo", label: "Fund Release Information", protected: true},
+   beneficiaryList:{path: "/beneficiaryList", label: "Beneficiary List", protected: true},
 
 }

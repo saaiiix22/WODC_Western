@@ -8,3 +8,5 @@ export const saveWorOrderGenerationService = (data) => Api.post(endpoints.wordOr
     },
 })
 export const getAllWorkOrderGenerationListService=(data)=>Api.get(endpoints.wordOrderGeneration.getAllWorkOrderData,{params:{cipherText:data}})
+export const getCompleteMilestoneService = (data) => Api.get(endpoints.fundReleaseInfo.getCompleteMilestone,{params:{cipherText:data}})
+export const saveFundReleasInfoServicePrimary=(data)=>Api.post(endpoints.fundReleaseInfo.saveFundReleasInfo,null,{params:{cipherText:data}})

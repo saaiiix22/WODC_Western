@@ -671,6 +671,7 @@ const ProjectAgencyMilestone = () => {
                                 e.target.value
                               )
                             }
+                            min={i.startDate}
                             disabled={userSelection.roleCode === "ROLE_WODC_ADMIN"?true:false}
                             type="date"
                             className={`

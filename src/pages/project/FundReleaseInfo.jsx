@@ -10,13 +10,17 @@ import {
   getProjectByFinYearService,
 } from "../../services/projectService";
 import {
+  getCompleteMilestoneService,
   getDetailsByProjectAndMilestoneIdService,
-  saveWorOrderGenerationService,
+  
+  saveFundReleasInfoServicePrimary,
+  
 } from "../../services/workOrderGenerationService";
 import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
-const WorkOrderGeneration = () => {
+const FundReleaseInfo = () => {
   const userSelect = useSelector((state) => state);
   console.log(userSelect?.menu.userDetails);
 
@@ -26,9 +30,26 @@ const WorkOrderGeneration = () => {
     milestoneId: "",
     workOrderNo: "",
     workOrderDate: "",
+    penaltyPercentage: "",
+    penaltyAmount: "",
+    sanctionOrderNo: "",
+    sanctionOrderDate: "",
+    releaseLetterNo: "",
+    releaseLetterDate: "",
+    agencyBankId: "",
   });
-  const { finYear, projectId, milestoneId, workOrderNo, workOrderDate } =
-    formData;
+  const {
+    finYear,
+    projectId,
+    milestoneId,
+    penaltyAmount,
+    penaltyPercentage,
+    sanctionOrderDate,
+    sanctionOrderNo,
+    releaseLetterDate,
+    releaseLetterNo,
+    agencyBankId
+  } = formData;
   const [errors, setErrors] = useState({});
 
   const [finOpts, setFinOpts] = useState([]);
@@ -39,8 +60,11 @@ const WorkOrderGeneration = () => {
   const [milestoneDetails, setMilestoneDetails] = useState({});
   const [vendorDetails, setVendorDetails] = useState({});
   const [agencyDetails, setAgencyDetails] = useState({});
+  const [geoTagImg, setGeoTagImgs] = useState([]);
 
   const [orderDocument, setOrderDocument] = useState(null);
+
+  const navigate = useNavigate();
 
   const getAllFinOpts = async () => {
     try {
@@ -76,10 +100,9 @@ const WorkOrderGeneration = () => {
     try {
       if (projectId) {
         const payload = encryptPayload({
-          isActive: true,
           projectId: projectId,
         });
-        const res = await getMilestoneByProjectIdService(payload);
+        const res = await getCompleteMilestoneService(payload);
         // console.log(res);
         if (res?.status === 200 && res?.data.outcome) {
           setMilestoneOpts(res?.data.data);
@@ -88,6 +111,14 @@ const WorkOrderGeneration = () => {
     } catch (error) {
       throw error;
     }
+  };
+  const getDateDiff = (date1, date2) => {
+    if (!date1 || !date2) return "N/A";
+
+    const d1 = new Date(date1.split("/").reverse().join("-"));
+    const d2 = new Date(date2.split("/").reverse().join("-"));
+
+    return Math.round((d1 - d2) / (1000 * 60 * 60 * 24));
   };
 
   const [wordOrderDetails, setWorkOrderDetails] = useState({});
@@ -106,6 +137,7 @@ const WorkOrderGeneration = () => {
           setMilestoneDetails(res?.data.data.projectAgencyMilestoneMapDto);
           setBeneficiaryDetails(res?.data.data.beneficiaryDto);
           setVendorDetails(res?.data.data.vendorDto);
+          setGeoTagImgs(res?.data.data.geoTagResponsDto);
         }
       }
     } catch (error) {
@@ -113,19 +145,21 @@ const WorkOrderGeneration = () => {
     }
   };
 
-  const handleChangeInput = async (e) => {
-    const { name, files, value } = e.target;
+  const handleChangeInput = (e) => {
+    const { name, value } = e.target;
 
-    if (name === "orderDocument") {
-      setOrderDocument(files[0]);
+    let updatedForm = { ...formData, [name]: value };
+
+    if (name === "penaltyPercentage") {
+      const percent = Number(value) || 0;
+      const milestoneAmount = Number(milestoneDetails?.amount) || 0;
+
+      updatedForm.penaltyAmount = ((milestoneAmount * percent) / 100).toFixed(
+        2
+      );
     }
 
-    setFormData({ ...formData, [name]: value });
-  };
-
-  const toDDMMYYYY = (str = "") => {
-    if (!str) return;
-    return str.split("-").join("/");
+    setFormData(updatedForm);
   };
 
   const openDocument = (base64Data, mimeType = "application/pdf") => {
@@ -144,7 +178,7 @@ const WorkOrderGeneration = () => {
 
     setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
   };
-
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     let newErrors = {};
@@ -155,29 +189,22 @@ const WorkOrderGeneration = () => {
     }
     try {
       const sendData = {
-        projectId,
-        milestoneId,
-        workOrderNo,
-        workOrderDate: toDDMMYYYY(workOrderDate),
-        vendorId: vendorDetails?.vendorId,
+        fundReleaseId: null,
+        sanctionOrderNo,
+        sanctionOrderDate: sanctionOrderDate.split("-").reverse().join("/"),
+        releaseLetterDate: releaseLetterDate.split("-").reverse().join("/"),
+        releaseLetterNo,
+        workOrderId: wordOrderDetails?.workOrderId,
+        projectAgencyMilestoneMapId:milestoneDetails?.projectAgencyMilestoneMapId,
+        penaltyAmount,
+        penaltyPercentage,
+        agencyBankId,
       };
-      const fmData = new FormData();
-      fmData.append("cipherText", encryptPayload(sendData));
-      fmData.append("orderDocument", orderDocument);
-
-      const res = await saveWorOrderGenerationService(fmData);
+      console.log(sendData);
+      
+      const payload = encryptPayload(sendData);
+      const res = await saveFundReleasInfoServicePrimary(payload);
       console.log(res);
-      if (res?.status === 200 && res?.data.data) {
-        toast.success(res?.data.message);
-        setFormData({
-          finYear: "",
-          projectId: "",
-          milestoneId: "",
-          workOrderNo: "",
-          workOrderDate: "",
-        });
-        setOrderDocument(null);
-      }
     } catch (error) {
       throw error;
     }
@@ -202,18 +229,6 @@ const WorkOrderGeneration = () => {
       getDeatilsByProjectMilestone();
     }
   }, [projectId, milestoneId]);
-  useEffect(() => {
-    if (wordOrderDetails) {
-      setFormData((prev) => ({
-        ...prev,
-        workOrderNo: wordOrderDetails?.workOrderNo,
-        workOrderDate: wordOrderDetails?.workOrderDate
-          ?.split("/")
-          ?.reverse()
-          .join("-"),
-      }));
-    }
-  }, [wordOrderDetails]);
 
   return (
     <form action="" onSubmit={handleSubmit}>
@@ -238,7 +253,7 @@ const WorkOrderGeneration = () => {
                   bg-[#ff7900] rounded
                 "
             />
-            Work Order Generation
+            Fund Release Information
           </h3>
         </div>
 
@@ -288,8 +303,30 @@ const WorkOrderGeneration = () => {
                 onChange={handleChangeInput}
               />
             </div>
+
             {milestoneId && projectId && milestoneId && (
               <>
+                <div className="col-span-12">
+                  <div className="grid grid-cols-12">
+                    <div className="col-span-3">
+                      <div
+                        onClick={() =>
+                          navigate("/beneficiaryList", {
+                            state: { projectId, milestoneId },
+                          })
+                        }
+                        className="inline-flex items-center gap-2 rounded-sm cursor-pointer bg-[#fffaf6] border border-orange-300 px-4 py-2"
+                      >
+                        <span className="text-sm text-orange-600 font-medium">
+                          Beneficiaries
+                        </span>
+                        <span className="text-lg font-bold text-slate-600">
+                          {beneficiaryDetails.length}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div className="col-span-12">
                   <div className="relative border border-dashed border-orange-300 bg-[#fffaf6] p-4 rounded-md mb-3 mt-3">
                     {/* Floating Title */}
@@ -310,14 +347,16 @@ const WorkOrderGeneration = () => {
                         </span>
                       </div>
 
-
-                       <div className="col-span-3 flex gap-1">
+                      <div className="col-span-3 flex gap-1">
                         <span className="font-medium text-gray-700">
                           Milestone Amount
                         </span>
                         :
                         <span className="text-red-600 font-semibold uppercase">
-                          {Number(milestoneDetails?.amount).toLocaleString("en-IN") || "0"}
+                          ₹{" "}
+                          {Number(milestoneDetails?.amount).toLocaleString(
+                            "en-IN"
+                          ) || 0}
                         </span>
                       </div>
 
@@ -357,6 +396,46 @@ const WorkOrderGeneration = () => {
                           {milestoneDetails?.actualEndDate || "N/A"}
                         </span>
                       </div>
+                      <div className="col-span-3 flex gap-1">
+                        <span className="font-medium text-gray-700">Delay</span>
+                        :
+                        <span className="text-red-600 font-semibold">
+                          {getDateDiff(
+                            milestoneDetails?.actualEndDate,
+                            milestoneDetails?.endDate
+                          ) || "0"}{" "}
+                          days
+                        </span>
+                      </div>
+                      {getDateDiff(
+                        milestoneDetails?.actualEndDate,
+                        milestoneDetails?.endDate
+                      ) > 0 && (
+                        <div className="col-span-12">
+                          <div className="grid grid-cols-12 gap-6">
+                            <div className="col-span-3">
+                              <InputField
+                                label={"Penalty %"}
+                                name="penaltyPercentage"
+                                type="number"
+                                placeholder="Enter penalty percent"
+                                value={penaltyPercentage}
+                                max={100}
+                                onChange={handleChangeInput}
+                              />
+                            </div>
+                            <div className="col-span-3">
+                              <InputField
+                                label={"Penalty Amount"}
+                                name="penaltyAmount"
+                                disabled={true}
+                                value={penaltyAmount}
+                                onChange={handleChangeInput}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -381,16 +460,6 @@ const WorkOrderGeneration = () => {
                           </span>
                         </div>
 
-                        {/* <div className="col-span-3 flex gap-1">
-                        <span className="font-medium text-gray-700">
-                          Agency Code
-                        </span>
-                        :
-                        <span className="text-red-600 font-semibold">
-                          {agencyDetails?.agencyCode || "N/A"}
-                        </span>
-                      </div> */}
-
                         <div className="col-span-3 flex gap-1">
                           <span className="font-medium text-gray-700">
                             Contact Number
@@ -409,6 +478,24 @@ const WorkOrderGeneration = () => {
                           <span className="text-red-600 font-semibold">
                             {agencyDetails?.email || "N/A"}
                           </span>
+                        </div>
+
+                        <div className="col-span-12 flex gap-1">
+                          <div className="grid grid-cols-12 gap-x-6">
+                            <div className="col-span-12 mb-2 mt-1">
+                              Bank Account Selection
+                            </div>
+                            {agencyDetails?.agencyBankDetailsDtoList?.map(
+                              (i, index) => {
+                                return (
+                                  <div className="col-span-2 flex items-center gap-2" key={index}>
+                                    <input type="radio" name="agencyBankId" id={i.bankName} value={i.agencyBankId} onChange={handleChangeInput} />
+                                    <label htmlFor={i.bankName}>{i.bankName}</label>
+                                  </div>
+                                );
+                              }
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -498,103 +585,98 @@ const WorkOrderGeneration = () => {
                   </div>
                 )}
                 <div className="col-span-12">
-                  <div className="relative border border-dashed border-orange-300 bg-[#fffaf6] p-4 rounded-md mt-0">
+                  <div className="relative border border-dashed border-orange-300 bg-[#fffaf6] p-4 rounded-md mb-3">
                     {/* Floating Title */}
                     <span className="absolute -top-3 left-4 bg-[#fffaf6] px-3 text-sm font-semibold text-orange-600">
-                      Beneficiary Details
+                      Work Order Genaration Details
                     </span>
+                    <div className="grid grid-cols-12 gap-y-3 gap-x-6 text-sm">
+                      {/* ---------- VENDOR DETAILS ---------- */}
+                      <div className="col-span-3 flex gap-1">
+                        <span className="font-medium text-gray-700">
+                          Work Order No
+                        </span>
+                        :
+                        <span className="text-red-600 font-semibold uppercase">
+                          {wordOrderDetails?.workOrderNo || "N/A"}
+                        </span>
+                      </div>
 
-                    <table className="table-fixed w-full border border-orange-300">
-                      <thead className="border-b border-orange-300 bg-orange-300">
-                        <tr>
-                          <td className="w-[60px] text-center text-sm font-semibold px-2 py-1 border-r border-orange-300">
-                            SL No
-                          </td>
-                          <td className="text-center text-sm font-semibold px-4 py-1 border-r border-orange-300">
-                            Beneficiary Name
-                          </td>
-
-                          <td className="text-center text-sm font-semibold px-4 py-1 border-r border-orange-300">
-                            Beneficiary Code
-                          </td>
-                          <td className="text-center text-sm font-semibold px-4 py-1 border-r border-orange-300">
-                            Contact No
-                          </td>
-                          <td className="text-center text-sm font-semibold px-4 py-1 border-r border-orange-300">
-                            Email
-                          </td>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {beneficiaryDetails?.map((i, index) => {
-                          return (
-                            <tr
-                              key={index}
-                              className="border-b border-orange-300"
-                            >
-                              <td className="border-r py-2 text-sm border-orange-300 text-center">
-                                {index + 1}
-                              </td>
-                              <td className="border-r py-2 text-sm border-orange-300 text-center">
-                                {i.beneficiaryName}
-                              </td>
-                              <td className="border-r py-2 text-sm border-orange-300 text-center">
-                                {i.beneficiaryCode}
-                              </td>
-                              <td className="border-r py-2 text-sm border-orange-300 text-center">
-                                {i.contactNo}
-                              </td>
-                              <td className="border-r py-2 text-sm border-orange-300 text-center">
-                                {i.email}
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
+                      <div className="col-span-3 flex gap-1">
+                        <span className="font-medium text-gray-700">
+                          Work Order Date
+                        </span>
+                        :
+                        <span className="text-red-600 font-semibold">
+                          {wordOrderDetails?.workOrderDate || "N/A"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="col-span-12">
+                  <div className="relative border border-dashed border-orange-300 bg-[#fffaf6] p-4 rounded-md mb-3">
+                    {/* Floating Title */}
+                    <span className="absolute -top-3 left-4 bg-[#fffaf6] px-3 text-sm font-semibold text-orange-600">
+                      Geotag Details
+                    </span>
+                    <div className="grid grid-cols-12 gap-6 text-sm">
+                      {geoTagImg?.map((i, index) => {
+                        return (
+                          <div className="col-span-3 flex gap-1" key={index}>
+                            <img
+                              src={`data:image/png;base64,${i.documentBase64}`}
+                              alt=""
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
                 <div className="col-span-2">
                   <InputField
-                    label={"Work Order Number"}
+                    label={"Sanction Order Number"}
                     required={true}
-                    name="workOrderNo"
-                    value={workOrderNo}
+                    name="sanctionOrderNo"
+                    value={sanctionOrderNo}
                     type="number"
-                    placeholder="WON"
+                    placeholder="Enter sanction order number"
                     onChange={handleChangeInput}
                   />
                 </div>
                 <div className="col-span-2">
                   <InputField
-                    label={"Work Order Date"}
+                    label={"Sanction Order Date"}
                     required={true}
-                    name="workOrderDate"
-                    value={workOrderDate}
+                    name="sanctionOrderDate"
+                    value={sanctionOrderDate}
                     type="date"
-                    placeholder="WOD"
+                    placeholder="Enter sanction order date"
                     onChange={handleChangeInput}
                   />
                 </div>
                 <div className="col-span-2">
                   <InputField
-                    label={"Upload Document"}
+                    label={"Release Letter Number"}
                     required={true}
-                    name="orderDocument"
-                    type="file"
+                    name="releaseLetterNo"
+                    value={releaseLetterNo}
+                    type="number"
+                    placeholder="Enter release order date"
                     onChange={handleChangeInput}
                   />
-                  <span
-                    className="text-[11px] text-blue-600 cursor-pointer"
-                    onClick={() =>
-                      openDocument(
-                        wordOrderDetails?.docPathBase64,
-                        "application/pdf"
-                      )
-                    }
-                  >
-                    {wordOrderDetails?.fileName}
-                  </span>
+                </div>
+                <div className="col-span-2">
+                  <InputField
+                    label={"Release Letter Date"}
+                    required={true}
+                    name="releaseLetterDate"
+                    value={releaseLetterDate}
+                    type="date"
+                    placeholder="Enter release order date"
+                    onChange={handleChangeInput}
+                  />
                 </div>
               </>
             )}
@@ -604,11 +686,11 @@ const WorkOrderGeneration = () => {
         {/* Footer (Optional) */}
         <div className="flex justify-center gap-2 text-[13px] bg-[#42001d0f] border-t border-[#ebbea6] px-4 py-3 rounded-b-md">
           <ResetBackBtn />
-          {!wordOrderDetails && <SubmitBtn type={'submit'} />}
+          <SubmitBtn type={"submit"} />
         </div>
       </div>
     </form>
   );
 };
 
-export default WorkOrderGeneration;
+export default FundReleaseInfo;
