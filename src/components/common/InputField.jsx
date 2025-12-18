@@ -30,7 +30,8 @@ const InputField = ({
           value={value ?? ""}
           onChange={onChange}
           disabled={disabled}
-          placeholder={placeholder}
+          // placeholder={placeholder}
+          placeholder={""}
           {...(minLength !== undefined && { minLength })}
           {...(maxLength !== undefined && { maxLength })}
           {...(min !== undefined && { min })}
@@ -56,7 +57,8 @@ const InputField = ({
           value={value ?? ""}
           onChange={onChange}
           disabled={disabled}
-          placeholder={placeholder}
+          // placeholder={placeholder}
+          placeholder={""}
           {...(minLength !== undefined && { minLength })}
           {...(maxLength !== undefined && { maxLength })}
           className={`
@@ -74,7 +76,7 @@ const InputField = ({
       )}
 
       {/* Error message */}
-      {error && <p className="text-red-500 text-xs">{error}</p>}
+      {error && <p className="text-red-500 text-xs">{error} *</p>}
     </div>
   );
 };

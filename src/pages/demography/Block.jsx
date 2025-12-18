@@ -66,7 +66,14 @@ const Block = () => {
 
   const handleChangeInput = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    let updatedVal = value
+    if(name === "blockNameEN"){
+      updatedVal = avoidSpecialCharUtil(value)
+    }
+    if(name === "blocklgdCode"){
+      updatedVal = LGDutil(value)
+    }
+    setFormData({ ...formData, [name]: updatedVal });
     setErrors((prev) => ({
       ...prev,
       [name]: "",
@@ -374,7 +381,7 @@ const Block = () => {
                   required={true}
                   name="blockNameEN"
                   placeholder="Enter block name"
-                  value={avoidSpecialCharUtil(blockNameEN)}
+                  value={blockNameEN}
                   onChange={handleChangeInput}
                   maxLength={50}
                   error={errors.blockNameEN}
@@ -387,7 +394,7 @@ const Block = () => {
                   required={true}
                   name="blocklgdCode"
                   placeholder="Enter LGD code"
-                  value={LGDutil(blocklgdCode)}
+                  value={blocklgdCode}
                   onChange={handleChangeInput}
                   error={errors.blocklgdCode}
                   maxLength={30}

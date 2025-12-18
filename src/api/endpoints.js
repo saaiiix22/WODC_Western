@@ -161,6 +161,9 @@ const endpoints = {
         getCompleteMilestone:"/project/get-cmplmilestone-list-by-projectid",
         saveFundReleasInfo:"/order/save-or-update-fund-release-info"
     },
+    ucSubmission:{
+        getUCdetails:"/project/get-uc-details-by-projectid-and-mlstnid"
+    },
     umtEndpoints: {
         saveRole: '/admin/role/save',
         roleList: '/admin/role/list',

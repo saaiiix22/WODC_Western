@@ -38,5 +38,7 @@ export const routes = {
    bankAccoutConfig:{path: "/bankAccoutConfig", label: "Bank Account Configuration", protected: true},
    fundReleaseInfo:{path: "/fundReleaseInfo", label: "Fund Release Information", protected: true},
    beneficiaryList:{path: "/beneficiaryList", label: "Beneficiary List", protected: true},
+   ucSubmission:{path: "/ucSubmission", label: "UC Submission", protected: true},
+
 
 }

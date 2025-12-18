@@ -67,7 +67,15 @@ const GramPanchayatPage = () => {
 
   const handleChangeInput = async (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    let updatedVal = value
+    if(name === "gpNameEN"){
+      updatedVal = avoidSpecialCharUtil(value)
+    }
+    if(name === "gpLgdCode"){
+      updatedVal = LGDutil(value)
+    }
+    
+    setFormData({ ...formData, [name]: updatedVal });
     if (name === "districtId") {
       try {
         setLoading(true);
@@ -410,7 +418,7 @@ const GramPanchayatPage = () => {
                   required={true}
                   name="gpNameEN"
                   placeholder="Enter gram panchayat name"
-                  value={avoidSpecialCharUtil(gpNameEN)}
+                  value={gpNameEN}
                   onChange={handleChangeInput}
                   error={errors.gpNameEN}
                   maxLength={50}

@@ -25,7 +25,10 @@ import {
   ResetBackBtn,
   SubmitBtn,
 } from "../../../components/common/CommonButtons";
-import { cleanStringUtil } from "../../../utils/validationUtils";
+import {
+  avoidSpecialCharUtil,
+  cleanStringUtil,
+} from "../../../utils/validationUtils";
 import Loader from "../../../components/common/Loader";
 
 const GetDistrict = () => {
@@ -49,7 +52,12 @@ const GetDistrict = () => {
 
   const handleChangeInput = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    let updatedValue = value;
+
+    if (name === "districtName") {
+      updatedValue = avoidSpecialCharUtil(value);
+    }
+    setFormData({ ...formData, [name]: updatedValue });
     setErrors((prev) => ({
       ...prev,
       [name]: "",
@@ -190,8 +198,8 @@ const GetDistrict = () => {
           </Tooltip>
 
           {/* ACTIVE / INACTIVE BUTTON */}
-          
-          <Tooltip title={row.isActive?"Active":"Inactive"} arrow>
+
+          <Tooltip title={row.isActive ? "Active" : "Inactive"} arrow>
             <button
               className={`flex items-center justify-center h-8 w-8 rounded-full
            ${
@@ -301,7 +309,7 @@ const GetDistrict = () => {
                   required={true}
                   name="districtName"
                   placeholder="Enter district name"
-                  value={cleanStringUtil(districtName)}
+                  value={districtName}
                   onChange={handleChangeInput}
                   error={errors.districtName}
                   maxLength={50}

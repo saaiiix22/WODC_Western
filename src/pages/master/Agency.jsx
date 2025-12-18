@@ -172,16 +172,17 @@ const Agency = () => {
   const handleSubmitConfirmModal = (e) => {
     e.preventDefault();
     let newErrors = {};
-    if (!agencyName || !agencyName.trim()) {
-      newErrors.agencyName = "Agency name is required";
-      setErrors(newErrors);
-      return;
-    }
     if (!districtId) {
       newErrors.districtId = "District name is required";
       setErrors(newErrors);
       return;
     }
+    if (!agencyName || !agencyName.trim()) {
+      newErrors.agencyName = "Agency name is required";
+      setErrors(newErrors);
+      return;
+    }
+    
     // if (!aadhaarNo || !aadhaarNo.trim()) {
     //   newErrors.aadhaarNo = "Aadhar number is required";
     //   setErrors(newErrors);

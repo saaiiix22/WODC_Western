@@ -101,6 +101,8 @@ const Sidebar = ({ collapse, setCollapse }) => {
         { title: "Project List", link: "/project-list" },
         { title: "Project Agency Milestone Map", link: "/projectAgencyMilestoneMapping" },
         { title: "Work Order Generation", link: "/workOrderGeneration" },
+        { title: "Fund Release Information", link: "/fundReleaseInfo" }, 
+        { title: "UC Submission", link: "/ucSubmission" }, 
       ],
     },
   ];

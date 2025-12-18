@@ -187,12 +187,12 @@ const ProjectAgencyMilestone = () => {
       const isDuplicateCombo = rows.some(
         (row, idx) =>
           idx !== index &&
-          Number(row.agencyId) === newAgencyId &&
+          // Number(row.agencyId) === newAgencyId &&
           Number(row.milestoneId) === newMilestoneId
       );
 
       if (isDuplicateCombo) {
-        toast.error("This agency and milestone combination is already added!");
+        toast.error("Milestone alread exists!");
         return;
       }
     }
@@ -219,15 +219,15 @@ const ProjectAgencyMilestone = () => {
         return;
       }
 
-      const totalPercentExceptCurrent = rows.reduce((sum, row, idx) => {
-        if (idx === index) return sum;
-        return sum + (parseFloat(row.budgetPercentage) || 0);
-      }, 0);
+      // const totalPercentExceptCurrent = rows.reduce((sum, row, idx) => {
+      //   if (idx === index) return sum;
+      //   return sum + (parseFloat(row.budgetPercentage) || 0);
+      // }, 0);
 
-      if (totalPercentExceptCurrent + percent > 100) {
-        toast.error("Total budget percentage cannot exceed 100%");
-        return;
-      }
+      // if (totalPercentExceptCurrent + percent > 100) {
+      //   toast.error("Total budget percentage cannot exceed 100%");
+      //   return;
+      // }
 
       const usedAmountExceptCurrent = rows.reduce((sum, row, idx) => {
         if (idx === index) return sum;
@@ -540,7 +540,7 @@ const ProjectAgencyMilestone = () => {
                             }))}
                             placeholder="Select"
                             disabled={
-                              userSelection.roleCode === "ROLE_AGENCY"
+                              userSelection.roleCode === "ROLE_AGENCY" || i.milestoneStatus === "CMPL"
                                 ? true
                                 : false
                             }
@@ -560,36 +560,13 @@ const ProjectAgencyMilestone = () => {
                             }))}
                             placeholder="Select"
                             disabled={
-                              userSelection.roleCode === "ROLE_AGENCY"
+                              userSelection.roleCode === "ROLE_AGENCY" || i.milestoneStatus === "CMPL"
                                 ? true
                                 : false
                             }
                           />
                         </div>
-                        <div className="col-span-2">
-                          <SelectField
-                            label={"Status"}
-                            name="milestoneStatus"
-                            value={i.milestoneStatus}
-                            onChange={(e) =>
-                              handleInput(
-                                index,
-                                "milestoneStatus",
-                                e.target.value
-                              )
-                            }
-                            options={statusOpts?.map((d) => ({
-                              value: d.lookupValueCode,
-                              label: d.lookupValueEn,
-                            }))}
-                            disabled={
-                              userSelection.roleCode === "ROLE_WODC_ADMIN"
-                                ? true
-                                : false
-                            }
-                            placeholder="Select"
-                          />
-                        </div>
+                        
                         <div className="col-span-2">
                           <InputField
                             label={"Order"}
@@ -599,11 +576,11 @@ const ProjectAgencyMilestone = () => {
                               handleInput(index, "order", e.target.value)
                             }
                             disabled={
-                              userSelection.roleCode === "ROLE_AGENCY"
+                              userSelection.roleCode === "ROLE_AGENCY" || i.milestoneStatus === "CMPL"
                                 ? true
                                 : false
                             }
-                            type="number"
+                            // type="number"
                           />
                         </div>
                         <div className="col-span-2">
@@ -616,7 +593,7 @@ const ProjectAgencyMilestone = () => {
                             onChange={(e) =>
                               handleInput(index, "startDate", e.target.value)
                             }
-                            disabled={userSelection?.roleCode === "ROLE_AGENCY" ? true :false}
+                            disabled={userSelection?.roleCode === "ROLE_AGENCY" || i.milestoneStatus === "CMPL" ? true :false}
                             type="date"
                             className={`
                                   w-full rounded-md border border-gray-300 
@@ -639,7 +616,7 @@ const ProjectAgencyMilestone = () => {
                             name="endDate"
                             value={i.endDate}
                             min={i.startDate}
-                            disabled={userSelection?.roleCode === "ROLE_AGENCY" ? true :false}
+                            disabled={userSelection?.roleCode === "ROLE_AGENCY" || i.milestoneStatus === "CMPL" ? true :false}
                             onChange={(e) =>
                               handleInput(index, "endDate", e.target.value)
                             }
@@ -672,7 +649,7 @@ const ProjectAgencyMilestone = () => {
                               )
                             }
                             min={i.startDate}
-                            disabled={userSelection.roleCode === "ROLE_WODC_ADMIN"?true:false}
+                            disabled={userSelection.roleCode === "ROLE_WODC_ADMIN" || i.milestoneStatus === "CMPL" ?true:false}
                             type="date"
                             className={`
                                   w-full rounded-md border border-gray-300 
@@ -695,7 +672,7 @@ const ProjectAgencyMilestone = () => {
                             name="actualEndDate"
                             value={i.actualEndDate}
                             min={i.actualStartDate}
-                            disabled={userSelection.roleCode === "ROLE_WODC_ADMIN"?true:false}
+                            disabled={userSelection.roleCode === "ROLE_WODC_ADMIN" || i.milestoneStatus === "CMPL"?true:false}
 
                             onChange={(e) =>
                               handleInput(
@@ -722,7 +699,7 @@ const ProjectAgencyMilestone = () => {
                           <InputField
                             label={"Budget (%)"}
                             required={true}
-                            type="number"
+                            // type="number"
                             name="budgetPercentage"
                             value={i.budgetPercentage}
                             onChange={(e) =>
@@ -733,7 +710,7 @@ const ProjectAgencyMilestone = () => {
                               )
                             }
                             disabled={
-                              userSelection.roleCode === "ROLE_AGENCY"
+                              userSelection.roleCode === "ROLE_AGENCY" || i.milestoneStatus === "CMPL"
                                 ? true
                                 : false
                             }
@@ -761,7 +738,7 @@ const ProjectAgencyMilestone = () => {
                               handleInput(index, "vendorId", e.target.value)
                             }
                             disabled={
-                              userSelection.roleCode === "ROLE_WODC_ADMIN"
+                              userSelection.roleCode === "ROLE_WODC_ADMIN" || i.milestoneStatus === "CMPL"
                                 ? true
                                 : false
                             }
@@ -769,6 +746,31 @@ const ProjectAgencyMilestone = () => {
                               value: d.vendorId,
                               label: d.vendorName,
                             }))}
+                            placeholder="Select"
+                            disb
+                          />
+                        </div>
+                        <div className="col-span-2">
+                          <SelectField
+                            label={"Status"}
+                            name="milestoneStatus"
+                            value={i.milestoneStatus}
+                            onChange={(e) =>
+                              handleInput(
+                                index,
+                                "milestoneStatus",
+                                e.target.value
+                              )
+                            }
+                            options={statusOpts?.map((d) => ({
+                              value: d.lookupValueCode,
+                              label: d.lookupValueEn,
+                            }))}
+                            disabled={
+                              userSelection.roleCode === "ROLE_WODC_ADMIN" || i.milestoneStatus === "CMPL" 
+                                ? true
+                                : false
+                            }
                             placeholder="Select"
                           />
                         </div>

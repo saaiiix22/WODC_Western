@@ -310,7 +310,7 @@ const BudgetDetails = () => {
                     Bank Name
                   </td>
                   <td className="text-center text-sm font-semibold px-4 py-1 border-r border-slate-200">
-                    Branch | Account Number | IFSC
+                    Account Information
                   </td>
                   <td className="text-center text-sm font-semibold px-4 py-1 border-r border-slate-200">
                     Amount

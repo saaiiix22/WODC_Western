@@ -15,6 +15,7 @@ import {
 } from "../../services/workOrderGenerationService";
 import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 const WorkOrderGeneration = () => {
   const userSelect = useSelector((state) => state);
@@ -65,13 +66,15 @@ const WorkOrderGeneration = () => {
         // console.log(res);
         if (res?.status === 200 && res?.data.outcome) {
           setProjectOpts(res?.data.data);
+        } else {
+          toast.error(res?.data.message);
+          setProjectOpts([]);
         }
       }
     } catch (error) {
       throw error;
     }
   };
-
   const getAllMistoneOpts = async () => {
     try {
       if (projectId) {
@@ -83,6 +86,9 @@ const WorkOrderGeneration = () => {
         // console.log(res);
         if (res?.status === 200 && res?.data.outcome) {
           setMilestoneOpts(res?.data.data);
+        } else {
+          toast.error(res?.data.message);
+          setMilestoneOpts([]);
         }
       }
     } catch (error) {
@@ -106,6 +112,20 @@ const WorkOrderGeneration = () => {
           setMilestoneDetails(res?.data.data.projectAgencyMilestoneMapDto);
           setBeneficiaryDetails(res?.data.data.beneficiaryDto);
           setVendorDetails(res?.data.data.vendorDto);
+        } else {
+          toast.error(res?.data.message);
+          setFormData({
+            finYear: "",
+            projectId: "",
+            milestoneId: "",
+            workOrderNo: "",
+            workOrderDate: "",
+          });
+          setWorkOrderDetails({});
+          setAgencyDetails({});
+          setMilestoneDetails({});
+          setBeneficiaryDetails([]);
+          setVendorDetails({});
         }
       }
     } catch (error) {
@@ -215,6 +235,8 @@ const WorkOrderGeneration = () => {
     }
   }, [wordOrderDetails]);
 
+  const navigate = useNavigate();
+
   return (
     <form action="" onSubmit={handleSubmit}>
       <div
@@ -288,7 +310,8 @@ const WorkOrderGeneration = () => {
                 onChange={handleChangeInput}
               />
             </div>
-            {milestoneId && projectId && milestoneId && (
+
+            {finYear && projectId && milestoneId && (
               <>
                 <div className="col-span-12">
                   <div className="relative border border-dashed border-orange-300 bg-[#fffaf6] p-4 rounded-md mb-3 mt-3">
@@ -310,14 +333,20 @@ const WorkOrderGeneration = () => {
                         </span>
                       </div>
 
-
-                       <div className="col-span-3 flex gap-1">
+                      <div className="col-span-3 flex gap-1">
                         <span className="font-medium text-gray-700">
                           Milestone Amount
                         </span>
                         :
                         <span className="text-red-600 font-semibold uppercase">
-                          {Number(milestoneDetails?.amount).toLocaleString("en-IN") || "0"}
+                          ₹{" "}
+                          {Number(milestoneDetails?.amount).toLocaleString(
+                            "en-IN",
+                            {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            }
+                          ) || "0"}
                         </span>
                       </div>
 
@@ -355,6 +384,22 @@ const WorkOrderGeneration = () => {
                         :
                         <span className="text-red-600 font-semibold">
                           {milestoneDetails?.actualEndDate || "N/A"}
+                        </span>
+                      </div>
+                      <div
+                        className="col-span-3 flex gap-1 cursor-pointer"
+                        onClick={() =>
+                          navigate("/beneficiaryList", {
+                            state: { projectId, milestoneId },
+                          })
+                        }
+                      >
+                        <span className="font-medium text-gray-700">
+                          Beneficiary Count
+                        </span>
+                        :
+                        <span className="text-red-600 font-semibold">
+                          {beneficiaryDetails?.length || "0"}
                         </span>
                       </div>
                     </div>
@@ -434,19 +479,11 @@ const WorkOrderGeneration = () => {
                           </span>
                         </div>
 
-                        <div className="col-span-3 flex gap-1">
-                          <span className="font-medium text-gray-700">
-                            Vendor Code
-                          </span>
-                          :
-                          <span className="text-red-600 font-semibold">
-                            {vendorDetails?.vendorCode || "N/A"}
-                          </span>
-                        </div>
+                       
 
                         <div className="col-span-3 flex gap-1">
                           <span className="font-medium text-gray-700">
-                            Contact No
+                            Contact Number
                           </span>
                           :
                           <span className="text-red-600 font-semibold">
@@ -474,127 +511,64 @@ const WorkOrderGeneration = () => {
                           </span>
                         </div>
 
-                        <div className="col-span-3 flex gap-1">
-                          <span className="font-medium text-gray-700">
-                            Aadhaar No
-                          </span>
-                          :
-                          <span className="text-red-600 font-semibold">
-                            {vendorDetails?.aadhaarNo || "N/A"}
-                          </span>
-                        </div>
-
-                        <div className="col-span-3 flex gap-1">
-                          <span className="font-medium text-gray-700">
-                            Date of Birth
-                          </span>
-                          :
-                          <span className="text-red-600 font-semibold">
-                            {vendorDetails?.dob || "N/A"}
-                          </span>
-                        </div>
+                    
                       </div>
                     </div>
                   </div>
                 )}
                 <div className="col-span-12">
-                  <div className="relative border border-dashed border-orange-300 bg-[#fffaf6] p-4 rounded-md mt-0">
+                  <div className="relative border border-dashed border-orange-300 bg-[#fffaf6] p-4 rounded-md mb-3 mt-0">
                     {/* Floating Title */}
                     <span className="absolute -top-3 left-4 bg-[#fffaf6] px-3 text-sm font-semibold text-orange-600">
-                      Beneficiary Details
+                      Work Order Details
                     </span>
 
-                    <table className="table-fixed w-full border border-orange-300">
-                      <thead className="border-b border-orange-300 bg-orange-300">
-                        <tr>
-                          <td className="w-[60px] text-center text-sm font-semibold px-2 py-1 border-r border-orange-300">
-                            SL No
-                          </td>
-                          <td className="text-center text-sm font-semibold px-4 py-1 border-r border-orange-300">
-                            Beneficiary Name
-                          </td>
-
-                          <td className="text-center text-sm font-semibold px-4 py-1 border-r border-orange-300">
-                            Beneficiary Code
-                          </td>
-                          <td className="text-center text-sm font-semibold px-4 py-1 border-r border-orange-300">
-                            Contact No
-                          </td>
-                          <td className="text-center text-sm font-semibold px-4 py-1 border-r border-orange-300">
-                            Email
-                          </td>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {beneficiaryDetails?.map((i, index) => {
-                          return (
-                            <tr
-                              key={index}
-                              className="border-b border-orange-300"
-                            >
-                              <td className="border-r py-2 text-sm border-orange-300 text-center">
-                                {index + 1}
-                              </td>
-                              <td className="border-r py-2 text-sm border-orange-300 text-center">
-                                {i.beneficiaryName}
-                              </td>
-                              <td className="border-r py-2 text-sm border-orange-300 text-center">
-                                {i.beneficiaryCode}
-                              </td>
-                              <td className="border-r py-2 text-sm border-orange-300 text-center">
-                                {i.contactNo}
-                              </td>
-                              <td className="border-r py-2 text-sm border-orange-300 text-center">
-                                {i.email}
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
+                    {/* GRID */}
+                    <div className="grid grid-cols-12 gap-y-3 gap-x-6 text-sm">
+                      <div className="col-span-2">
+                        <InputField
+                          label={"Work Order Number"}
+                          required={true}
+                          name="workOrderNo"
+                          value={workOrderNo}
+                          type="number"
+                          placeholder="WON"
+                          onChange={handleChangeInput}
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <InputField
+                          label={"Work Order Date"}
+                          required={true}
+                          name="workOrderDate"
+                          value={workOrderDate}
+                          type="date"
+                          placeholder="WOD"
+                          onChange={handleChangeInput}
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <InputField
+                          label={"Upload Document"}
+                          required={true}
+                          name="orderDocument"
+                          type="file"
+                          onChange={handleChangeInput}
+                        />
+                        <span
+                          className="text-[11px] text-blue-600 cursor-pointer"
+                          onClick={() =>
+                            openDocument(
+                              wordOrderDetails?.docPathBase64,
+                              "application/pdf"
+                            )
+                          }
+                        >
+                          {wordOrderDetails?.fileName}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div className="col-span-2">
-                  <InputField
-                    label={"Work Order Number"}
-                    required={true}
-                    name="workOrderNo"
-                    value={workOrderNo}
-                    type="number"
-                    placeholder="WON"
-                    onChange={handleChangeInput}
-                  />
-                </div>
-                <div className="col-span-2">
-                  <InputField
-                    label={"Work Order Date"}
-                    required={true}
-                    name="workOrderDate"
-                    value={workOrderDate}
-                    type="date"
-                    placeholder="WOD"
-                    onChange={handleChangeInput}
-                  />
-                </div>
-                <div className="col-span-2">
-                  <InputField
-                    label={"Upload Document"}
-                    required={true}
-                    name="orderDocument"
-                    type="file"
-                    onChange={handleChangeInput}
-                  />
-                  <span
-                    className="text-[11px] text-blue-600 cursor-pointer"
-                    onClick={() =>
-                      openDocument(
-                        wordOrderDetails?.docPathBase64,
-                        "application/pdf"
-                      )
-                    }
-                  >
-                    {wordOrderDetails?.fileName}
-                  </span>
                 </div>
               </>
             )}
@@ -604,7 +578,7 @@ const WorkOrderGeneration = () => {
         {/* Footer (Optional) */}
         <div className="flex justify-center gap-2 text-[13px] bg-[#42001d0f] border-t border-[#ebbea6] px-4 py-3 rounded-b-md">
           <ResetBackBtn />
-          {!wordOrderDetails && <SubmitBtn type={'submit'} />}
+          {!wordOrderDetails && <SubmitBtn type={"submit"} />}
         </div>
       </div>
     </form>

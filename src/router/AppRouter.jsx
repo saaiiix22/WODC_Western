@@ -36,6 +36,7 @@ import WorkOrderGeneration from "../pages/project/WorkOrderGeneration";
 import BankAccountConfig from "../pages/master/BankAccountConfig";
 import FundReleaseInfo from "../pages/project/FundReleaseInfo";
 import BeneficiaryList from "../pages/project/BeneficiaryList";
+import UCsubmission from "../pages/project/UCsubmission";
 
 const AppRouter = () => {
   return (
@@ -64,6 +65,7 @@ const AppRouter = () => {
             <Route path={routes.workOrderGeneration.path} element={<WorkOrderGeneration />} />
             <Route path={routes.fundReleaseInfo.path} element={<FundReleaseInfo />} />
             <Route path={routes.beneficiaryList.path} element={<BeneficiaryList />} />
+            <Route path={routes.ucSubmission.path} element={<UCsubmission />} />
 
             {/* MASTER */}
             <Route path={routes.proposalPage.path} element={<Proposal />} />
