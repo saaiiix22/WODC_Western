@@ -104,12 +104,24 @@ const endpoints = {
         
 
         getProjectAgencyMilestoneMapDetails:"/project/get-projagymlst-by-projectid-and-mlstnid",
-        getBeneficiaryDetails:"/mst/get-beneficiary-list-by-districtid",
+        // getBeneficiaryDetails:"/mst/get-beneficiary-list-by-districtid",
+        getBeneficiaryDetails:"/mst/get-beneficiary-list",
         saveUpdateAgencyMilestone:"/project/save-or-update-milestone-beneficiary",
+        saveBeneficaryByExcel:"/excel/save-benefic-temp-data-by-excel",
+        
+
         getBeneficiaryByIds:"/project/get-beneficiary-ids-by-id",
         getProjectByFinYear:"/project/get-project-list-by-finyear",
         getUpdatedFuncDetails:"/fund/bank-by-finyear-giatype",
-        getBankConfigProject:"/fund/bank-config-by-finyear-giatype-bankid"
+        getBankConfigProject:"/fund/bank-config-by-finyear-giatype-bankid",
+
+
+        getTemplateFile:"/excel/download-beneficiary-template",
+        
+        
+        
+
+
 
     },
     milesStone: {
@@ -162,7 +174,8 @@ const endpoints = {
         saveFundReleasInfo:"/order/save-or-update-fund-release-info"
     },
     ucSubmission:{
-        getUCdetails:"/project/get-uc-details-by-projectid-and-mlstnid"
+        getUCdetails:"/project/get-uc-details-by-projectid-and-mlstnid",
+        saveUCdetails:"/order/save-or-update-uc-details-info"
     },
     umtEndpoints: {
         saveRole: '/admin/role/save',

@@ -10,19 +10,114 @@ import {
   getProjectAgencyMilestoneMapDetailsService,
   getProjectListService,
   saveUpdateAgencyMilestoneService,
+  getTemplateFileService,
+  saveBeneficaryByExcelService,
 } from "../../services/projectService";
 import { GrDocumentExcel } from "react-icons/gr";
 import { GrDocumentUpload } from "react-icons/gr";
 import { toast } from "react-toastify";
+import { getBlockThroughDistrictService } from "../../services/gpService";
+import { getGpByBlockService } from "../../services/villageService";
+import {
+  getVillageThroughGpService,
+  getWardByMunicipalityService,
+} from "../../services/projectService";
+import { getMunicipalityViaDistrictsService } from "../../services/wardService";
+import { getAllDists } from "../../services/blockService";
+
 const AddBeneficiary = () => {
   const [formData, setFormData] = useState({
     projectId: "",
     milestoneId: "",
+    districtId: "",
+    blockId: "",
+    gpId: "",
+    municipalityId: "",
+    areaType: "BLOCK",
+    objectId: "",
   });
+  const {
+    projectId,
+    milestoneId,
+    districtId,
+    blockId,
+    gpId,
+    municipalityId,
+    areaType,
+    objectId,
+  } = formData;
   const [uploadType, setUploadType] = useState("");
+  const [distListOpts, setDistListOpts] = useState([]);
+  const [blockOpts, setBlockOpts] = useState([]);
+  const [gpOpts, setGpOptions] = useState([]);
+  const [villageOpts, setVillageOpts] = useState([]);
+  const [municipalityOpts, setMunicipalityOpts] = useState([]);
+  const [wardOpts, setWardOpts] = useState([]);
 
+  const load = async (serviceFn, payload, setter) => {
+    try {
+      const res = await serviceFn(encryptPayload(payload));
+      setter(res?.data.data || []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const getAllDistOpts = () =>
+    load(getAllDists, { isActive: true }, setDistListOpts);
+
+  const getAllBlockOpts = () =>
+    load(
+      getBlockThroughDistrictService,
+      { isActive: true, districtId },
+      setBlockOpts
+    );
+
+  const getAllGPoptions = () =>
+    load(getGpByBlockService, { isActive: true, blockId }, setGpOptions);
+
+  const getVillageList = () =>
+    load(getVillageThroughGpService, { isActive: true, gpId }, setVillageOpts);
+
+  const getAllMunicipalityList = () =>
+    load(
+      getMunicipalityViaDistrictsService,
+      { isActive: true, districtId },
+      setMunicipalityOpts
+    );
+
+  const getAllWardOptions = () =>
+    load(
+      getWardByMunicipalityService,
+      { isActive: true, municipalityId },
+      setWardOpts
+    );
+
+  useEffect(() => {
+    getAllDistOpts();
+  }, []);
+
+  useEffect(() => {
+    if (districtId) {
+      getAllBlockOpts();
+      getAllMunicipalityList();
+    }
+
+    if (blockId) {
+      getAllGPoptions();
+    }
+
+    if (gpId) {
+      getVillageList();
+    }
+
+    if (municipalityId) {
+      getAllWardOptions();
+    }
+  }, [districtId, blockId, gpId, municipalityId]);
   const handleInp = (e) => {
     const value = e.target.value;
+
     setUploadType(value);
   };
 
@@ -61,8 +156,13 @@ const AddBeneficiary = () => {
     }
   };
 
+  const [beneficiaryDoc, setBeneficiaryDoc] = useState(null);
+
   const handleInput = async (e) => {
-    const { name, value } = e.target;
+    const { name,files ,value } = e.target;
+    if (name === "beneficiaryDoc") {
+      setBeneficiaryDoc(files[0]);
+    }
     setFormData({ ...formData, [name]: value });
   };
 
@@ -99,13 +199,13 @@ const AddBeneficiary = () => {
 
   const handleCheckboxChange = (beneficiaryId) => {
     setActiveArr((prev) =>
-      prev.includes(beneficiaryId)
+      prev?.includes(beneficiaryId)
         ? prev.filter((id) => id !== beneficiaryId)
         : [...prev, beneficiaryId]
     );
 
     setSelectedBeneficiaries((prev) =>
-      prev.includes(beneficiaryId)
+      prev?.includes(beneficiaryId)
         ? prev.filter((id) => id !== beneficiaryId)
         : [...prev, beneficiaryId]
     );
@@ -113,23 +213,54 @@ const AddBeneficiary = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
-      const sendData = {
-        projAgnMlstId: projectOverView?.projectAgencyMilestoneMapId,
-        beneficiaryIds: activeArr,
-      };
-      const payload = encryptPayload(sendData);
-      const res = await saveUpdateAgencyMilestoneService(payload);
+      if (uploadType === "ADD_BENEFICIARY") {
+        if (!activeArr || activeArr.length === 0) {
+          toast.error("Please select at least one beneficiary");
+          return;
+        }
 
-      if (res?.status === 200 && res?.data.outcome) {
-        toast.success(res?.data.message);
+        const sendData = {
+          projAgnMlstId: projectOverView?.projectAgencyMilestoneMapId,
+          beneficiaryIds: activeArr,
+        };
 
-        // reset states
-        setUploadType("");
-        setActiveArr([]);
+        const payload = encryptPayload(sendData);
+        const res = await saveUpdateAgencyMilestoneService(payload);
+
+        if (res?.status === 200 && res?.data.outcome) {
+          toast.success(res?.data.message);
+
+          setUploadType("");
+          setActiveArr([]);
+        } else {
+          toast.error(res?.data?.message);
+        }
+      }
+
+      if (uploadType === "EXCEL") {
+        // toast.info("Excel upload will be handled separately");
+        if (!beneficiaryDoc) {
+        toast.error("Please upload an Excel file");
+        return;
+      }
+        const dataTobeSent = {
+          areaType,
+          objectType: areaType === "BLOCK" ? "VILLAGE" : "WARD",
+          objectId: objectId,
+        };
+        // console.log(dataTobeSent)
+        const payload = encryptPayload(dataTobeSent);
+        const fmData = new FormData();
+        fmData.append("beneficiaryExcel", beneficiaryDoc);
+        fmData.append("cipherText", payload)
+
+        const res = await saveBeneficaryByExcelService(fmData);
+        console.log(res)
       }
     } catch (error) {
-      throw error;
+      console.error(error);
     }
   };
 
@@ -149,8 +280,36 @@ const AddBeneficiary = () => {
     }
   };
 
+  const downloadExcel = (blob, fileName = "template.xlsx") => {
+    const url = window.URL.createObjectURL(
+      new Blob([blob], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      })
+    );
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  };
+
+  const getTemplateFile = async () => {
+    try {
+      const res = await getTemplateFileService();
+      console.log(res);
+      downloadExcel(res.data, "Template.xlsx");
+    } catch (error) {
+      throw error;
+    }
+  };
+
   useEffect(() => {
     getAllDropdowns();
+    // getTemplateFile();
   }, []);
 
   useEffect(() => {
@@ -231,6 +390,7 @@ const AddBeneficiary = () => {
                 }))}
               />
             </div>
+
             <div className="col-span-2">
               <label className="text-[13px] font-medium text-gray-700">
                 Select Upload Type <span className="text-red-500">*</span>
@@ -267,31 +427,185 @@ const AddBeneficiary = () => {
               </div>
             </div>
             {uploadType === "EXCEL" && (
-              <div className="col-span-2 pt-5">
-                <div className="flex items-center">
-                  <button className="me-3 text-sm flex items-center gap-1 px-3 py-1 rounded-sm bg-green-600/25 text-green-700">
-                    <GrDocumentExcel />
-                    Excel
-                  </button>
-                  <button
-                    type="button"
-                    className="me-3 text-sm flex items-center gap-1 px-3 py-1 rounded-sm bg-blue-600/25 text-blue-700"
-                    onClick={() =>
-                      document.getElementById("fileUpload").click()
-                    }
-                  >
-                    <GrDocumentUpload /> Upload
-                  </button>
+              <>
+                <div className="col-span-2 pt-5">
+                  <div className="flex items-center">
+                    <button
+                      className="me-3 text-sm flex items-center gap-1 px-3 py-1 rounded-sm bg-green-600/25 text-green-700"
+                      onClick={getTemplateFile}
+                    >
+                      <GrDocumentExcel />
+                      Excel
+                    </button>
+                    <button
+                      type="button"
+                      className="me-3 text-sm flex items-center gap-1 px-3 py-1 rounded-sm bg-blue-600/25 text-blue-700"
+                      onClick={() =>
+                        document.getElementById("fileUpload").click()
+                      }
+                    >
+                      <GrDocumentUpload /> Upload
+                    </button>
+                  </div>
+                  <input
+                    type="file"
+                    id="fileUpload"
+                    className="hidden"
+                    name="beneficiaryDoc"
+                    onChange={handleInput}
+                  />
                 </div>
-                <input
-                  type="file"
-                  id="fileUpload"
-                  className="hidden"
-                  onChange={(e) =>
-                    console.log("Selected file:", e.target.files[0])
-                  }
-                />
-              </div>
+                <div className="col-span-2">
+                  <SelectField
+                    label="District"
+                    required={true}
+                    name="districtId"
+                    value={districtId}
+                    onChange={handleInput}
+                    options={distListOpts?.map((d) => ({
+                      value: d.districtId,
+                      label: d.districtName,
+                    }))}
+                    // error={errors.districtId}
+                    placeholder="Select"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className="text-[13px] font-medium text-gray-700">
+                    Select Area Type <span className="text-red-500">*</span>
+                  </label>
+                  <div className="flex gap-5 items-center">
+                    <div className="flex gap-1">
+                      <input
+                        type="radio"
+                        value={"BLOCK"}
+                        name="areaType"
+                        // checked={
+                        //   stateSelect?.areaType === "BLOCK" ? true : false
+                        // }
+                        checked={formData.areaType === "BLOCK"}
+                        id="radio1"
+                        onChange={handleInput}
+                      />
+                      <label
+                        htmlFor="radio1"
+                        className="text-sm text-slate-800"
+                      >
+                        Block
+                      </label>
+                    </div>
+                    <div className="flex gap-1">
+                      <input
+                        type="radio"
+                        value={"MUNICIPALITY"}
+                        name="areaType"
+                        // checked={
+                        //   stateSelect?.areaType === "MUNICIPALITY"
+                        //     ? true
+                        //     : false
+                        // }
+                        checked={formData.areaType === "MUNICIPALITY"}
+                        id="radio2"
+                        onChange={handleInput}
+                      />
+                      <label
+                        htmlFor="radio2"
+                        className="text-sm text-slate-800"
+                      >
+                        Municipality
+                      </label>
+                    </div>
+                  </div>
+                </div>
+                {areaType === "BLOCK" && (
+                  <>
+                    <div className="col-span-2">
+                      <SelectField
+                        label="Block Name"
+                        required={true}
+                        name="blockId"
+                        value={blockId}
+                        onChange={handleInput}
+                        options={blockOpts?.map((d) => ({
+                          value: d.blockId,
+                          label: d.blockNameEN,
+                        }))}
+                        disabled={districtId ? false : true}
+                        //   error={errors.districtId}
+                        placeholder="Select "
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <SelectField
+                        label="GP Name"
+                        required={true}
+                        name="gpId"
+                        value={gpId}
+                        onChange={handleInput}
+                        options={gpOpts?.map((d) => ({
+                          value: d.gpId,
+                          label: d.gpNameEN,
+                        }))}
+                        disabled={blockId ? false : true}
+                        //   error={errors.districtId}
+                        placeholder="Select "
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <SelectField
+                        label="Village Name"
+                        required={true}
+                        name="objectId"
+                        value={objectId}
+                        onChange={handleInput}
+                        options={villageOpts?.map((d) => ({
+                          value: d.villageId,
+                          label: d.villageNameEn,
+                        }))}
+                        disabled={gpId ? false : true}
+                        // error={errors.objectId}
+                        placeholder="Select"
+                      />
+                    </div>
+                  </>
+                )}
+                {areaType === "MUNICIPALITY" && (
+                  <>
+                    <div className="col-span-2">
+                      <SelectField
+                        label="Municipality Name"
+                        required={true}
+                        name="municipalityId"
+                        value={municipalityId}
+                        onChange={handleInput}
+                        options={municipalityOpts?.map((d) => ({
+                          value: d.municipalityId,
+                          label: d.municipalityName,
+                        }))}
+                        disabled={districtId ? false : true}
+                        //   error={errors.districtId}
+                        placeholder="Select"
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <SelectField
+                        label="Ward Name"
+                        required={true}
+                        name="objectId"
+                        value={objectId}
+                        onChange={handleInput}
+                        options={wardOpts?.map((d) => ({
+                          value: d.wardId,
+                          label: d.wardName,
+                        }))}
+                        disabled={municipalityId ? false : true}
+                        // error={errors.objectId}
+                        placeholder="Select "
+                      />
+                    </div>
+                  </>
+                )}
+              </>
             )}
             {uploadType === "ADD_BENEFICIARY" && (
               <div className="col-span-12">
@@ -349,7 +663,7 @@ const AddBeneficiary = () => {
                               // checked={selectedBeneficiaries.includes(
                               //   i.beneficiaryId
                               // )}
-                              checked={activeArr.includes(i.beneficiaryId)}
+                              checked={activeArr?.includes(i.beneficiaryId)}
                               onChange={() =>
                                 handleCheckboxChange(i.beneficiaryId)
                               }
@@ -358,14 +672,13 @@ const AddBeneficiary = () => {
                         </tr>
                       );
                     })}
-                    {
-                      tableData?.length === 0 &&
-                      (
-                        <tr>
-                          <td colSpan={7} className="text-sm p-2 text-center">No Data Found</td>
-                        </tr>
-                      )
-                    }
+                    {tableData?.length === 0 && (
+                      <tr>
+                        <td colSpan={7} className="text-sm p-2 text-center">
+                          No Data Found
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -466,7 +779,6 @@ const AddBeneficiary = () => {
                         {projectOverView?.actualEndDate}
                       </p>
                     </div>
-
                   </div>
                 </div>
               </div>

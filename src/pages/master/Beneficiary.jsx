@@ -527,7 +527,6 @@ const Beneficiary = () => {
               className="grid grid-cols-12 gap-6"
               onSubmit={handleSubmitConfirmModal}
             >
-              {console.log(distListOpts)}
               <div className="col-span-2">
                 <SelectField
                   label="District"

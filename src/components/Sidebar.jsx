@@ -118,7 +118,7 @@ const Sidebar = ({ collapse, setCollapse }) => {
       // bg-[#22262b]
       className={`
         h-full flex flex-col transition-all duration-300 shadow-xl relative
-        bg-[#141414]
+        bg-[#141414] 
         ${collapse ? "w-20 min-w-20 p-2" : "w-64 min-w-64 p-3"}
       `}
     >

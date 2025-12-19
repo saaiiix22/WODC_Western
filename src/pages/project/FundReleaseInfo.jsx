@@ -472,100 +472,92 @@ const FundReleaseInfo = () => {
                           {beneficiaryDetails.length}
                         </span>
                       </div>
-                      {workOrderIdDetails?.fundReleaseId && (
-                        <div className="col-span-12">
-                          <div className="grid grid-cols-12 gap-6">
-                            {penaltyPercentage && penaltyAmount && (
-                              <>
-                                <div className="col-span-3 flex gap-1 mt-2">
-                                  <span className="font-medium text-gray-700">
-                                    Penalty Amount
-                                  </span>
-                                  :
-                                  <span className="text-red-600 font-semibold">
-                                    ₹{" "}
-                                    {penaltyAmount.toLocaleString("en-IN", {
-                                      minimumFractionDigits: 2,
-                                      maximumFractionDigits: 2,
-                                    })}
-                                  </span>
-                                </div>
-                                <div className="col-span-3 flex gap-1 mt-2">
-                                  <span className="font-medium text-gray-700">
-                                    Penalty Percent
-                                  </span>
-                                  :
-                                  <span className="text-red-600 font-semibold">
-                                    {penaltyPercentage.toLocaleString("en-IN", {
-                                      minimumFractionDigits: 2,
-                                      maximumFractionDigits: 2,
-                                    })}{" "}
-                                    %
-                                  </span>
-                                </div>
-                              </>
-                            )}
 
-                            {!penaltyPercentage && !penaltyAmount && (
-                              <>
-                                <div className="col-span-3 flex gap-1 items-center">
-                                  <label
-                                    htmlFor=""
-                                    className="text-[13px] font-medium text-gray-700"
-                                  >
-                                    Penalty Percent
-                                  </label>
-                                  :
-                                  <input
-                                    className="w-1/2  border border-dashed border-orange-300 
+                      <div className="col-span-12">
+                        <div className="grid grid-cols-12 gap-6">
+                          {/* {penaltyPercentage && penaltyAmount && <></>} */}
+
+                          <div className="col-span-3 flex gap-1 mt-2">
+                            <span className="font-medium text-gray-700">
+                              Penalty Amount
+                            </span>
+                            :
+                            <span className="text-red-600 font-semibold">
+                              ₹{" "}
+                              {penaltyAmount.toLocaleString("en-IN", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              })||0}
+                            </span>
+                          </div>
+                          <div className="col-span-3 flex gap-1 mt-2">
+                            <span className="font-medium text-gray-700">
+                              Penalty Percent
+                            </span>
+                            :
+                            <span className="text-red-600 font-semibold">
+                              {penaltyPercentage.toLocaleString("en-IN", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              })||0}{" "}
+                              %
+                            </span>
+                          </div>
+
+                          <div className="col-span-3 flex gap-1 items-center">
+                            <label
+                              htmlFor=""
+                              className="text-[13px] font-medium text-gray-700"
+                            >
+                              Penalty Percent
+                            </label>
+                            :
+                            <input
+                              className="w-1/2  border border-dashed border-orange-300 
             px-2.5 py-1.5 text-sm text-red-600 font-semibold
             outline-none transition-all duration-200"
-                                    name="penaltyPercentage"
-                                    placeholder="Enter penalty percent"
-                                    value={penaltyPercentage}
-                                    max={100}
-                                    onChange={handleChangeInput}
-                                  />
-                                </div>
-                                <div className="col-span-3 flex gap-1 items-center">
-                                  <label
-                                    htmlFor=""
-                                    className="text-[13px] font-medium text-gray-700"
-                                  >
-                                    Penalty Amount
-                                  </label>
-                                  :
-                                  <input
-                                    className="w-1/2  border border-dashed border-orange-300 
+                              name="penaltyPercentage"
+                              value={penaltyPercentage}
+                              max={100}
+                              onChange={handleChangeInput}
+                            />
+                          </div>
+                          <div className="col-span-3 flex gap-1 items-center">
+                            <label
+                              htmlFor=""
+                              className="text-[13px] font-medium text-gray-700"
+                            >
+                              Penalty Amount
+                            </label>
+                            :
+                            <input
+                              className="w-1/2  border border-dashed border-orange-300 
             px-2.5 py-1.5 text-sm text-red-600 font-semibold
             outline-none transition-all duration-200"
-                                    name="penaltyAmount"
-                                    disabled={true}
-                                    value={penaltyAmount}
-                                    onChange={handleChangeInput}
-                                  />
-                                </div>
-                              </>
-                            )}
+                              name="penaltyAmount"
+                              disabled={true}
+                              value={penaltyAmount}
+                              onChange={handleChangeInput}
+                            />
+                          </div>
 
-                            <div className="col-span-3 flex gap-1 mt-2">
-                              <span className="font-medium text-gray-700">
-                                Total Amount
-                              </span>
-                              :
-                              <span className="text-red-600 font-semibold">
-                                ₹{" "}
-                                {(
-                                  milestoneDetails?.amount - penaltyAmount
-                                ).toLocaleString("en-IN", {
-                                  minimumFractionDigits: 2,
-                                  maximumFractionDigits: 2,
-                                })}
-                              </span>
-                            </div>
+                          <div className="col-span-3 flex gap-1 mt-2">
+                            <span className="font-medium text-gray-700">
+                              Total Amount
+                            </span>
+                            :
+                            <span className="text-red-600 font-semibold">
+                              ₹{" "}
+                              {(
+                                milestoneDetails?.amount - penaltyAmount
+                              ).toLocaleString("en-IN", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              })}
+                            </span>
                           </div>
                         </div>
-                      )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -669,7 +661,7 @@ const FundReleaseInfo = () => {
                                               name="agencyBankId"
                                               id={i.bankName}
                                               value={i.agencyBankId}
-                                              checked={agencyBankId}
+                                              // checked={agencyBankId}
                                               onChange={handleChangeInput}
                                             />
                                           </td>

@@ -62,6 +62,9 @@ export const ifscUtil = (str = "") => {
     .replace(/[^A-Z0-9]/g, "")  
     .slice(0, 11); 
 };
+
+
+
 /* --------------------------
     NEW VALIDATION FUNCTIONS
 ---------------------------*/

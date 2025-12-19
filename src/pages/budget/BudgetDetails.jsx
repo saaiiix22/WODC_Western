@@ -174,7 +174,9 @@ const BudgetDetails = () => {
     if (name === "bankName") {
       getAllConfigOpts(index, value);
     }
+   
   };
+  
 
   const formatDateToDDMMYYYY = (dateStr) => {
     if (!dateStr) return "";
@@ -190,6 +192,7 @@ const BudgetDetails = () => {
     let newErrors = {};
 
     if (!finyearId) {
+      toast.error("Financial Year is required")
       newErrors.finyearId = "Financial Year is required";
       setErrors(newErrors);
       return;
@@ -290,7 +293,7 @@ const BudgetDetails = () => {
                     label: d.finYear,
                   }))}
                   onChange={(e) => setFinyearId(Number(e.target.value))}
-                  error={errors.finyearId}
+                  // error={errors.finyearId}
                 />
               </div>
             </div>
@@ -527,7 +530,7 @@ const BudgetDetails = () => {
                   Date of Creation
                 </th>
                 <th className="border text-[14px] py-3 px-2 text-start border-[#ebbea6] p-2">
-                  IFSC
+                  Amount Information
                 </th>
               </tr>
             </thead>
@@ -582,7 +585,7 @@ const BudgetDetails = () => {
 
                     {/* IFSC */}
                     <td className="border border-[#ebbea6] px-2 py-1 text-sm">
-                      {row.ifsc}
+                      {row.branch} | {row.accNo} | {row.ifsc} 
                     </td>
                   </tr>
                 ));
