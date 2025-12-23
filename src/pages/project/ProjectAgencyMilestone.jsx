@@ -90,28 +90,28 @@ const ProjectAgencyMilestone = () => {
 
         const mappedRows = Array.isArray(res3?.data?.data)
           ? res3.data.data.map((row) => ({
-              ...row,
-              startDate: formatToYYYYMMDD(row.startDate),
-              endDate: formatToYYYYMMDD(row.endDate),
-              actualStartDate: formatToYYYYMMDD(row.actualStartDate),
-              actualEndDate: formatToYYYYMMDD(row.actualEndDate),
-            }))
+            ...row,
+            startDate: formatToYYYYMMDD(row.startDate),
+            endDate: formatToYYYYMMDD(row.endDate),
+            actualStartDate: formatToYYYYMMDD(row.actualStartDate),
+            actualEndDate: formatToYYYYMMDD(row.actualEndDate),
+          }))
           : [
-              {
-                projectAgencyMilestoneMapId: null,
-                agencyId: "",
-                milestoneId: "",
-                vendorId: "",
-                order: "",
-                budgetPercentage: "",
-                amount: "",
-                milestoneStatus: "",
-                startDate: "",
-                endDate: "",
-                actualStartDate: "",
-                actualEndDate: "",
-              },
-            ];
+            {
+              projectAgencyMilestoneMapId: null,
+              agencyId: "",
+              milestoneId: "",
+              vendorId: "",
+              order: "",
+              budgetPercentage: "",
+              amount: "",
+              milestoneStatus: "",
+              startDate: "",
+              endDate: "",
+              actualStartDate: "",
+              actualEndDate: "",
+            },
+          ];
 
         setRows(mappedRows);
       } catch (error) {
@@ -517,14 +517,14 @@ const ProjectAgencyMilestone = () => {
                       >
                         {(rows.length > 1 ||
                           userSelection.roleCode === "ROLE_WODC_ADMIN") && (
-                          <span
-                            className="absolute text-xl  p-2 text-red-500 flex justify-center items-center rounded-full"
-                            style={{ top: "-17px", right: "-14px" }}
-                            onClick={() => handleRemoveRow(index)}
-                          >
-                            <FaMinusCircle />
-                          </span>
-                        )}
+                            <span
+                              className="absolute text-xl  p-2 text-red-500 flex justify-center items-center rounded-full"
+                              style={{ top: "-17px", right: "-14px" }}
+                              onClick={() => handleRemoveRow(index)}
+                            >
+                              <FaMinusCircle />
+                            </span>
+                          )}
                         <div className="col-span-2">
                           <SelectField
                             label={"Agency Name"}
@@ -566,7 +566,7 @@ const ProjectAgencyMilestone = () => {
                             }
                           />
                         </div>
-                        
+
                         <div className="col-span-2">
                           <InputField
                             label={"Order"}
@@ -580,7 +580,7 @@ const ProjectAgencyMilestone = () => {
                                 ? true
                                 : false
                             }
-                            // type="number"
+                          // type="number"
                           />
                         </div>
                         <div className="col-span-2">
@@ -593,18 +593,17 @@ const ProjectAgencyMilestone = () => {
                             onChange={(e) =>
                               handleInput(index, "startDate", e.target.value)
                             }
-                            disabled={userSelection?.roleCode === "ROLE_AGENCY" || i.milestoneStatus === "CMPL" ? true :false}
+                            disabled={userSelection?.roleCode === "ROLE_AGENCY" || i.milestoneStatus === "CMPL" ? true : false}
                             type="date"
                             className={`
                                   w-full rounded-md border border-gray-300 
                                   px-2.5 py-1.5 text-sm
                                   outline-none transition-all duration-200
                                   placeholder:text-gray-400
-                                  ${
-                                    userSelection.roleCode === "ROLE_AGENCY"
-                                      ? "bg-gray-100 cursor-not-allowed"
-                                      : "focus:border-blue-200 focus:ring-2 focus:ring-blue-200"
-                                  }
+                                  ${userSelection.roleCode === "ROLE_AGENCY"
+                                ? "bg-gray-100 cursor-not-allowed"
+                                : "focus:border-blue-200 focus:ring-2 focus:ring-blue-200"
+                              }
                                 `}
                           />
                         </div>
@@ -616,7 +615,7 @@ const ProjectAgencyMilestone = () => {
                             name="endDate"
                             value={i.endDate}
                             min={i.startDate}
-                            disabled={userSelection?.roleCode === "ROLE_AGENCY" || i.milestoneStatus === "CMPL" ? true :false}
+                            disabled={userSelection?.roleCode === "ROLE_AGENCY" || i.milestoneStatus === "CMPL" ? true : false}
                             onChange={(e) =>
                               handleInput(index, "endDate", e.target.value)
                             }
@@ -626,11 +625,10 @@ const ProjectAgencyMilestone = () => {
                                   px-2.5 py-1.5 text-sm
                                   outline-none transition-all duration-200
                                   placeholder:text-gray-400
-                                  ${
-                                    userSelection.roleCode === "ROLE_AGENCY"
-                                      ? "bg-gray-100 cursor-not-allowed"
-                                      : "focus:border-blue-200 focus:ring-2 focus:ring-blue-200"
-                                  }
+                                  ${userSelection.roleCode === "ROLE_AGENCY"
+                                ? "bg-gray-100 cursor-not-allowed"
+                                : "focus:border-blue-200 focus:ring-2 focus:ring-blue-200"
+                              }
                                 `}
                           />
                         </div>
@@ -649,18 +647,17 @@ const ProjectAgencyMilestone = () => {
                               )
                             }
                             min={i.startDate}
-                            disabled={userSelection.roleCode === "ROLE_WODC_ADMIN" || i.milestoneStatus === "CMPL" ?true:false}
+                            disabled={userSelection.roleCode === "ROLE_WODC_ADMIN" || i.milestoneStatus === "CMPL" ? true : false}
                             type="date"
                             className={`
                                   w-full rounded-md border border-gray-300 
                                   px-2.5 py-1.5 text-sm
                                   outline-none transition-all duration-200
                                   placeholder:text-gray-400
-                                  ${
-                                    userSelection.roleCode === "ROLE_WODC_ADMIN"
-                                      ? "bg-gray-100 cursor-not-allowed"
-                                      : "focus:border-blue-200 focus:ring-2 focus:ring-blue-200"
-                                  }
+                                  ${userSelection.roleCode === "ROLE_WODC_ADMIN"
+                                ? "bg-gray-100 cursor-not-allowed"
+                                : "focus:border-blue-200 focus:ring-2 focus:ring-blue-200"
+                              }
                                 `}
                           />
                         </div>
@@ -672,7 +669,7 @@ const ProjectAgencyMilestone = () => {
                             name="actualEndDate"
                             value={i.actualEndDate}
                             min={i.actualStartDate}
-                            disabled={userSelection.roleCode === "ROLE_WODC_ADMIN" || i.milestoneStatus === "CMPL"?true:false}
+                            disabled={userSelection.roleCode === "ROLE_WODC_ADMIN" || i.milestoneStatus === "CMPL" ? true : false}
 
                             onChange={(e) =>
                               handleInput(
@@ -687,11 +684,10 @@ const ProjectAgencyMilestone = () => {
                                   px-2.5 py-1.5 text-sm
                                   outline-none transition-all duration-200
                                   placeholder:text-gray-400
-                                  ${
-                                    userSelection.roleCode === "ROLE_WODC_ADMIN"
-                                      ? "bg-gray-100 cursor-not-allowed"
-                                      : "focus:border-blue-200 focus:ring-2 focus:ring-blue-200"
-                                  }
+                                  ${userSelection.roleCode === "ROLE_WODC_ADMIN"
+                                ? "bg-gray-100 cursor-not-allowed"
+                                : "focus:border-blue-200 focus:ring-2 focus:ring-blue-200"
+                              }
                                 `}
                           />
                         </div>
@@ -767,7 +763,9 @@ const ProjectAgencyMilestone = () => {
                               label: d.lookupValueEn,
                             }))}
                             disabled={
-                              userSelection.roleCode === "ROLE_WODC_ADMIN" || i.milestoneStatus === "CMPL" 
+                              // userSelection.roleCode === "ROLE_WODC_ADMIN" || i.milestoneStatus === "CMPL"
+                              userSelection.roleCode === "ROLE_WODC_ADMIN"
+
                                 ? true
                                 : false
                             }

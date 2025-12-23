@@ -1,13 +1,13 @@
 export const avoidSpecialCharUtil = (str = '') => {
-  return str.replace(/[^a-zA-Z ]/g, '').trim();
+  return str.replace(/[^a-zA-Z ]/g, '');
 };
 
 export const avoidAllSpaceUtil = (str = '') => {
-  return str.replace(/\s+/g, '').trim();
+  return str.replace(/\s+/g, '');
 };
 
 export const cleanStringUtil = (str = '') => {
-  return avoidAllSpaceUtil(avoidSpecialCharUtil(str));
+  return avoidAllSpaceUtil(avoidSpecialCharUtil(str)).trim();
 };
 export const prevDateUtil = () => {
   const d = new Date();

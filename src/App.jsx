@@ -5,6 +5,7 @@ import { ToastContainer } from "react-toastify";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useDispatch } from "react-redux";
 import { fetchUserDetails } from "./redux/slices/menuSlice";
+import { LoaderProvider } from "./context/LoaderContext";
 
 const queryClient = new QueryClient();
 
@@ -21,7 +22,9 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <AppRouter />
+        <LoaderProvider>
+          <AppRouter />
+        </LoaderProvider>
         <ToastContainer />
       </BrowserRouter>
     </QueryClientProvider>

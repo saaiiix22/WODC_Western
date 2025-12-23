@@ -16,6 +16,7 @@ import {
 import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import ReusableDialog from "../../components/common/ReusableDialog";
 
 const WorkOrderGeneration = () => {
   const userSelect = useSelector((state) => state);
@@ -30,7 +31,6 @@ const WorkOrderGeneration = () => {
   });
   const { finYear, projectId, milestoneId, workOrderNo, workOrderDate } =
     formData;
-  const [errors, setErrors] = useState({});
 
   const [finOpts, setFinOpts] = useState([]);
   const [projectOpts, setProjectOpts] = useState([]);
@@ -141,6 +141,12 @@ const WorkOrderGeneration = () => {
     }
 
     setFormData({ ...formData, [name]: value });
+
+    setErrors((prev) => ({
+      ...prev,
+      [name]: "",
+    }));
+
   };
 
   const toDDMMYYYY = (str = "") => {
@@ -165,14 +171,54 @@ const WorkOrderGeneration = () => {
     setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const [errors, setErrors] = useState({});
+  const [open, setOpen] = useState(false)
+  const confirmSubmit = (e) => {
+    e.preventDefault()
     let newErrors = {};
     if (!finYear) {
       newErrors.finYear = "Financial Year is required";
       setErrors(newErrors);
       return;
     }
+    if (!projectId) {
+      newErrors.projectId = "Project Name is required";
+      setErrors(newErrors);
+      return;
+    }
+    if (!milestoneId) {
+      newErrors.milestoneId = "MilestoneId Name is required";
+      setErrors(newErrors);
+      return;
+    }
+    if (finYear && projectId && milestoneId) {
+      if (!workOrderNo) {
+        newErrors.workOrderNo = "Work Order Number is required";
+        setErrors(newErrors);
+        return;
+      }
+      if (!workOrderDate) {
+        newErrors.workOrderDate = "Work Order Date is required";
+        setErrors(newErrors);
+        return;
+      }
+      if (!orderDocument) {
+        newErrors.orderDocument = "Work Order Document is required";
+        setErrors(newErrors);
+        return;
+      }
+    }
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length === 0) {
+      setOpen(true)
+    }
+    else {
+      setOpen(true)
+    }
+  }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
     try {
       const sendData = {
         projectId,
@@ -196,13 +242,14 @@ const WorkOrderGeneration = () => {
           workOrderNo: "",
           workOrderDate: "",
         });
-        setOrderDocument(null);
+        setMilestoneOpts({});
+        setOpen(false)
       }
     } catch (error) {
+      setOpen(false)
       throw error;
     }
-    // console.log(formData);
-  };
+  }
 
   useEffect(() => {
     getAllFinOpts();
@@ -238,7 +285,7 @@ const WorkOrderGeneration = () => {
   const navigate = useNavigate();
 
   return (
-    <form action="" onSubmit={handleSubmit}>
+    <form action="" onSubmit={confirmSubmit}>
       <div
         className="
             mt-3 p-2 bg-white rounded-sm border border-[#f1f1f1]
@@ -279,6 +326,7 @@ const WorkOrderGeneration = () => {
                 }))}
                 placeholder="Select"
                 onChange={handleChangeInput}
+                error={errors.finYear}
               />
             </div>
             <div className="col-span-2">
@@ -294,6 +342,7 @@ const WorkOrderGeneration = () => {
                   value: i.projectId,
                   label: i.projectName,
                 }))}
+                error={errors.projectId}
               />
             </div>
             <div className="col-span-2">
@@ -308,6 +357,7 @@ const WorkOrderGeneration = () => {
                   label: i.milestoneName,
                 }))}
                 onChange={handleChangeInput}
+                error={errors.milestoneId}
               />
             </div>
 
@@ -324,21 +374,21 @@ const WorkOrderGeneration = () => {
                     <div className="grid grid-cols-12 gap-y-3 gap-x-6 text-sm">
                       {/* ---------- MILESTONE DETAILS ---------- */}
                       <div className="col-span-3 flex gap-1">
-                        <span className="font-medium text-gray-700">
+                        <span className="font-normal text-gray-700">
                           Milestone Name
                         </span>
                         :
-                        <span className="text-red-600 font-semibold uppercase">
+                        <span className="text-slate-900 font-semibold uppercase">
                           {milestoneDetails?.milestoneName || "N/A"}
                         </span>
                       </div>
 
                       <div className="col-span-3 flex gap-1">
-                        <span className="font-medium text-gray-700">
+                        <span className="font-normal text-gray-700">
                           Milestone Amount
                         </span>
                         :
-                        <span className="text-red-600 font-semibold uppercase">
+                        <span className="text-slate-900 font-semibold uppercase">
                           ₹{" "}
                           {Number(milestoneDetails?.amount).toLocaleString(
                             "en-IN",
@@ -351,38 +401,38 @@ const WorkOrderGeneration = () => {
                       </div>
 
                       <div className="col-span-3 flex gap-1">
-                        <span className="font-medium text-gray-700">
+                        <span className="font-normal text-gray-700">
                           Start Date
                         </span>
                         :
-                        <span className="text-red-600 font-semibold">
+                        <span className="text-slate-900 font-semibold">
                           {milestoneDetails?.startDate || "N/A"}
                         </span>
                       </div>
                       <div className="col-span-3 flex gap-1">
-                        <span className="font-medium text-gray-700">
+                        <span className="font-normal text-gray-700">
                           End Date
                         </span>
                         :
-                        <span className="text-red-600 font-semibold">
+                        <span className="text-slate-900 font-semibold">
                           {milestoneDetails?.endDate || "N/A"}
                         </span>
                       </div>
                       <div className="col-span-3 flex gap-1">
-                        <span className="font-medium text-gray-700">
+                        <span className="font-normal text-gray-700">
                           Actual Start Date
                         </span>
                         :
-                        <span className="text-red-600 font-semibold">
+                        <span className="text-slate-900 font-semibold">
                           {milestoneDetails?.actualStartDate || "N/A"}
                         </span>
                       </div>
                       <div className="col-span-3 flex gap-1">
-                        <span className="font-medium text-gray-700">
+                        <span className="font-normal text-gray-700">
                           Actual End Date
                         </span>
                         :
-                        <span className="text-red-600 font-semibold">
+                        <span className="text-slate-900 font-semibold">
                           {milestoneDetails?.actualEndDate || "N/A"}
                         </span>
                       </div>
@@ -394,11 +444,11 @@ const WorkOrderGeneration = () => {
                           })
                         }
                       >
-                        <span className="font-medium text-gray-700">
+                        <span className="font-normal text-gray-700">
                           Beneficiary Count
                         </span>
                         :
-                        <span className="text-red-600 font-semibold">
+                        <span className="text-slate-900 font-semibold">
                           {beneficiaryDetails?.length || "0"}
                         </span>
                       </div>
@@ -417,11 +467,11 @@ const WorkOrderGeneration = () => {
                       <div className="grid grid-cols-12 gap-y-3 gap-x-6 text-sm">
                         {/* ---------- MILESTONE DETAILS ---------- */}
                         <div className="col-span-3 flex gap-1">
-                          <span className="font-medium text-gray-700">
+                          <span className="font-normal text-gray-700">
                             Agency Name
                           </span>
                           :
-                          <span className="text-red-600 font-semibold uppercase">
+                          <span className="text-slate-900 font-semibold uppercase">
                             {agencyDetails?.agencyName || "N/A"}
                           </span>
                         </div>
@@ -437,21 +487,21 @@ const WorkOrderGeneration = () => {
                       </div> */}
 
                         <div className="col-span-3 flex gap-1">
-                          <span className="font-medium text-gray-700">
+                          <span className="font-normal text-gray-700">
                             Contact Number
                           </span>
                           :
-                          <span className="text-red-600 font-semibold">
+                          <span className="text-slate-900 font-semibold">
                             {agencyDetails?.contactNo || "N/A"}
                           </span>
                         </div>
 
                         <div className="col-span-3 flex gap-1">
-                          <span className="font-medium text-gray-700">
+                          <span className="font-normal text-gray-700">
                             Email
                           </span>
                           :
-                          <span className="text-red-600 font-semibold">
+                          <span className="text-slate-900 font-semibold">
                             {agencyDetails?.email || "N/A"}
                           </span>
                         </div>
@@ -470,48 +520,48 @@ const WorkOrderGeneration = () => {
                       <div className="grid grid-cols-12 gap-y-3 gap-x-6 text-sm">
                         {/* ---------- VENDOR DETAILS ---------- */}
                         <div className="col-span-3 flex gap-1">
-                          <span className="font-medium text-gray-700">
+                          <span className="font-normal text-gray-700">
                             Vendor Name
                           </span>
                           :
-                          <span className="text-red-600 font-semibold uppercase">
+                          <span className="text-slate-900 font-semibold uppercase">
                             {vendorDetails?.vendorName || "N/A"}
                           </span>
                         </div>
 
-                       
+
 
                         <div className="col-span-3 flex gap-1">
-                          <span className="font-medium text-gray-700">
+                          <span className="font-normal text-gray-700">
                             Contact Number
                           </span>
                           :
-                          <span className="text-red-600 font-semibold">
+                          <span className="text-slate-900 font-semibold">
                             {vendorDetails?.contactNo || "N/A"}
                           </span>
                         </div>
 
                         <div className="col-span-3 flex gap-1">
-                          <span className="font-medium text-gray-700">
+                          <span className="font-normal text-gray-700">
                             Email
                           </span>
                           :
-                          <span className="text-red-600 font-semibold break-all">
+                          <span className="text-slate-900 font-semibold break-all">
                             {vendorDetails?.email || "N/A"}
                           </span>
                         </div>
 
                         <div className="col-span-3 flex gap-1">
-                          <span className="font-medium text-gray-700">
+                          <span className="font-normal text-gray-700">
                             Address
                           </span>
                           :
-                          <span className="text-red-600 font-semibold">
+                          <span className="text-slate-900 font-semibold">
                             {vendorDetails?.address || "N/A"}
                           </span>
                         </div>
 
-                    
+
                       </div>
                     </div>
                   </div>
@@ -525,35 +575,36 @@ const WorkOrderGeneration = () => {
 
                     {/* GRID */}
                     <div className="grid grid-cols-12 gap-y-3 gap-x-6 text-sm">
-                      <div className="col-span-2">
+                      <div className="col-span-3">
                         <InputField
                           label={"Work Order Number"}
                           required={true}
                           name="workOrderNo"
                           value={workOrderNo}
-                          type="number"
-                          placeholder="WON"
+                          type="text"
                           onChange={handleChangeInput}
+                          error={errors.workOrderNo}
                         />
                       </div>
-                      <div className="col-span-2">
+                      <div className="col-span-3">
                         <InputField
                           label={"Work Order Date"}
                           required={true}
                           name="workOrderDate"
                           value={workOrderDate}
                           type="date"
-                          placeholder="WOD"
                           onChange={handleChangeInput}
+                          error={errors.workOrderDate}
                         />
                       </div>
-                      <div className="col-span-2">
+                      <div className="col-span-3">
                         <InputField
                           label={"Upload Document"}
                           required={true}
                           name="orderDocument"
                           type="file"
                           onChange={handleChangeInput}
+                          error={errors.orderDocument}
                         />
                         <span
                           className="text-[11px] text-blue-600 cursor-pointer"
@@ -578,9 +629,20 @@ const WorkOrderGeneration = () => {
         {/* Footer (Optional) */}
         <div className="flex justify-center gap-2 text-[13px] bg-[#42001d0f] border-t border-[#ebbea6] px-4 py-3 rounded-b-md">
           <ResetBackBtn />
-          {!wordOrderDetails && <SubmitBtn type={"submit"} />}
+          {userSelect?.menu.userDetails.roleCode !== "ROLE_WODC_ADMIN" &&
+            !wordOrderDetails?.workOrderDate && (
+              <SubmitBtn type="submit" />
+            )}
+
         </div>
       </div>
+      <ReusableDialog
+        open={open}
+        // title="Submit"
+        description="Are you sure you want submit?"
+        onClose={() => setOpen(false)}
+        onConfirm={handleSubmit}
+      />
     </form>
   );
 };

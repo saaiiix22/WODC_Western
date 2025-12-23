@@ -108,6 +108,7 @@ const endpoints = {
         getBeneficiaryDetails:"/mst/get-beneficiary-list",
         saveUpdateAgencyMilestone:"/project/save-or-update-milestone-beneficiary",
         saveBeneficaryByExcel:"/excel/save-benefic-temp-data-by-excel",
+        saveTempBenList:"/excel/save-or-update-temp-beneficiary-list",
         
 
         getBeneficiaryByIds:"/project/get-beneficiary-ids-by-id",

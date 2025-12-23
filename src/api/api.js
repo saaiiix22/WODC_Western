@@ -1,4 +1,5 @@
 import axios from "axios";
+import { loaderStore } from "../utils/loaderStore";
 
 export const baseURL = import.meta.env.VITE_API_BASE_URL
 const Api = axios.create({
@@ -8,17 +9,27 @@ const Api = axios.create({
 
 Api.interceptors.request.use(
   (config) => {
+    loaderStore.increment();
     const token = localStorage.getItem("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) =>{ 
+    loaderStore.decrement();
+    return Promise.reject(error)
+  }
 );
 Api.interceptors.response.use(
-  (response) => response,
-  (error) => Promise.reject(error)
+  (response) => {
+    loaderStore.decrement();
+    return response;
+  },
+  (error) => {
+    loaderStore.decrement();
+    return Promise.reject(error);
+  }
 );
 
 

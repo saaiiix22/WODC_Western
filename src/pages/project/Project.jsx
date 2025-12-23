@@ -43,6 +43,7 @@ import { clearSelectedProject } from "../../redux/slices/projectSlice";
 import { RiAiGenerate } from "react-icons/ri";
 import { ResetBackBtn, SubmitBtn } from "../../components/common/CommonButtons";
 import ReusableDialog from "../../components/common/ReusableDialog";
+import { avoidSpecialCharUtil } from "../../utils/validationUtils";
 
 const Project = () => {
   const [expanded, setExpanded] = useState("panel1");
@@ -329,7 +330,7 @@ const Project = () => {
         }));
       }
 
-      return res; // ✅ IMPORTANT
+      return res;
     } catch (err) {
       console.error(err);
       return null; // optional but good practice
@@ -467,7 +468,7 @@ const Project = () => {
             const rows = [...prev];
             rows[index] = {
               ...rows[index],
-              maxamount: res.data.data.amount || 0,
+              maxamount: res.data.data.totalBudget || 0,
               fundAllocDate: res.data.data.fundAllocDate || "",
             };
             return rows;
@@ -482,6 +483,11 @@ const Project = () => {
   const handleChangeInput = (e) => {
     const { name, value } = e.target;
 
+    let updatedVal = value
+    if (name === "proposedByName") {
+      updatedVal = avoidSpecialCharUtil(value)
+    }
+
     // --- Date Validations ---
     if (name === "endDate" && formData.startDate) {
       if (new Date(value) < new Date(formData.startDate)) {
@@ -492,7 +498,15 @@ const Project = () => {
         return;
       }
     }
-
+    if (name === "actualStartDate" && formData.startDate) {
+      if (new Date(value) < new Date(formData.startDate)) {
+        setErrors((prev) => ({
+          ...prev,
+          actualStartDate: "Actual Start Date cannot be before Start Date",
+        }));
+        return;
+      }
+    }
     if (name === "actualEndDate" && formData.actualStartDate) {
       if (new Date(value) < new Date(formData.actualStartDate)) {
         setErrors((prev) => ({
@@ -504,7 +518,7 @@ const Project = () => {
     }
 
     // normal update
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: updatedVal }));
 
     setErrors((prev) => ({
       ...prev,
@@ -555,7 +569,7 @@ const Project = () => {
   const handleSubmitConfirmModal = (e) => {
     e.preventDefault();
     let newErrors = {};
-    if (!finYear || !finYear.trim()) {
+    if (!finYear) {
       newErrors.finYear = "Financial Year is required";
       setExpanded("panel1");
       setErrors(newErrors);
@@ -591,21 +605,53 @@ const Project = () => {
       setErrors(newErrors);
       return;
     }
-    if (!objectId || !objectId.trim()) {
-      newErrors.objectId = "Kindly select";
+    if (areaType) {
+      if (!objectId) {
+        newErrors.objectId = "Kindly select";
+        setExpanded("panel1");
+        setErrors(newErrors);
+        return;
+      }
+    }
+    if (!constituencyId) {
+      newErrors.constituencyId = "Kindly select constituency";
+      setExpanded("panel1");
+      setErrors(newErrors);
+      return;
+    }
+    if (!sectorId) {
+      newErrors.sectorId = "Kindly select Sector";
+      setExpanded("panel1");
+      setErrors(newErrors);
+      return;
+    }
+    if (!startDate) {
+      newErrors.startDate = "Kindly choose start date";
+      setExpanded("panel1");
+      setErrors(newErrors);
+      return;
+    }
+    if (!endDate) {
+      newErrors.endDate = "Kindly choose end date";
+      setExpanded("panel1");
+      setErrors(newErrors);
+      return;
+    }
+    if (!estimatedBudget) {
+      newErrors.estimatedBudget = "Kindly fill estimated project cost";
       setExpanded("panel1");
       setErrors(newErrors);
       return;
     }
 
-    if (!proposeByDist || !proposeByDist.trim()) {
-      newErrors.proposeByDist = "Kindly select";
+    if (!proposeByDist) {
+      newErrors.proposeByDist = "Kindly select proposed by district";
       setExpanded("panel1");
       setErrors(newErrors);
       return;
     }
 
-    if (!proposedBy || !proposedBy.trim()) {
+    if (!proposedBy) {
       newErrors.proposedBy = "Proposed by designation is required";
       setExpanded("panel1");
       setErrors(newErrors);
@@ -619,21 +665,21 @@ const Project = () => {
       return;
     }
 
-    if (!sectorId || !sectorId.trim()) {
+    if (!sectorId) {
       newErrors.sectorId = "Sector is required";
       setExpanded("panel1");
       setErrors(newErrors);
       return;
     }
 
-    if (!startDate || !startDate.trim()) {
+    if (!startDate) {
       newErrors.startDate = "Start date is required";
       setExpanded("panel1");
       setErrors(newErrors);
       return;
     }
 
-    if (!endDate || !endDate.trim()) {
+    if (!endDate) {
       newErrors.endDate = "End date is required";
       setExpanded("panel1");
       setErrors(newErrors);
@@ -822,14 +868,14 @@ const Project = () => {
     getGIATypeOpts();
     getTotalBudget();
     getFavourandModeOpts();
-    
+
   }, []);
-  useEffect(()=>{
+  useEffect(() => {
     if (stateSelect) {
       setFormData(mapProjectResponseToForm(stateSelect));
       setFundReleaseRows(mapFundReleaseRows(stateSelect.fundReleaseInfo || []));
     }
-  },[stateSelect])
+  }, [stateSelect])
 
   useEffect(() => {
     const total = fundReleaseRows.reduce(
@@ -891,63 +937,63 @@ const Project = () => {
   };
 
 
+
   useEffect(() => {
-  if (!stateSelect?.fundReleaseInfo?.length) return;
+    if (!stateSelect?.fundReleaseInfo?.length) return;
 
-  stateSelect.fundReleaseInfo.forEach(async (row, index) => {
-    // 1️⃣ Load bank list
-    if (row.giaYear && row.giaTypeId) {
-      await getUpdatedFuncDetails(row.giaYear, row.giaTypeId, index);
-    }
+    stateSelect.fundReleaseInfo.forEach(async (row, index) => {
 
-    // 2️⃣ Load bank config list
-    if (row.giaYear && row.giaTypeId && row.bankId) {
-      const payload = encryptPayload({
-        finyearId: row.giaYear,
-        giaTypeId: row.giaTypeId,
-        bankId: row.bankId,
-      });
-
-      const res = await getBankConfigProjectService(payload);
-
-      if (res?.status === 200 && res?.data?.outcome) {
-        setConfigOpts((prev) => ({
-          ...prev,
-          [index]: res.data.data,
-        }));
+      if (row.giaYear && row.giaTypeId) {
+        await getUpdatedFuncDetails(row.giaYear, row.giaTypeId, index);
       }
-    }
 
-    // 3️⃣ Load max budget
-    if (
-      row.giaYear &&
-      row.giaTypeId &&
-      row.bankId &&
-      row.bankAccConfigId
-    ) {
-      const payload = encryptPayload({
-        finyearId: row.giaYear,
-        giaTypeId: row.giaTypeId,
-        bankId: row.bankId,
-        bankAccConfigId: row.bankAccConfigId,
-      });
-
-      const res = await maxBudgetService(payload);
-
-      if (res?.status === 200 && res?.data?.outcome) {
-        setFundReleaseRows((prev) => {
-          const rows = [...prev];
-          rows[index] = {
-            ...rows[index],
-            maxamount: res.data.data.amount || 0,
-            fundAllocDate: res.data.data.fundAllocDate || "",
-          };
-          return rows;
+      if (row.giaYear && row.giaTypeId && row.bankId) {
+        const payload = encryptPayload({
+          finyearId: row.giaYear,
+          giaTypeId: row.giaTypeId,
+          bankId: row.bankId,
         });
+
+        const res = await getBankConfigProjectService(payload);
+
+        if (res?.status === 200 && res?.data?.outcome) {
+          setConfigOpts((prev) => ({
+            ...prev,
+            [index]: res.data.data,
+          }));
+        }
       }
-    }
-  });
-}, [stateSelect]);
+
+      if (
+        row.giaYear &&
+        row.giaTypeId &&
+        row.bankId &&
+        row.bankAccConfigId
+      ) {
+        const payload = encryptPayload({
+          fundReleaseInfoId: row.fundReleaseInfoId,
+          finyearId: row.giaYear,
+          giaTypeId: row.giaTypeId,
+          bankId: row.bankId,
+          bankAccConfigId: row.bankAccConfigId,
+        });
+
+        const res = await maxBudgetService(payload);
+
+        if (res?.status === 200 && res?.data?.outcome) {
+          setFundReleaseRows((prev) => {
+            const rows = [...prev];
+            rows[index] = {
+              ...rows[index],
+              maxamount: res.data.data.totalBudget || 0,
+              fundAllocDate: res.data.data.fundAllocDate || "",
+            };
+            return rows;
+          });
+        }
+      }
+    });
+  }, [stateSelect]);
 
 
 
@@ -1017,7 +1063,7 @@ const Project = () => {
                     disabled={true}
                     onChange={handleChangeInput}
                     maxLength={50}
-                    // error={errors.projectCode}
+                  // error={errors.projectCode}
                   />
                 </div>
                 <div className="col-span-2">
@@ -1025,6 +1071,7 @@ const Project = () => {
                     label="AA Order Number"
                     required={true}
                     name="aaOrderNo"
+                    maxLength={50}
                     placeholder="Enter AA order number"
                     value={aaOrderNo}
                     onChange={handleChangeInput}
@@ -1557,7 +1604,7 @@ const Project = () => {
                         value={i.releaseAmount}
                         // disabled={i.maxamount ? false : true}
                         onChange={(e) => handleRowChange(e, index)}
-                        //   error={errors.blockNameEN}
+                      //   error={errors.blockNameEN}
                       />
                       <div className="flex justify-between">
                         {i.maxamount !== undefined && i.maxamount !== null && (

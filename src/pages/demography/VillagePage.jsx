@@ -262,7 +262,7 @@ const VillagePage = () => {
         (
           <div className="flex gap-1">
             <p className="text-slate-800">{row.villageNameEn}</p> |{" "}
-            <p>{row.villageCode}</p>
+            <p>{row.villageLgdCode}</p>
           </div>
         ) || "N/A",
     },

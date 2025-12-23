@@ -181,14 +181,15 @@ const Municipality = () => {
         (
           <div className="flex gap-1">
             <p className="text-slate-800">{row.municipalityName}</p> |{" "}
-            <p>{row.municipalityCode}</p>
+            {/* <p>{row.municipalityCode}</p> */}
+            <p>{row.lgdCode}</p>
           </div>
         ) || "N/A",
     },
-    {
-      name: "LGD Code",
-      selector: (row) => row.lgdCode || "N/A",
-    },
+    // {
+    //   name: "LGD Code",
+    //   selector: (row) => row.lgdCode || "N/A",
+    // },
     {
       name: "Remarks",
       selector: (row) => row.remarks || "N/A",

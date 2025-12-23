@@ -34,7 +34,7 @@ export const saveBeneficaryByExcelService = (data) => Api.post(endpoints.project
         "Content-Type": "multipart/form-data",
     },
 })
-
+export const saveTempBenListService=(data)=>Api.post(endpoints.project.saveTempBenList,{obj:data})
 
 
 export const getBeneficiaryByIdsService = (data) => Api.get(endpoints.project.getBeneficiaryByIds, { params: { cipherText: data } })

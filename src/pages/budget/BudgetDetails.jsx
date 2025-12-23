@@ -22,6 +22,7 @@ import {
   IFSCutil,
   prevDateUtil,
 } from "../../utils/validationUtils";
+import InputField from "../../components/common/InputField";
 
 const BudgetDetails = () => {
   const [rows, setRows] = useState([
@@ -283,7 +284,7 @@ const BudgetDetails = () => {
             <div className="grid grid-cols-12">
               <div className="col-span-2">
                 <SelectField
-                  label="Select Financial Year"
+                  label="Financial Year"
                   required={true}
                   name="finyearId"
                   placeholder="Select"
@@ -432,7 +433,7 @@ const BudgetDetails = () => {
                       />
                     </td> */}
                     <td className="border-r border-slate-200 px-2 py-1">
-                      <input
+                      <InputField
                         type="number"
                         value={row.amount}
                         onChange={(e) =>
@@ -520,7 +521,7 @@ const BudgetDetails = () => {
                 <th className="w-[60px] text-[14px] py-3 px-2 text-center border border-[#ebbea6] p-2">
                   SL No
                 </th>
-                <th className="border text-[14px] py-3 px-2 text-start border-[#ebbea6] p-2">
+                <th className="w-[250px] border text-[14px] py-3 px-2 text-start border-[#ebbea6] p-2">
                   GIA Type Name
                 </th>
                 <th className="border text-[14px] py-3 px-2 text-start border-[#ebbea6] p-2">
@@ -529,9 +530,9 @@ const BudgetDetails = () => {
                 <th className="border text-[14px] py-3 px-2 text-start border-[#ebbea6] p-2">
                   Date of Creation
                 </th>
-                <th className="border text-[14px] py-3 px-2 text-start border-[#ebbea6] p-2">
-                  Amount Information
-                </th>
+                <th className="w-[380px] border text-[14px] py-3 px-2 text-start border-[#ebbea6]">
+      Account Information
+    </th>
               </tr>
             </thead>
 
@@ -585,7 +586,7 @@ const BudgetDetails = () => {
 
                     {/* IFSC */}
                     <td className="border border-[#ebbea6] px-2 py-1 text-sm">
-                      {row.branch} | {row.accNo} | {row.ifsc} 
+                      {row.bankName?.bankName} | {row.bankConfig?.accNo} | {row.bankConfig?.ifsc} 
                     </td>
                   </tr>
                 ));

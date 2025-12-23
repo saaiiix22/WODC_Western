@@ -18,36 +18,64 @@ const ReusableDataTable = ({ data = [], columns }) => {
     table: {
       style: {
         border: "1px solid #ebbea6",
+        fontFamily:
+          "'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
       },
     },
+
     headRow: {
       style: {
         backgroundColor: "#f4f0f2",
-        borderBottom: "1px solid #ebbea6",
+        borderBottom: "2px solid #ebbea6",
+        minHeight: "52px",
       },
     },
+
     headCells: {
       style: {
-        fontWeight: "bold",
-        fontSize: "14px",
+        fontWeight: "600",
+        fontSize: "13px",
+        letterSpacing: "0.6px",
+        textTransform: "uppercase",
+        color: "#4b5563",
         textAlign: "center",
         borderRight: "1px solid #ebbea6",
-        position: "sticky",
+        padding: "12px",
       },
     },
+
     rows: {
       style: {
         fontSize: "14px",
+        fontWeight: "400",
+        color: "#1f2937",
+        minHeight: "48px",
         borderBottom: "1px solid #ebbea6",
+      },
+      highlightOnHoverStyle: {
+        backgroundColor: "#fff7f2",
+        borderBottom: "1px solid #ebbea6",
+        outline: "1px solid #ebbea6",
+        transition: "background-color 0.2s ease",
+        cursor: "pointer",
       },
     },
     cells: {
       style: {
+        padding: "10px 14px",
         borderRight: "1px solid #ebbea6",
-        textAlign: "left",
-        padding: "8px 12px",
         whiteSpace: "normal",
         wordBreak: "break-word",
+        lineHeight: "1.4",
+      },
+    },
+
+    pagination: {
+      style: {
+        borderTop: "1px solid #ebbea6",
+        fontSize: "13px",
+        fontFamily:
+          "'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
       },
     },
   };
@@ -76,7 +104,7 @@ const ReusableDataTable = ({ data = [], columns }) => {
         fixedHeader
         fixedHeaderScrollHeight="550px"
         customStyles={customStyles}
-
+        stripedRowsStyle={{ backgroundColor: "#fffaf7" }}
         pagination
         paginationPerPage={10}
         paginationRowsPerPageOptions={[10, 20, 30, 50]}

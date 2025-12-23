@@ -18,6 +18,7 @@ import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import Magnifier from "../../components/common/Magnifier";
+import ReusableDialog from "../../components/common/ReusableDialog";
 
 const FundReleaseInfo = () => {
   const userSelect = useSelector((state) => state);
@@ -197,40 +198,84 @@ const FundReleaseInfo = () => {
     } else {
       updatedForm[name] = value;
     }
-
+    setErrors((prev) => ({
+      ...prev,
+      [name]: "",
+    }));
     setFormData(updatedForm);
   };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const [open,setOpen] = useState(false)
+  const confirmSubmit=(e)=>{
+    e.preventDefault()
     let newErrors = {};
     if (!finYear) {
       newErrors.finYear = "Financial Year is required";
       setErrors(newErrors);
       return;
     }
-    try {
-      const sendData = {
-        fundReleaseId: null,
-        sanctionOrderNo,
-        sanctionOrderDate: sanctionOrderDate.split("-").reverse().join("/"),
-        releaseLetterDate: releaseLetterDate.split("-").reverse().join("/"),
-        releaseLetterNo,
-        workOrderId: wordOrderDetails?.workOrderId,
-        projectAgencyMilestoneMapId:
-          milestoneDetails?.projectAgencyMilestoneMapId,
-        penaltyAmount,
-        penaltyPercentage,
-        agencyBankId,
-      };
-      console.log(sendData);
-
-      const payload = encryptPayload(sendData);
-      const res = await saveFundReleasInfoServicePrimary(payload);
-      console.log(res);
-    } catch (error) {
-      throw error;
+    if (!projectId) {
+      newErrors.projectId = "Project Name is required";
+      setErrors(newErrors);
+      return;
     }
+    if (!milestoneId) {
+      newErrors.projectId = "Milestone Name is required";
+      setErrors(newErrors);
+      return;
+    }
+    if (finYear && projectId && milestoneId) {
+      if (!sanctionOrderNo) {
+        newErrors.sanctionOrderNo = "Sanction Order Number is required";
+        setErrors(newErrors);
+        return;
+      }
+      if (!sanctionOrderDate) {
+        newErrors.sanctionOrderDate = "Sanction Order Date is required";
+        setErrors(newErrors);
+        return;
+      }
+      if (!releaseLetterNo) {
+        newErrors.releaseLetterNo = "Release Letter Number is required";
+        setErrors(newErrors);
+        return;
+      }
+       if (!releaseLetterDate) {
+        newErrors.releaseLetterDate = "Release Letter Date is required";
+        setErrors(newErrors);
+        return;
+      }
+    }
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length === 0) {
+      setOpen(true)
+    }
+  }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+      try {
+        const sendData = {
+          fundReleaseId: null,
+          sanctionOrderNo,
+          sanctionOrderDate: sanctionOrderDate.split("-").reverse().join("/"),
+          releaseLetterDate: releaseLetterDate.split("-").reverse().join("/"),
+          releaseLetterNo,
+          workOrderId: wordOrderDetails?.workOrderId,
+          projectAgencyMilestoneMapId:
+            milestoneDetails?.projectAgencyMilestoneMapId,
+          penaltyAmount,
+          penaltyPercentage,
+          agencyBankId,
+        };
+        console.log(sendData);
+
+        const payload = encryptPayload(sendData);
+        const res = await saveFundReleasInfoServicePrimary(payload);
+        console.log(res);
+      } catch (error) {
+        throw error;
+      }
+    
     // console.log(formData);
   };
 
@@ -277,7 +322,7 @@ const FundReleaseInfo = () => {
   console.log(workOrderIdDetails?.fundReleaseId);
 
   return (
-    <form action="" onSubmit={handleSubmit}>
+    <form action="" onSubmit={confirmSubmit}>
       <div
         className="
             mt-3 p-2 bg-white rounded-sm border border-[#f1f1f1]
@@ -318,6 +363,7 @@ const FundReleaseInfo = () => {
                 }))}
                 placeholder="Select"
                 onChange={handleChangeInput}
+                error={errors.finYear}
               />
             </div>
             <div className="col-span-2">
@@ -333,6 +379,8 @@ const FundReleaseInfo = () => {
                   value: i.projectId,
                   label: i.projectName,
                 }))}
+                error={errors.projectId}
+
               />
             </div>
             <div className="col-span-2">
@@ -347,6 +395,7 @@ const FundReleaseInfo = () => {
                   label: i.milestoneName,
                 }))}
                 onChange={handleChangeInput}
+                error={errors.milestoneId}
               />
             </div>
 
@@ -374,7 +423,7 @@ const FundReleaseInfo = () => {
                   </div>
                 </div>
                 <div className="col-span-12">
-                  <div className="relative border border-dashed border-orange-300 bg-[#fffaf6] p-4 rounded-md mb-3 mt-3">
+                  <div className="relative border border-dashed border-orange-300 bg-[#fffaf6] p-4 rounded-md mb-3">
                     {/* Floating Title */}
                     <span className="absolute -top-3 left-4 bg-[#fffaf6] px-3 text-sm font-semibold text-orange-600">
                       Milestone Details
@@ -384,55 +433,55 @@ const FundReleaseInfo = () => {
                     <div className="grid grid-cols-12 gap-y-3 gap-x-6 text-sm">
                       {/* ---------- MILESTONE DETAILS ---------- */}
                       <div className="col-span-3 flex gap-1">
-                        <span className="font-medium text-gray-700">
+                        <span className="font-normal text-gray-700">
                           Milestone Name
                         </span>
                         :
-                        <span className="text-red-600 font-semibold uppercase">
+                        <span className="text-slate-900 font-semibold uppercase">
                           {milestoneDetails?.milestoneName || "N/A"}
                         </span>
                       </div>
 
                       <div className="col-span-3 flex gap-1">
-                        <span className="font-medium text-gray-700">
+                        <span className="font-normal text-gray-700">
                           Start Date
                         </span>
                         :
-                        <span className="text-red-600 font-semibold">
+                        <span className="text-slate-900 font-semibold">
                           {milestoneDetails?.startDate || "N/A"}
                         </span>
                       </div>
                       <div className="col-span-3 flex gap-1">
-                        <span className="font-medium text-gray-700">
+                        <span className="font-normal text-gray-700">
                           End Date
                         </span>
                         :
-                        <span className="text-red-600 font-semibold">
+                        <span className="text-slate-900 font-semibold">
                           {milestoneDetails?.endDate || "N/A"}
                         </span>
                       </div>
                       <div className="col-span-3 flex gap-1">
-                        <span className="font-medium text-gray-700">
+                        <span className="font-normal text-gray-700">
                           Actual Start Date
                         </span>
                         :
-                        <span className="text-red-600 font-semibold">
+                        <span className="text-slate-900 font-semibold">
                           {milestoneDetails?.actualStartDate || "N/A"}
                         </span>
                       </div>
                       <div className="col-span-3 flex gap-1">
-                        <span className="font-medium text-gray-700">
+                        <span className="font-normal text-gray-700">
                           Actual End Date
                         </span>
                         :
-                        <span className="text-red-600 font-semibold">
+                        <span className="text-slate-900 font-semibold">
                           {milestoneDetails?.actualEndDate || "N/A"}
                         </span>
                       </div>
                       <div className="col-span-3 flex gap-1">
-                        <span className="font-medium text-gray-700">Delay</span>
+                        <span className="font-normal text-gray-700">Delay</span>
                         :
-                        <span className="text-red-600 font-semibold">
+                        <span className="text-slate-900 font-semibold">
                           {getDateDiff(
                             milestoneDetails?.actualEndDate,
                             milestoneDetails?.endDate
@@ -441,11 +490,11 @@ const FundReleaseInfo = () => {
                         </span>
                       </div>
                       <div className="col-span-3 flex gap-1">
-                        <span className="font-medium text-gray-700">
+                        <span className="font-normal text-gray-700">
                           Milestone Amount
                         </span>
                         :
-                        <span className="text-red-600 font-semibold uppercase">
+                        <span className="text-slate-900 font-semibold uppercase">
                           ₹{" "}
                           {Number(milestoneDetails?.amount).toLocaleString(
                             "en-IN",
@@ -464,11 +513,11 @@ const FundReleaseInfo = () => {
                           })
                         }
                       >
-                        <span className="font-medium text-gray-700">
+                        <span className="font-normal text-gray-700">
                           Beneficary Count
                         </span>
                         :
-                        <span className="text-red-600 font-semibold uppercase">
+                        <span className="text-slate-900 font-semibold uppercase">
                           {beneficiaryDetails.length}
                         </span>
                       </div>
@@ -478,28 +527,28 @@ const FundReleaseInfo = () => {
                           {/* {penaltyPercentage && penaltyAmount && <></>} */}
 
                           <div className="col-span-3 flex gap-1 mt-2">
-                            <span className="font-medium text-gray-700">
+                            <span className="font-normal text-gray-700">
                               Penalty Amount
                             </span>
                             :
-                            <span className="text-red-600 font-semibold">
+                            <span className="text-slate-900 font-semibold">
                               ₹{" "}
                               {penaltyAmount.toLocaleString("en-IN", {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2,
-                              })||0}
+                              }) || 0}
                             </span>
                           </div>
                           <div className="col-span-3 flex gap-1 mt-2">
-                            <span className="font-medium text-gray-700">
+                            <span className="font-normal text-gray-700">
                               Penalty Percent
                             </span>
                             :
-                            <span className="text-red-600 font-semibold">
+                            <span className="text-slate-900 font-semibold">
                               {penaltyPercentage.toLocaleString("en-IN", {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2,
-                              })||0}{" "}
+                              }) || 0}{" "}
                               %
                             </span>
                           </div>
@@ -507,14 +556,14 @@ const FundReleaseInfo = () => {
                           <div className="col-span-3 flex gap-1 items-center">
                             <label
                               htmlFor=""
-                              className="text-[13px] font-medium text-gray-700"
+                              className="text-[13px] font-normal text-gray-700"
                             >
                               Penalty Percent
                             </label>
                             :
                             <input
                               className="w-1/2  border border-dashed border-orange-300 
-            px-2.5 py-1.5 text-sm text-red-600 font-semibold
+            px-2.5 py-1.5 text-sm text-slate-900 font-semibold
             outline-none transition-all duration-200"
                               name="penaltyPercentage"
                               value={penaltyPercentage}
@@ -525,14 +574,14 @@ const FundReleaseInfo = () => {
                           <div className="col-span-3 flex gap-1 items-center">
                             <label
                               htmlFor=""
-                              className="text-[13px] font-medium text-gray-700"
+                              className="text-[13px] font-normal text-gray-700"
                             >
                               Penalty Amount
                             </label>
                             :
                             <input
                               className="w-1/2  border border-dashed border-orange-300 
-            px-2.5 py-1.5 text-sm text-red-600 font-semibold
+            px-2.5 py-1.5 text-sm text-slate-900 font-semibold
             outline-none transition-all duration-200"
                               name="penaltyAmount"
                               disabled={true}
@@ -542,11 +591,11 @@ const FundReleaseInfo = () => {
                           </div>
 
                           <div className="col-span-3 flex gap-1 mt-2">
-                            <span className="font-medium text-gray-700">
+                            <span className="font-normal text-gray-700">
                               Total Amount
                             </span>
                             :
-                            <span className="text-red-600 font-semibold">
+                            <span className="text-slate-900 font-semibold">
                               ₹{" "}
                               {(
                                 milestoneDetails?.amount - penaltyAmount
@@ -573,31 +622,31 @@ const FundReleaseInfo = () => {
                       <div className="grid grid-cols-12 gap-y-3 gap-x-6 text-sm">
                         {/* ---------- MILESTONE DETAILS ---------- */}
                         <div className="col-span-3 flex gap-1">
-                          <span className="font-medium text-gray-700">
+                          <span className="font-normal text-gray-700">
                             Agency Name
                           </span>
                           :
-                          <span className="text-red-600 font-semibold uppercase">
+                          <span className="text-slate-900 font-semibold uppercase">
                             {agencyDetails?.agencyName || "N/A"}
                           </span>
                         </div>
 
                         <div className="col-span-3 flex gap-1">
-                          <span className="font-medium text-gray-700">
+                          <span className="font-normal text-gray-700">
                             Contact Number
                           </span>
                           :
-                          <span className="text-red-600 font-semibold">
+                          <span className="text-slate-900 font-semibold">
                             {agencyDetails?.contactNo || "N/A"}
                           </span>
                         </div>
 
                         <div className="col-span-3 flex gap-1">
-                          <span className="font-medium text-gray-700">
+                          <span className="font-normal text-gray-700">
                             Email
                           </span>
                           :
-                          <span className="text-red-600 font-semibold">
+                          <span className="text-slate-900 font-semibold">
                             {agencyDetails?.email || "N/A"}
                           </span>
                         </div>
@@ -689,41 +738,41 @@ const FundReleaseInfo = () => {
                       <div className="grid grid-cols-12 gap-y-3 gap-x-6 text-sm">
                         {/* ---------- VENDOR DETAILS ---------- */}
                         <div className="col-span-3 flex gap-1">
-                          <span className="font-medium text-gray-700">
+                          <span className="font-normal text-gray-700">
                             Vendor Name
                           </span>
                           :
-                          <span className="text-red-600 font-semibold uppercase">
+                          <span className="text-slate-900 font-semibold uppercase">
                             {vendorDetails?.vendorName || "N/A"}
                           </span>
                         </div>
 
                         <div className="col-span-3 flex gap-1">
-                          <span className="font-medium text-gray-700">
+                          <span className="font-normal text-gray-700">
                             Contact Number
                           </span>
                           :
-                          <span className="text-red-600 font-semibold">
+                          <span className="text-slate-900 font-semibold">
                             {vendorDetails?.contactNo || "N/A"}
                           </span>
                         </div>
 
                         <div className="col-span-3 flex gap-1">
-                          <span className="font-medium text-gray-700">
+                          <span className="font-normal text-gray-700">
                             Email
                           </span>
                           :
-                          <span className="text-red-600 font-semibold break-all">
+                          <span className="text-slate-900 font-semibold break-all">
                             {vendorDetails?.email || "N/A"}
                           </span>
                         </div>
 
                         <div className="col-span-3 flex gap-1">
-                          <span className="font-medium text-gray-700">
+                          <span className="font-normal text-gray-700">
                             Address
                           </span>
                           :
-                          <span className="text-red-600 font-semibold">
+                          <span className="text-slate-900 font-semibold">
                             {vendorDetails?.address || "N/A"}
                           </span>
                         </div>
@@ -740,32 +789,32 @@ const FundReleaseInfo = () => {
                     <div className="grid grid-cols-12 gap-y-3 gap-x-6 text-sm">
                       {/* ---------- VENDOR DETAILS ---------- */}
                       <div className="col-span-3 flex gap-1">
-                        <span className="font-medium text-gray-700">
+                        <span className="font-normal text-gray-700">
                           Work Order No
                         </span>
                         :
-                        <span className="text-red-600 font-semibold uppercase">
+                        <span className="text-slate-900 font-semibold uppercase">
                           {wordOrderDetails?.workOrderNo || "N/A"}
                         </span>
                       </div>
 
                       <div className="col-span-3 flex gap-1">
-                        <span className="font-medium text-gray-700">
+                        <span className="font-normal text-gray-700">
                           Work Order Date
                         </span>
                         :
-                        <span className="text-red-600 font-semibold">
+                        <span className="text-slate-900 font-semibold">
                           {wordOrderDetails?.workOrderDate || "N/A"}
                         </span>
                       </div>
 
                       <div className="col-span-4 flex gap-1">
-                        <span className="font-medium text-gray-700">
+                        <span className="font-normal text-gray-700">
                           Work Order Document
                         </span>
                         :
                         <span
-                          className="text-red-600 font-semibold cursor-pointer"
+                          className="text-slate-900 font-semibold cursor-pointer"
                           onClick={() =>
                             openDocument(
                               wordOrderDetails?.docPathBase64,
@@ -811,12 +860,13 @@ const FundReleaseInfo = () => {
                           required={true}
                           name="sanctionOrderNo"
                           value={sanctionOrderNo}
-                          type="number"
+                          // type="number"
                           placeholder="Enter sanction order number"
                           onChange={handleChangeInput}
                           disabled={
                             workOrderIdDetails?.fundReleaseId ? true : false
                           }
+                          error={errors.sanctionOrderNo}
                         />
                       </div>
                       <div className="col-span-2">
@@ -831,6 +881,7 @@ const FundReleaseInfo = () => {
                           disabled={
                             workOrderIdDetails?.fundReleaseId ? true : false
                           }
+                          error={errors.sanctionOrderDate}
                         />
                       </div>
                       <div className="col-span-2">
@@ -839,12 +890,13 @@ const FundReleaseInfo = () => {
                           required={true}
                           name="releaseLetterNo"
                           value={releaseLetterNo}
-                          type="number"
+                          // type="number"
                           placeholder="Enter release order date"
                           onChange={handleChangeInput}
                           disabled={
                             workOrderIdDetails?.fundReleaseId ? true : false
                           }
+                          error={errors.releaseLetterNo}
                         />
                       </div>
                       <div className="col-span-2">
@@ -859,6 +911,7 @@ const FundReleaseInfo = () => {
                           disabled={
                             workOrderIdDetails?.fundReleaseId ? true : false
                           }
+                          error={errors.releaseLetterDate}
                         />
                       </div>
                     </div>
@@ -875,6 +928,13 @@ const FundReleaseInfo = () => {
           {!workOrderIdDetails && <SubmitBtn type={"submit"} />}
         </div>
       </div>
+      <ReusableDialog
+        open={open}
+        // title="Submit"
+        description="Are you sure you want submit?"
+        onClose={() => setOpen(false)}
+        onConfirm={handleSubmit}
+      />
     </form>
   );
 };

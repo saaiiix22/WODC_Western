@@ -15,9 +15,11 @@ import { FaSquarePlus } from "react-icons/fa6";
 import { IoIosRemoveCircleOutline } from "react-icons/io";
 import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
+import ReusableDialog from "../../components/common/ReusableDialog";
 
 const UCsubmission = () => {
   const userSelect = useSelector((state) => state);
+
 
   const [formData, setFormData] = useState({
     finYear: "",
@@ -62,6 +64,7 @@ const UCsubmission = () => {
     return true;
   };
   const addRefDoc = () => {
+
     setRefDocList((prev) => [...prev, { id: generateId(), file: null }]);
   };
 
@@ -78,6 +81,11 @@ const UCsubmission = () => {
   const handleChangeInput = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
+
+    setErrors((prev) => ({
+      ...prev,
+      [name]: "",
+    }));
   };
 
   const getAllFinOpts = async () => {
@@ -155,19 +163,79 @@ const UCsubmission = () => {
 
   const [ucDoc, setUcDoc] = useState(null);
 
+
+  const [errors, setErrors] = useState({});
+  const [open, setOpen] = useState(false)
+  const handleConfirmModal = (e) => {
+    e.preventDefault()
+    let newErrors = {};
+    if (!finYear) {
+      newErrors.finYear = "Financial Year is required";
+      setErrors(newErrors);
+      return;
+    }
+    if (!projectId) {
+      newErrors.projectId = "Project Name is required";
+      setErrors(newErrors);
+      return;
+    }
+    if (!milestoneId) {
+      newErrors.milestoneId = "MilestoneId Name is required";
+      setErrors(newErrors);
+      return;
+    }
+    if (finYear && projectId && milestoneId) {
+      if (!utilizationDesc) {
+        newErrors.utilizationDesc = "Utilization Description is required";
+        setErrors(newErrors);
+        return;
+      }
+      if (!utilizationFromDate) {
+        newErrors.utilizationFromDate = "Utilization from date is required";
+        setErrors(newErrors);
+        return;
+      }
+      if (!utilizationToDate) {
+        newErrors.utilizationToDate = "Utilization to date is required";
+        setErrors(newErrors);
+        return;
+      }
+      if (!ucSubmissionDate) {
+        newErrors.ucSubmissionDate = "Submission date is required";
+        setErrors(newErrors);
+        return;
+      }
+    }
+
+    setErrors(newErrors);
+
+    if (Object.keys(newErrors).length === 0) {
+      setOpen(true)
+    }
+    else {
+      setOpen(false)
+    }
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
       const payloadObj = {
-        ucId: null,
+        ucId: ucDetailsDTO?.ucId,
         utilizationDesc,
         utilizationFromDate: utilizationFromDate.split("-").reverse().join("/"),
         utilizationToDate: utilizationToDate.split("-").reverse().join("/"),
         ucSubmissionDate: ucSubmissionDate.split("-").reverse().join("/"),
         fundReleaseId: workOrderDTO?.fundReleaseDto?.fundReleaseId,
-      };
 
+
+        refDocuments: refDocList?.map((i) => ({
+          ucDocId: i.ucDocId || null,
+          refDocName: i.refDocName || null,
+          refDocPath: i.refDocPath || null
+        }))
+      };
       const payload = encryptPayload(payloadObj);
 
       const formDataObj = new FormData();
@@ -180,6 +248,8 @@ const UCsubmission = () => {
       refDocList.forEach((doc) => {
         if (doc.file) {
           formDataObj.append("refDocument", doc.file);
+        } else {
+          formDataObj.append("refDocument", new Blob([]));
         }
       });
 
@@ -189,15 +259,20 @@ const UCsubmission = () => {
       if (res?.status === 200 && res?.data?.outcome) {
         toast.success(res?.data.message);
         resetForm();
+        setOpen(false)
       } else {
         toast.error(res?.data?.message);
         resetForm();
+        setOpen(false)
       }
     } catch (error) {
       toast.error("Something went wrong");
       console.error(error);
     }
+
   };
+  // console.log(errors);
+
   const resetForm = () => {
     setFormData({
       finYear: "",
@@ -269,19 +344,26 @@ const UCsubmission = () => {
       }));
       setExistingUcDocName(ucDetailsDTO?.ucDocName || null);
       // setRefDocList(ucDetailsDTO?.refDocuments || [])
+
       setRefDocList(
         (ucDetailsDTO?.refDocuments || []).map((doc) => ({
+          ...doc,
           id: doc.refDocId ?? generateId(),
           file: null,
+          ucDocId: doc.ucDocId,
+          refDocPath: doc.refDocPath,
           refDocName: doc.refDocName,
-          refDocBase64: doc.refDocBase64,
+          refDocBase64: doc.refDocBase64
         }))
       );
     }
   }, [ucDetailsDTO]);
 
+  console.log(ucDetailsDTO?.refDocuments);
+
+
   return (
-    <form action="" onSubmit={handleSubmit}>
+    <form action="" onSubmit={handleConfirmModal}>
       <div
         className="
             mt-3 p-2 bg-white rounded-sm border border-[#f1f1f1]
@@ -322,6 +404,7 @@ const UCsubmission = () => {
                 }))}
                 placeholder="Select"
                 onChange={handleChangeInput}
+                error={errors.finYear}
               />
             </div>
             <div className="col-span-2">
@@ -337,6 +420,7 @@ const UCsubmission = () => {
                   value: i.projectId,
                   label: i.projectName,
                 }))}
+                error={errors.projectId}
               />
             </div>
             <div className="col-span-2">
@@ -351,6 +435,7 @@ const UCsubmission = () => {
                   label: i.milestoneName,
                 }))}
                 onChange={handleChangeInput}
+                error={errors.milestoneId}
               />
             </div>
             {Object.keys(workOrderDTO).length > 0 && (
@@ -366,64 +451,64 @@ const UCsubmission = () => {
                     <div className="grid grid-cols-12 gap-y-3 gap-x-6 text-sm">
                       {/* ---------- MILESTONE DETAILS ---------- */}
                       <div className="col-span-3 flex gap-1">
-                        <span className="font-medium text-gray-700">
+                        <span className="font-normal text-gray-700">
                           Work Order Number
                         </span>
                         :
-                        <span className="text-red-600 font-semibold uppercase">
+                        <span className="text-slate-900 font-semibold uppercase">
                           {workOrderDTO?.workOrderNo || "N/A"}
                         </span>
                       </div>
 
                       <div className="col-span-3 flex gap-1">
-                        <span className="font-medium text-gray-700">
+                        <span className="font-normal text-gray-700">
                           Work Order Date
                         </span>
                         :
-                        <span className="text-red-600 font-semibold uppercase">
+                        <span className="text-slate-900 font-semibold uppercase">
                           {workOrderDTO?.workOrderDate || "N/A"}
                         </span>
                       </div>
 
                       <div className="col-span-3 flex gap-1">
-                        <span className="font-medium text-gray-700">
+                        <span className="font-normal text-gray-700">
                           Sanction Order Number
                         </span>
                         :
-                        <span className="text-red-600 font-semibold uppercase">
+                        <span className="text-slate-900 font-semibold uppercase">
                           {workOrderDTO?.fundReleaseDto?.sanctionOrderNo ||
                             "N/A"}
                         </span>
                       </div>
 
                       <div className="col-span-3 flex gap-1">
-                        <span className="font-medium text-gray-700">
+                        <span className="font-normal text-gray-700">
                           Sanction Order Date
                         </span>
                         :
-                        <span className="text-red-600 font-semibold uppercase">
+                        <span className="text-slate-900 font-semibold uppercase">
                           {workOrderDTO?.fundReleaseDto?.sanctionOrderDate ||
                             "N/A"}
                         </span>
                       </div>
 
                       <div className="col-span-3 flex gap-1">
-                        <span className="font-medium text-gray-700">
+                        <span className="font-normal text-gray-700">
                           Release Letter Number
                         </span>
                         :
-                        <span className="text-red-600 font-semibold uppercase">
+                        <span className="text-slate-900 font-semibold uppercase">
                           {workOrderDTO?.fundReleaseDto?.releaseLetterNo ||
                             "N/A"}
                         </span>
                       </div>
 
                       <div className="col-span-3 flex gap-1">
-                        <span className="font-medium text-gray-700">
+                        <span className="font-normal text-gray-700">
                           Release Letter Date
                         </span>
                         :
-                        <span className="text-red-600 font-semibold uppercase">
+                        <span className="text-slate-900 font-semibold uppercase">
                           {workOrderDTO?.fundReleaseDto?.releaseLetterDate ||
                             "N/A"}
                         </span>
@@ -443,53 +528,56 @@ const UCsubmission = () => {
                           required={true}
                           name="utilizationDesc"
                           textarea={true}
-                          disabled={utilizationDesc ? true : false}
+                          // disabled={utilizationDesc ? true : false}
                           value={utilizationDesc}
                           onChange={handleChangeInput}
+                          error={errors.utilizationDesc}
                         />
                       </div>
-                      <div className="col-span-4 ">
-                        <label
-                          htmlFor=""
-                          className="text-[13px] font-medium text-gray-700"
-                        >
-                          Utilization Duration
-                        </label>
-                        <div className="flex gap-3 mt-0.5">
-                          <input
-                            name="utilizationFromDate"
-                            type="date"
-                            value={utilizationFromDate}
-                            disabled={utilizationFromDate ? true : false}
-                            onChange={handleChangeInput}
-                            className="w-full rounded-md border border-gray-300  px-2.5 py-1.5 text-sm outline-none transition-all duration-200 placeholder:text-gray-400 resize-none"
-                          />
-                          <input
-                            name="utilizationToDate"
-                            type="date"
-                            value={utilizationToDate}
-                            disabled={utilizationToDate ? true : false}
-                            onChange={handleChangeInput}
-                            className="w-full rounded-md border border-gray-300  px-2.5 py-1.5 text-sm outline-none transition-all duration-200 placeholder:text-gray-400 resize-none"
-                          />
-                        </div>
+                      <div className="col-span-2 ">
+
+
+                        <InputField
+                          label="Utilization From Date"
+                          name="utilizationFromDate"
+                          type="date"
+                          required={true}
+                          value={utilizationFromDate}
+                          // disabled={utilizationFromDate ? true : false}
+                          onChange={handleChangeInput}
+                          error={errors.utilizationFromDate}
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <InputField
+                          label="Utilization To Date"
+                          name="utilizationToDate"
+                          type="date"
+                          required={true}
+                          value={utilizationToDate}
+                          // disabled={utilizationToDate ? true : false}
+                          onChange={handleChangeInput}
+                          error={errors.utilizationToDate}
+
+                        />
                       </div>
                       <div className="col-span-2">
                         <InputField
                           label="Submission Date"
                           required={true}
                           value={ucSubmissionDate}
-                          disabled={ucSubmissionDate ? true : false}
+                          // disabled={ucSubmissionDate ? true : false}
                           name="ucSubmissionDate"
                           type="date"
                           onChange={handleChangeInput}
+                          error={errors.ucSubmissionDate}
                         />
                       </div>
                       <div className="col-span-2">
                         <div className="col-span-2">
                           <InputField
                             label="UC Document"
-                            required={true}
+                            // required={true}
                             name="blockNameEN"
                             type="file"
                             onChange={(e) => {
@@ -503,7 +591,7 @@ const UCsubmission = () => {
                                 setUcDoc(null);
                               }
                             }}
-                            disabled={existingUcDocName ? true : false}
+                          // disabled={existingUcDocName ? true : false}
                           />
                           <span
                             className="text-[11px] text-blue-600"
@@ -536,8 +624,8 @@ const UCsubmission = () => {
 
                               <InputField
                                 label={`Reference Document ${index + 1}`}
-                                required={true}
-                                disabled={item}
+                                // required={true}
+                                // disabled={item}
                                 type="file"
                                 onChange={(e) => {
                                   const file = e.target.files[0];
@@ -573,7 +661,7 @@ const UCsubmission = () => {
                                   type="button"
                                   onClick={addRefDoc}
                                   style={{ top: "25px" }}
-                                  disabled={item}
+                                  // disabled={item}
                                   className="absolute  right-0.5 bg-green-700 px-2 py-2 text-white rounded-r-md"
                                 >
                                   <FaSquarePlus />
@@ -594,12 +682,19 @@ const UCsubmission = () => {
         {/* Footer (Optional) */}
         <div className="flex justify-center gap-2 text-[13px] bg-[#42001d0f] border-t border-[#ebbea6] px-4 py-3 rounded-b-md">
           <ResetBackBtn />
-          {userSelect?.menu.userDetails.roleCode !== "ROLE_AGENCY" && (
+          {userSelect?.menu.userDetails.roleCode === "ROLE_AGENCY" && (
             <SubmitBtn type="submit" />
           )}
         </div>
       </div>
-    </form>
+      <ReusableDialog
+        open={open}
+        // title="Submit"
+        description="Are you sure you want submit?"
+        onClose={() => setOpen(false)}
+        onConfirm={handleSubmit}
+      />
+    </form >
   );
 };
 
