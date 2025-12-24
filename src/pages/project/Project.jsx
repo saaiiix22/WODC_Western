@@ -1719,7 +1719,7 @@ const Project = () => {
       <ReusableDialog
         open={openSubmit}
         // title="Submit"
-        description="Are you sure you want submit?"
+        description="Are you sure you want to submit?"
         onClose={() => setOpenSubmit(false)}
         onConfirm={handleSubmit}
       />

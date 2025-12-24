@@ -8,13 +8,14 @@ import { ResetBackBtn, SubmitBtn } from "../../components/common/CommonButtons";
 import { encryptPayload } from "../../crypto.js/encryption";
 import {
   getRoleListService,
+  // saveAddUserService,
   saveUserService,
 } from "../../services/umtServices";
 import { toast } from "react-toastify";
 
 const AddUser = () => {
   const [formData, setFormData] = useState({
-    userId: "",
+    userId: null,
     userName: "",
     firstname: "",
     lastname: "",
@@ -45,13 +46,13 @@ const AddUser = () => {
       userRoleMaps: rows,
     };
     try {
-      const payload = encryptPayload(sendData);
-      const res = await saveUserService(payload);
-      console.log(res);
+      const payload = encryptPayload(sendData)
+      // const res = await saveAddUserService(payload)
+      // console.log(res);
+      
     } catch (error) {
-      throw error;
+      throw error
     }
-    console.log(sendData);
   };
 
   const [getRoleOpts, setRoleOpts] = useState([]);
@@ -87,9 +88,9 @@ const AddUser = () => {
 
   const [rows, setRows] = useState([
     {
-      primaryRole: "",
-      role: "",
-      status: "",
+      isPrimary: "",
+      roleCodes: "",
+      activeStatus: "",
     },
   ]);
 
@@ -97,12 +98,18 @@ const AddUser = () => {
     setRows([
       ...rows,
       {
-        primaryRole: "",
-        role: "",
-        status: "",
+        isPrimary: "",
+        roleCodes: "",
+        activeStatus: "",
       },
     ]),
   ];
+
+  const handleInput = (index, name, value) => {
+    const updated = [...rows];
+    updated[index][name] = value;
+    setRows(updated);
+  };
 
   const handleRemoveRow = (index) => {
     const updated = [...rows];
@@ -145,8 +152,8 @@ const AddUser = () => {
               <InputField
                 label="User Id"
                 required={true}
-                name="userId"
-                value={userId}
+                name="userName"
+                value={userName}
                 onChange={handleChangeInput}
                 //   error={errors.agencyName}
               />
@@ -178,6 +185,7 @@ const AddUser = () => {
                 name="mobile"
                 value={mobile}
                 onChange={handleChangeInput}
+                maxLength={10}
                 //   error={errors.agencyName}
               />
             </div>
@@ -236,7 +244,8 @@ const AddUser = () => {
                       </td>
                       <td className="border-r border-b border-slate-200 px-2 py-1">
                         <SelectField
-                          name="primaryRole"
+                          name="isPrimary"
+                          value={row.isPrimary}
                           options={[
                             { value: true, label: "True" },
                             { value: false, label: "False" },
@@ -244,44 +253,47 @@ const AddUser = () => {
                             value: i.value,
                             label: i.label,
                           }))}
-                          // onChange={(e) =>
-                          //   handleInput(
-                          //     index,
-                          //     "giaTypeId",
-                          //     Number(e.target.value)
-                          //   )
-                          // }
+                          onChange={(e) =>
+                            handleInput(
+                              index,
+                              "isPrimary",
+                              e.target.value
+                            )
+                          }
 
                           placeholder="--Select--"
                         />
                       </td>
                       <td className="border-r border-b border-slate-200 px-2 py-1">
+                       
                         <SelectField
-                          name="primaryRole"
-                          // onChange={(e) =>
-                          //   handleInput(
-                          //     index,
-                          //     "giaTypeId",
-                          //     Number(e.target.value)
-                          //   )
-                          // }
+                          name="roleCodes"
+                          value={row.roleCodes}
+                          onChange={(e) =>
+                            handleInput(
+                              index,
+                              "roleCodes",
+                              Number(e.target.value)
+                            )
+                          }
                           options={getRoleOpts?.map((i) => ({
-                            value: i.roleId,
-                            label: i.roleCode,
+                            value: i.roleCode,
+                            label: i.displayName,
                           }))}
                           placeholder="--Select--"
                         />
                       </td>
                       <td className="border-r border-b border-slate-200 px-2 py-1">
                         <SelectField
-                          name="primaryRole"
-                          // onChange={(e) =>
-                          //   handleInput(
-                          //     index,
-                          //     "giaTypeId",
-                          //     Number(e.target.value)
-                          //   )
-                          // }
+                          name="activeStatus"
+                          value={row.activeStatus}
+                          onChange={(e) =>
+                            handleInput(
+                              index,
+                              "activeStatus",
+                              e.target.value
+                            )
+                          }
                           options={[
                             { value: true, label: "Active" },
                             { value: false, label: "Inactive" },

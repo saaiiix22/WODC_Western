@@ -37,6 +37,7 @@ import BankAccountConfig from "../pages/master/BankAccountConfig";
 import FundReleaseInfo from "../pages/project/FundReleaseInfo";
 import BeneficiaryList from "../pages/project/BeneficiaryList";
 import UCsubmission from "../pages/project/UCsubmission";
+import ConfigureAccess from "../pages/UMT/ConfigureAccess";
 
 const AppRouter = () => {
   return (
@@ -88,6 +89,7 @@ const AppRouter = () => {
             <Route path={routes.roleAccess.path} element={<AccessRole />} />
             <Route path={routes.addUser.path} element={<AddUser />} />
             <Route path={routes.userProfile.path} element={<UserProfilePage />} />
+            <Route path={routes.configureAccess.path} element={<ConfigureAccess />} />
 
 
             {/* ADD BENEFICIARY */}

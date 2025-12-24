@@ -31,6 +31,7 @@ export const routes = {
    addUser:{path: "/addUser", label: "Add User", protected: true},
    userProfile:{path: "/userProfile", label: "User Profile", protected: true},
    roleMenuMapping:{path: "/roleMenuMapping", label: "Role Menu Mapping", protected: true},
+   configureAccess:{path: "/configureAccess", label: "Configure Accesss", protected: true},
    projectAgencyMilestone:{path: "/projectAgencyMilestoneMapping", label: "Project Agency Milestone Mapping", protected: true},
    workOrderGeneration:{path: "/workOrderGeneration", label: "Work Order Generation", protected: true},
    

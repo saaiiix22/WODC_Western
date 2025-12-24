@@ -182,6 +182,12 @@ const endpoints = {
         saveRole: '/admin/role/save',
         roleList: '/admin/role/list',
         toggleRoleStatus: '/is-active',
+
+
+
+        getAllRoles:"/admin/role/list",
+        getAllMenu:"/admin/menu/get-menus-for-role-map",
+        saveRoleMenuMap:"/admin/menu/role-menu-map"
     }
 }
 export default endpoints 

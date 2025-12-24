@@ -382,7 +382,7 @@ const ConstituencyPage = () => {
       />
       <ReusableDialog
         open={openSubmit}
-        description="Are you sure you want submit?"
+        description="Are you sure you want to submit?"
         onClose={() => setOpenSubmit(false)}
         onConfirm={handleSubmit}
       />

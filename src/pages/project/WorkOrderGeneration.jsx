@@ -639,7 +639,7 @@ const WorkOrderGeneration = () => {
       <ReusableDialog
         open={open}
         // title="Submit"
-        description="Are you sure you want submit?"
+        description="Are you sure you want to submit?"
         onClose={() => setOpen(false)}
         onConfirm={handleSubmit}
       />
