@@ -208,11 +208,15 @@ const Ward = () => {
     {
       name: "Remarks",
       selector: (row) => row.remarks || "N/A",
-      sortable: true,
     },
     {
       name: "Status",
-      selector: (row) => (row.isActive ? "Active" : "Inactive"),
+      width:"100px",
+      cell: (row) => (
+        <span className={`px-2 py-1 rounded-sm text-xs ${row.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+          {row.isActive ? "Active" : "Inactive"}
+        </span>
+      )
     },
     {
       name: "Action",
@@ -471,7 +475,7 @@ const Ward = () => {
         <ReusableDialog
           open={openSubmit}
           // title="Submit"
-          description="Are you sure you want to submit?"
+          description="Are you sure you want submit?"
           onClose={() => setOpenSubmit(false)}
           onConfirm={handleSubmit}
         />

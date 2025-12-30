@@ -179,10 +179,30 @@ const endpoints = {
         saveUCdetails:"/order/save-or-update-uc-details-info"
     },
     umtEndpoints: {
+        
         saveRole: '/admin/role/save',
+        editViewRole:'/admin/role/edit',
         roleList: '/admin/role/list',
-        toggleRoleStatus: '/is-active',
+        toggleRoleStatus: '/admin/role/is-active',
+        getRoleInfo:"/admin/role/roleLevelMap",
 
+        saveUser:'/save',
+        // userList:"/get-all-users",
+        userList:"/user/list",
+        saveRoleLevelMap:"/admin/role/roleLevelMap/addNupdate",
+        editUser:'/user/edit',
+        toggleUserStatus:'/user/is-active',
+
+        userSearch:'/admin/user/search',
+        roleConfigList:'/admin/role/byUser',
+        getAccessLevelConfig:'/admin/acl/byRole',
+        getConfigList:"admin/acl/config/list",
+        saveConfigAccess:"/admin/acl/config/save",
+
+        getProfileInfo:"/user/profile",
+        saveProfile:'/update/user/profile',
+        checkOldPassword:"/user/check-password",
+        changePassword:"/change/password",
 
 
         getAllRoles:"/admin/role/list",

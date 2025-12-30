@@ -3,13 +3,14 @@ import { FiFileText } from "react-icons/fi";
 import { ResetBackBtn, SubmitBtn } from "../../components/common/CommonButtons";
 import InputField from "../../components/common/InputField";
 import { encryptPayload } from "../../crypto.js/encryption";
-import { roleListService, saveRoleService } from "../../services/umtServices";
+import { editViewRoleService, getRoleInfoService, roleListService, saveRoleService, toggleRoleStatusService } from "../../services/umtServices";
 import { toast } from "react-toastify";
 import ReusableDataTable from "../../components/common/ReusableDataTable";
 import { GoPencil } from "react-icons/go";
 import { MdLockOpen, MdLockOutline } from "react-icons/md";
 import { FaEye } from "react-icons/fa";
 import { FaLink } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 const ManageRole = () => {
   const [formData, setFormData] = useState({
@@ -31,61 +32,60 @@ const ManageRole = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     try {
       const sendData = {
         ...formData,
         maxAssignments: maxAssignments ? Number(maxAssignments) : null
       };
-      
+
       console.log("Submitting data:", sendData);
-      
+
       const payload = encryptPayload(sendData);
       const res = await saveRoleService(payload);
-      
+
       if (res.status === 200 && res?.data.outcome) {
-        toast.success(res?.data.message || (isEditing ? "Role updated successfully!" : "Role created successfully!"));
+        toast.success(res?.data.message);
         resetForm();
-        getTableData(); // Refresh table
+        getTableData();
       }
     } catch (error) {
       console.error("Submit Error:", error);
-      toast.error("Something went wrong while saving role");
     }
   };
 
-  const handleEditClick = (row) => {
-    // Directly set form data from row object
-    setFormData({
-      roleId: row.roleId || null,
-      roleCode: row.roleCode || '',
-      displayName: row.displayName || '',
-      description: row.description || '',
-      maxAssignments: row.maxAssignments?.toString() || ''
-    });
-    
-    setIsEditing(true);
-    toast.success("Role loaded for editing");
-    
-    // Scroll to form
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  const handleEditClick = async (id) => {
+    try {
+      const payload = encryptPayload({
+        isActive: true,
+        roleId: id
+      })
+      const res = await editViewRoleService(payload)
+      console.log(res);
+      if (res?.status == 200 && res?.data.outcome) {
+        setFormData(res?.data.data)
+        setIsEditing(true)
+      }
+    } catch (error) {
+      throw error
+    }
   };
 
-  const handleViewClick = (row) => {
-    // Directly set form data from row object for view mode
-    setFormData({
-      roleId: row.roleId,
-      roleCode: row.roleCode || '',
-      displayName: row.displayName || '',
-      description: row.description || '',
-      maxAssignments: row.maxAssignments?.toString() || ''
-    });
-    
-    setIsEditing(false); // Set to view mode
-    toast.info("Role details loaded (view mode)");
-    
-    // Scroll to form
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  const handleViewClick = async (id) => {
+    try {
+      const payload = encryptPayload({
+        isActive: true,
+        roleId: id
+      })
+      const res = await editViewRoleService(payload)
+      console.log(res);
+      if (res?.status == 200 && res?.data.outcome) {
+        setFormData(res?.data.data)
+        setIsEditing(false)
+      }
+    } catch (error) {
+      throw error
+    }
   };
 
   const resetForm = () => {
@@ -103,7 +103,8 @@ const ManageRole = () => {
     try {
       const payload = encryptPayload(true);
       const res = await roleListService(payload);
-      
+      // console.log(res);
+
       if (res?.data.outcome && res?.status === 200) {
         setTableData(res?.data.data);
       }
@@ -133,45 +134,51 @@ const ManageRole = () => {
       name: "Display Name",
       selector: (row) => row.displayName || "N/A",
     },
-    {
-      name: "Remarks",
-      selector: (row) => row.description || "N/A",
-    },
+
     {
       name: "Max Assignments",
       selector: (row) => row.maxAssignments || "N/A",
       center: true,
+      width: "150px",
     },
     {
       name: "Status",
       selector: (row) => row.isActive ? "Active" : "Inactive",
       center: true,
+      width: "80px",
       cell: (row) => (
-        <span className={`px-2 py-1 rounded-full text-xs ${row.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+        <span className={`px-2 py-1 rounded-sm text-xs ${row.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
           {row.isActive ? "Active" : "Inactive"}
         </span>
       )
     },
     {
+      name: "Remarks",
+      selector: (row) => row.description || "N/A",
+      width: "250px",
+
+
+    },
+    {
       name: "Action",
-      width: "140px",
+      width: "200px",
       cell: (row) => (
         <div className="flex items-center flex-wrap p-3 gap-2">
           {/* VIEW BUTTON */}
           <button
             type="button"
             className="flex items-center justify-center h-8 w-8 bg-blue-500/25 text-blue-500 rounded-full hover:bg-blue-500/40 transition-colors"
-            onClick={() => handleViewClick(row)}
+            onClick={() => handleViewClick(row.roleId)}
             title="View Role Details"
           >
             <FaEye className="w-4 h-4" />
           </button>
-          
+
           {/* EDIT BUTTON */}
           <button
             type="button"
             className="flex items-center justify-center h-8 w-8 bg-green-500/25 text-green-500 rounded-full hover:bg-green-500/40 transition-colors"
-            onClick={() => handleEditClick(row)}
+            onClick={() => handleEditClick(row.roleId)}
             title="Edit Role"
           >
             <GoPencil className="w-4 h-4" />
@@ -193,7 +200,7 @@ const ManageRole = () => {
               <MdLockOpen className="w-4 h-4" />
             )}
           </button>
-          
+
           {/* PERMISSIONS LINK BUTTON */}
           <button
             type="button"
@@ -211,19 +218,36 @@ const ManageRole = () => {
     },
   ];
 
-  const toggleStatus = async (roleId, currentStatus) => {
+  const toggleStatus = async (id, stat) => {
     try {
-      // You can implement status toggle logic here
-      toast.info(`Toggle status for role ID: ${roleId} from ${currentStatus ? 'Active' : 'Inactive'} to ${!currentStatus ? 'Active' : 'Inactive'}`);
+      const payload = encryptPayload({
+        roleId: id,
+        isActive: !stat
+
+      })
+      const res = await toggleRoleStatusService(payload)
+      console.log(res);
+      if (res?.data.outcome && res?.status === 200) {
+        getTableData()
+        toast.success(res?.data.message)
+      }
     } catch (error) {
       console.error("Toggle status error:", error);
-      toast.error("Failed to update status");
     }
   };
 
-  const handlePermissionsClick = (roleId) => {
-    // Implement permission management logic
-    toast.info(`Manage permissions for role ID: ${roleId}`);
+  const navigate = useNavigate()
+  const handlePermissionsClick = async (roleId) => {
+    try {
+      const payload = encryptPayload(roleId)
+      const res = await getRoleInfoService(payload)
+      console.log(res);
+      if (res?.status === 200 && res?.data.outcome) {
+        navigate('/get-role-access', { state: res?.data.data })
+      }
+    } catch (error) {
+      throw error
+    }
   };
 
   return (
@@ -249,17 +273,8 @@ const ManageRole = () => {
                 bg-[#ff7900] rounded
               "
             />
-            {isEditing ? 'Edit Role' : formData.roleId ? 'View Role' : 'Add Role'}
-            {isEditing && (
-              <span className="text-sm ml-2 bg-yellow-500 text-white px-2 py-1 rounded">
-                Editing Mode - ID: {formData.roleId}
-              </span>
-            )}
-            {formData.roleId && !isEditing && (
-              <span className="text-sm ml-2 bg-blue-500 text-white px-2 py-1 rounded">
-                View Mode - ID: {formData.roleId}
-              </span>
-            )}
+            Add Role
+
           </h3>
         </div>
 
@@ -290,7 +305,21 @@ const ManageRole = () => {
                 placeholder="Enter display name"
               />
             </div>
-            <div className="col-span-4">
+            <div className="col-span-2">
+              <InputField
+                label="Maximum Assignments"
+                type="number"
+                required={true}
+                name="maxAssignments"
+                value={maxAssignments}
+                onChange={handleChangeInput}
+                readOnly={!isEditing && formData.roleId}
+                disabled={!isEditing && formData.roleId}
+                placeholder="Enter number"
+                min="0"
+              />
+            </div>
+            <div className="col-span-3">
               <InputField
                 label="Description"
                 name="description"
@@ -302,52 +331,13 @@ const ManageRole = () => {
                 placeholder="Enter description"
               />
             </div>
-            <div className="col-span-2">
-              <InputField
-                label="Maximum Assignments"
-                type="number"
-                name="maxAssignments"
-                value={maxAssignments}
-                onChange={handleChangeInput}
-                readOnly={!isEditing && formData.roleId}
-                disabled={!isEditing && formData.roleId}
-                placeholder="Enter number"
-                min="0"
-              />
-            </div>
-            <div className="col-span-2 flex justify-start gap-2 text-[13px] px-4 py-3 mt-4">
-              <button
-                type="button"
-                onClick={resetForm}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
-              >
-                {formData.roleId ? 'Cancel' : 'Reset'}
-              </button>
-              
-              {/* Show Update button only when editing */}
-              {isEditing ? (
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
-                >
-                  Update Role
-                </button>
-              ) : !formData.roleId ? (
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-                >
-                  Create Role
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setIsEditing(true)}
-                  className="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700 transition-colors"
-                >
-                  Switch to Edit
-                </button>
+
+            <div className="col-span-2 flex justify-start gap-2 text-[13px] px-4 py-6">
+              <ResetBackBtn />
+              {(isEditing || !roleId) && (
+                <SubmitBtn type="submit" btnText={roleId} />
               )}
+
             </div>
           </form>
         </div>
@@ -374,15 +364,15 @@ const ManageRole = () => {
                 bg-[#ff7900] rounded
               "
             />
-            Role List ({tableData.length} roles)
+            Role List
           </h3>
         </div>
 
         {/* Body */}
-        <div className="min-h-[120px] py-5 px-4 text-[#444]">
-          <ReusableDataTable 
-            data={tableData} 
-            columns={roleColumn} 
+        <div className="py-5 px-4 text-[#444]">
+          <ReusableDataTable
+            data={tableData}
+            columns={roleColumn}
             pagination={true}
             highlightOnHover={true}
           />

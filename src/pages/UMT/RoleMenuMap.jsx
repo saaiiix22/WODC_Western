@@ -6,91 +6,211 @@ import FolderIcon from "@mui/icons-material/Folder";
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 import SelectField from "../../components/common/SelectField";
 import { encryptPayload } from "../../crypto.js/encryption";
-import { getAllMenuService, getAllRolesService, saveRoleMenuMapService } from "../../services/umtServices";
+import {
+  getAllMenuService,
+  getAllRolesService,
+  saveRoleMenuMapService,
+} from "../../services/umtServices";
 import { ResetBackBtn, SubmitBtn } from "../../components/common/CommonButtons";
+import { toast } from "react-toastify";
 
 const RoleMenuMap = () => {
   const [selectedItems, setSelectedItems] = useState([]);
   const [formData, setFormData] = useState({
-    roleId: ''
-  })
-  const handleInputChange = (e) => {
-    const { name, value } = e.target
-    setFormData({ ...formData, [name]: value })
-  }
-
-  const handleSelectionChange = (event, itemIds) => {
-    setSelectedItems(itemIds);
-  };
+    roleId: "",
+  });
   // console.log(selectedItems);
 
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
 
-  const [roleOpts, setRoleOpts] = useState([])
+
+  const addParentIds = (selectedIds = [], menus = []) => {
+    const result = new Set(selectedIds.map(String));
+
+    menus.forEach((menu) => {
+      const parentId = String(menu.menuId);
+
+      const hasSelectedChild = menu.subMenu?.some((sub) =>
+        result.has(String(sub.menuId))
+      );
+
+      if (hasSelectedChild) {
+        result.add(parentId);
+      }
+    });
+
+    return Array.from(result);
+  };
+
+  
+
+
+  const handleSelectionChange = (event, itemIds) => {
+    const prev = new Set(selectedItems.map(String));
+    const curr = new Set(itemIds.map(String));
+
+    const added = [...curr].filter(id => !prev.has(id));
+    const removed = [...prev].filter(id => !curr.has(id));
+
+    let updated = new Set(curr);
+
+    menuList.forEach(menu => {
+      const parentId = String(menu.menuId);
+      const childIds = menu.subMenu?.map(s => String(s.menuId)) || [];
+
+      if (childIds.length === 0) {
+        updated.delete(parentId);
+        return;
+      }
+
+      if (added.includes(parentId)) {
+        childIds.forEach(id => updated.add(id));
+      }
+
+      if (removed.includes(parentId)) {
+        childIds.forEach(id => updated.delete(id));
+      }
+
+      const selectedChildren = childIds.filter(id => updated.has(id));
+
+      if (selectedChildren.length === childIds.length) {
+        updated.add(parentId);
+      } else {
+        updated.delete(parentId);
+      }
+    });
+
+    const cleaned = filterParentsWithoutChildren(
+      Array.from(updated),
+      menuList
+    );
+
+    setSelectedItems(cleaned);
+  };
+
+
+
+  // console.log(selectedItems);
+
+  const [roleOpts, setRoleOpts] = useState([]);
   const allRoles = async () => {
     try {
-      const payload = encryptPayload({ isActive: true })
-      const res = await getAllRolesService(payload)
+      const payload = encryptPayload({ isActive: true });
+      const res = await getAllRolesService(payload);
       // console.log(res);
       if (res?.status === 200 && res?.data.outcome) {
-        setRoleOpts(res?.data.data)
+        setRoleOpts(res?.data.data);
       }
     } catch (error) {
-      throw error
+      throw error;
     }
-  }
-  const [menuList, setMenuList] = useState([])
+  };
+  const [menuList, setMenuList] = useState([]);
   const getAllMenu = async () => {
     try {
-      const payload = encryptPayload(null)
-      const res = await getAllMenuService(payload)
-      console.log(res);
+      const payload = encryptPayload(null);
+      const res = await getAllMenuService(payload);
+      // console.log(res);
       if (res?.data.outcome && res?.status === 200) {
-        setMenuList(res?.data.data)
+        setMenuList(res?.data.data);
       }
     } catch (error) {
-      throw error
+      throw error;
     }
-  }
-
+  };
+  const [currUserMenu, setCurrUserMenu] = useState([])
   const getRoleWiseMenu = async () => {
     try {
-      const payload = encryptPayload("ROLE_MENU_MAP")
-      const res = await getAllMenuService(payload)
+      const payload = encryptPayload(formData.roleId);
+      const res = await getAllMenuService(payload);
       console.log(res);
-
+      if (res?.status === 200 && res?.data.outcome) {
+        setCurrUserMenu(res?.data.data)
+      }
     } catch (error) {
-      throw error
+      throw error;
     }
-  }
+  };
+  const extractSelectedMenuIds = (menus = []) => {
+    const ids = [];
 
+    menus.forEach(menu => {
+      if (menu.subMenu?.length) {
+        ids.push(String(menu.menuId));
+
+        menu.subMenu.forEach(sub => {
+          ids.push(String(sub.menuId));
+        });
+      }
+    });
+
+    return ids;
+  };
+
+  const filterParentsWithoutChildren = (ids = [], menus = []) => {
+    const parentsWithChildren = new Set(
+      menus
+        .filter(m => m.subMenu?.length > 0)
+        .map(m => String(m.menuId))
+    );
+
+    return ids.filter(id => {
+      const isChild = menus.some(m =>
+        m.subMenu?.some(s => String(s.menuId) === id)
+      );
+
+      return isChild || parentsWithChildren.has(id);
+    });
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
     try {
+      const normalizedMenuIds = addParentIds(selectedItems, menuList);
+
       const sendData = {
         roleCode: formData.roleId,
-        menuIds: selectedItems
-      }
-      const payload = encryptPayload(sendData)
-      const res = await saveRoleMenuMapService(payload)
-      console.log(res);
+        menuIds: normalizedMenuIds.map(Number),
+      };
 
+      const payload = encryptPayload(sendData);
+      const res = await saveRoleMenuMapService(payload);
+
+      if (res?.status === 200 && res?.data.outcome) {
+        toast.success(res?.data.message);
+        setFormData({ roleId: "" });
+        setSelectedItems([]);
+      }
     } catch (error) {
-      throw error
+      throw error;
     }
-  }
+  };
 
 
 
   useEffect(() => {
-    allRoles()
-    getAllMenu()
-  }, [])
+    allRoles();
+    getAllMenu();
+  }, []);
   useEffect(() => {
     if (formData.roleId) {
-      getRoleWiseMenu()
+      getRoleWiseMenu();
     }
-  }, [formData.roleId])
+  }, [formData.roleId]);
+
+  useEffect(() => {
+    if (currUserMenu?.length) {
+      const ids = extractSelectedMenuIds(currUserMenu);
+      const normalized = addParentIds(ids, menuList);
+      setSelectedItems(normalized);
+    } else {
+      setSelectedItems([]);
+    }
+  }, [currUserMenu, menuList]);
+
 
   return (
     <form action="" onSubmit={handleSubmit}>
@@ -132,96 +252,97 @@ const RoleMenuMap = () => {
                 onChange={handleInputChange}
                 options={roleOpts?.map((i) => ({
                   value: i.roleCode,
-                  label: i.displayName
+                  label: i.displayName,
                 }))}
               />
             </div>
-
-            <div className="col-span-12">
-              <Box>
-                <SimpleTreeView
-                  checkboxSelection
-                  multiSelect
-                  selectedItems={selectedItems}
-                  onSelectedItemsChange={handleSelectionChange}
-                  sx={{
-                    "& .MuiTreeItem-root": {
-                      p: "4px 8px",
-                      mb: "6px",
-                    },
-                    "& .MuiTreeItem-content": {
-                      py: "6px",
-                      px: "8px",
-                    },
-                    "& .MuiTreeItem-content:hover": {
-                      bgcolor: "#f9fafb",
-                    },
-                    "& .MuiTreeItem-label": {
-                      fontSize: "0.9rem",
-                      fontWeight: 500,
-                      color: "#374151",
-                    },
-                  }}
-                >
-                  {/* Parent 1 */}
-                  {menuList?.map((menu) => (
-                    <TreeItem
-                      key={menu.menuId}
-                      itemId={menu.menuId}
-                      label={
-                        <div className="flex items-center gap-3">
-                          <span className="p-1 rounded-full bg-orange-500/10 text-[#ff8b00]">
-                            <FolderIcon fontSize="small" />
-                          </span>
-                          <span className="text-[15px] font-semibold">
-                            {menu?.title}
-                          </span>
-                        </div>
-                      }
-                    >
-                      {menu.subMenu?.map((submenu) => (
-                        <TreeItem
-                          key={submenu.menuId}
-                          itemId={submenu.menuId}
-                          sx={{
-                            mt: 1,
-                            ml: 2,
-                            "& .MuiTreeItem-content": {
-                              bgcolor: "#f3f4f6",
-                            },
-                            "& .MuiTreeItem-content:hover": {
-                              bgcolor: "#e5e7eb",
-                            },
-                          }}
-                          label={
-                            <div className="flex items-center justify-between w-full">
-                              <div className="flex items-center gap-2">
-                                <InsertDriveFileIcon
-                                  className="text-gray-500"
-                                  fontSize="small"
-                                />
-                                <p className="text-sm font-medium">
-                                  {submenu.title}
+            {formData.roleId && (
+              <div className="col-span-12">
+                <Box>
+                  <SimpleTreeView
+                    checkboxSelection
+                    multiSelect
+                    selectedItems={selectedItems}
+                    onSelectedItemsChange={handleSelectionChange}
+                    sx={{
+                      "& .MuiTreeItem-root": {
+                        p: "4px 8px",
+                        mb: "6px",
+                      },
+                      "& .MuiTreeItem-content": {
+                        py: "6px",
+                        px: "8px",
+                      },
+                      "& .MuiTreeItem-content:hover": {
+                        bgcolor: "#f9fafb",
+                      },
+                      "& .MuiTreeItem-label": {
+                        fontSize: "0.9rem",
+                        fontWeight: 500,
+                        color: "#374151",
+                      },
+                    }}
+                  >
+                    {/* Parent 1 */}
+                    {menuList?.map((menu) => (
+                      <TreeItem
+                        key={menu.menuId}
+                        disabled={!menu.subMenu?.length}
+                        itemId={String(menu.menuId)}
+                        label={
+                          <div className="flex items-center gap-3">
+                            <span className="p-1 rounded-full bg-orange-500/10 text-[#ff8b00]">
+                              <FolderIcon fontSize="small" />
+                            </span>
+                            <span className="text-[15px] font-semibold">
+                              {menu?.title}
+                            </span>
+                          </div>
+                        }
+                      >
+                        {menu.subMenu?.map((submenu) => (
+                          <TreeItem
+                            key={submenu.menuId}
+                            itemId={String(submenu.menuId)}
+                            sx={{
+                              mt: 1,
+                              ml: 2,
+                              "& .MuiTreeItem-content": {
+                                bgcolor: "#f3f4f6",
+                              },
+                              "& .MuiTreeItem-content:hover": {
+                                bgcolor: "#e5e7eb",
+                              },
+                            }}
+                            label={
+                              <div className="flex items-center justify-between w-full">
+                                <div className="flex items-center gap-2">
+                                  <InsertDriveFileIcon
+                                    className="text-gray-500"
+                                    fontSize="small"
+                                  />
+                                  <p className="text-sm font-medium">
+                                    {submenu.title}
+                                  </p>
+                                </div>
+                                <p className="text-sm px-2 py-1 bg-gray-200 rounded-md font-semibold">
+                                  {submenu.link}
                                 </p>
                               </div>
-                              <p className="text-sm px-2 py-1 bg-gray-200 rounded-md font-semibold">
-                                {submenu.link}
-                              </p>
-                            </div>
-                          }
-                        />
-                      ))}
-                    </TreeItem>
-                  ))}
-
-                </SimpleTreeView>
-              </Box>
-            </div>
+                            }
+                          />
+                        ))}
+                      </TreeItem>
+                    ))}
+                  </SimpleTreeView>
+                </Box>
+              </div>
+            )}
           </div>
         </div>
         <div className="flex justify-center gap-2 text-[13px] bg-[#42001d0f] border-t border-[#ebbea6] px-4 py-3 rounded-b-md">
           <ResetBackBtn />
-        <SubmitBtn type={"submit"} />
+          <SubmitBtn type={"submit"} />
         </div>
       </div>
     </form>

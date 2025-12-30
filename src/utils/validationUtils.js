@@ -1,14 +1,15 @@
 export const avoidSpecialCharUtil = (str = '') => {
-  return str.replace(/[^a-zA-Z ]/g, '');
+  return str.replace(/[^a-zA-Z ]/g, '').trim();
 };
 
 export const avoidAllSpaceUtil = (str = '') => {
-  return str.replace(/\s+/g, '');
+  return str.replace(/\s+/g, '').trim();
 };
 
 export const cleanStringUtil = (str = '') => {
-  return avoidAllSpaceUtil(avoidSpecialCharUtil(str)).trim();
+  return avoidAllSpaceUtil(avoidSpecialCharUtil(str));
 };
+
 export const prevDateUtil = () => {
   const d = new Date();
   return new Date(d.getTime() - d.getTimezoneOffset() * 60000)
@@ -70,7 +71,7 @@ export const ifscUtil = (str = "") => {
 ---------------------------*/
 export const validateAccountNoUtil = (accNo = '') => {
   const cleaned = accNo.replace(/\s+/g, '');
-
+  
   if (!/^[0-9]{8,18}$/.test(cleaned)) {
     return false;
   }
@@ -105,17 +106,59 @@ export const validateAadhaarUtil = (input) => {
   return isValid ? formatted : "";
 };
 
-
 export const cleanAadhaarUtil = (str = "") => {
   let value = str.replace(/[^0-9]/g, ""); // Only digits
   return value.slice(0, 12); // Max 12 digits
 };
 
-export const cleanContactNoUtil = (input = "") => {
-  return input.replace(/[^0-9]/g, "").slice(0, 10);
+
+// Must be exactly 10 digits and start with 6,7,8,9
+// export const validateContactNoUtil = (contactNo = "") => {
+  //   return /^[6-9][0-9]{9}$/.test(contactNo);
+  // };
+  
+  export const cleanContactNoUtil = (input = "") => {
+    return input.replace(/[^0-9]/g, "").slice(0, 10);
+  };
+
+export const validateContactNoUtil = (contactNo = "") => {
+  if (!contactNo) {
+    return "Mobile number is required";
+  }
+
+  if (!/^[0-9]+$/.test(contactNo)) {
+    return "Mobile number must contain only digits";
+  }
+
+  if (contactNo.length !== 10) {
+    return "Mobile number must be exactly 10 digits";
+  }
+
+  if (!/^[6-9]/.test(contactNo)) {
+    return "Mobile number must start with 6, 7, 8, or 9";
+  }
+
+  return "";
 };
 
-// Must be exactly 10 digits
-export const validateContactNoUtil = (contactNo = "") => {
-  return /^[0-9]{10}$/.test(contactNo);
+
+
+
+export const cleanEmailUtil = (input = "") => {
+  return input.replace(/\s/g, "");
+};
+
+export const validateEmailUtil = (email = "") => {
+  if (!email) {
+    return "Email is required";
+  }
+
+  // Basic email format check
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+  if (!emailRegex.test(email)) {
+    return "Enter a valid email address";
+  }
+
+  return "";
 };

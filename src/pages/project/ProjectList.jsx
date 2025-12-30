@@ -70,9 +70,11 @@ const ProjectList = () => {
     },
     {
       name: "Project Name",
+      width: "250px",
+      wrap:false,
       selector: (row) =>
         (
-          <div className="flex gap-1">
+          <div className="flex gap-1" >
             <p className="text-slate-800">{row.projectName}</p> |{" "}
             <p>{row.projectCode}</p>
           </div>
@@ -85,11 +87,11 @@ const ProjectList = () => {
     },
     {
       name: "Estimated Budget",
-      selector: (row) => row.estimatedBudget || "N/A",
+      selector: (row) => Number(row.estimatedBudget).toLocaleString("en-IN") || "N/A",
     },
     {
       name: "Approved Amount",
-      selector: (row) => row.approvedAmount || "N/A",
+      selector: (row) => Number(row.approvedAmount).toLocaleString("en-IN")  || "N/A",
       sortable: true,
     },
 

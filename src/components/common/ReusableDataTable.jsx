@@ -36,7 +36,7 @@ const ReusableDataTable = ({ data = [], columns }) => {
         fontWeight: "600",
         fontSize: "13px",
         letterSpacing: "0.6px",
-        textTransform: "uppercase",
+        textTransform: "capitalize",
         color: "#4b5563",
         textAlign: "center",
         borderRight: "1px solid #ebbea6",

@@ -61,7 +61,16 @@ const Municipality = () => {
 
   const handleChangeInput = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+
+    let updatedValue = value;
+
+    if (name === "lgdCode") {
+      updatedValue = LGDutil(value);
+    }
+    if(name === "municipalityName"){
+      updatedValue = avoidSpecialCharUtil(value)
+    }
+    setFormData({ ...formData, [name]: updatedValue });
 
     setErrors((prev) => ({
       ...prev,
@@ -219,11 +228,10 @@ const Municipality = () => {
           <Tooltip title={row.isActive ? "Active" : "Inactive"} arrow>
             <button
               className={`flex items-center justify-center h-8 w-8 rounded-full 
-              ${
-                row.isActive
+              ${row.isActive
                   ? "bg-green-600/25 hover:bg-green-700/25 text-green-600"
                   : "bg-red-500/25 hover:bg-red-600/25 text-red-500 "
-              }`}
+                }`}
               onClick={() => {
                 setMunicipalityStatusId(row?.municipalityId);
                 setOpenModal(true);
@@ -281,7 +289,7 @@ const Municipality = () => {
         getTableData();
         setOpenModal(false);
       }
-    } catch (error) {}
+    } catch (error) { }
   };
   useEffect(() => {
     getTableData();
@@ -339,7 +347,7 @@ const Municipality = () => {
                   required={true}
                   name="municipalityName"
                   placeholder="Enter municipality name"
-                  value={avoidSpecialCharUtil(municipalityName)}
+                  value={municipalityName}
                   onChange={handleChangeInput}
                   error={errors.municipalityName}
                   maxLength={50}
@@ -352,7 +360,7 @@ const Municipality = () => {
                   required={true}
                   name="lgdCode"
                   placeholder="Enter LGD code"
-                  value={LGDutil(lgdCode)}
+                  value={lgdCode}
                   onChange={handleChangeInput}
                   error={errors.lgdCode}
                   maxLength={30}
@@ -416,7 +424,7 @@ const Municipality = () => {
       <ReusableDialog
         open={openSubmit}
         // title="Submit"
-        description="Are you sure you want to submit?"
+        description="Are you sure you want submit?"
         onClose={() => setOpenSubmit(false)}
         onConfirm={handleSubmit}
       />

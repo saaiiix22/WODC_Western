@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation  } from "react-router-dom";
 import { RiMenu2Fill, RiSettings3Fill } from "react-icons/ri";
 import { MdDashboard, MdApartment } from "react-icons/md";
 import { FaChevronDown, FaMapMarkedAlt } from "react-icons/fa";
@@ -23,21 +23,7 @@ const iconColors = [
 ];
 
 const Sidebar = ({ collapse, setCollapse }) => {
-  // const { collapse, setCollapse } = props;
 
-  // const getAllMenus=async()=>{
-  //   try {
-  //     const payload = encryptPayload("roleCode")
-  //     const res = await MenuList(payload)
-  //     console.log(res);
-  //   } catch (error) {
-  //     throw error
-  //   }
-
-  // }
-  // useEffect(()=>{
-  //   getAllMenus()
-  // },[])
 
   const staticMenu = [
     {
@@ -65,11 +51,14 @@ const Sidebar = ({ collapse, setCollapse }) => {
       title: "User Management",
       icon: <MdManageAccounts   className="text-lg" />,
       subMenu: [
-        { title: "Add User", link: "/addUser" },
-        { title: "Access Role", link: "/get-role-access" },
         { title: "Manage Role", link: "/get-manage-user" },
+        // { title: "Access Role To Levels", link: "/get-role-access" },
+        { title: "Add User", link: "/addUser" },
+        { title: "User List", link: "/userList" },
+        // { title: "User Profile", link: "/userProfile" },
         { title: "Role Menu Map", link: "/roleMenuMapping" },
-        { title: "User Profile", link: "/userProfile" },
+        { title: "Configure Access", link: "/configureAccess" },
+        
       ],
     },
     {
@@ -127,7 +116,7 @@ const Sidebar = ({ collapse, setCollapse }) => {
         {!collapse && (
           <div className="flex flex-col ">
             <span className="text-white text-lg font-semibold tracking-wide">
-               IPMS Portal
+               IPFMS Portal
             </span>
             <span className="text-white text-[11px] opacity-70 tracking-wider">
               Administration

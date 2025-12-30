@@ -175,14 +175,22 @@ const BudgetDetails = () => {
     if (name === "bankName") {
       getAllConfigOpts(index, value);
     }
-   
   };
-  
 
   const formatDateToDDMMYYYY = (dateStr) => {
     if (!dateStr) return "";
     const [yyyy, mm, dd] = dateStr.split("-");
     return `${dd}/${mm}/${yyyy}`;
+  };
+
+  const formatWithCommas = (value) => {
+    if (!value) return "";
+    return Number(value).toLocaleString("en-IN");
+  };
+
+  const removeCommas = (value) => {
+    if (!value) return "";
+    return value.replace(/,/g, "");
   };
 
   const [errors, setErrors] = useState({});
@@ -193,7 +201,7 @@ const BudgetDetails = () => {
     let newErrors = {};
 
     if (!finyearId) {
-      toast.error("Financial Year is required")
+      toast.error("Financial Year is required");
       newErrors.finyearId = "Financial Year is required";
       setErrors(newErrors);
       return;
@@ -314,7 +322,8 @@ const BudgetDetails = () => {
                     Bank Name
                   </td>
                   <td className="text-center text-sm font-semibold px-4 py-1 border-r border-slate-200">
-                    Account Information
+                    {/* Account Information */}
+                    Branch | Account Number | IFSC
                   </td>
                   <td className="text-center text-sm font-semibold px-4 py-1 border-r border-slate-200">
                     Amount
@@ -364,7 +373,6 @@ const BudgetDetails = () => {
                     </td>
 
                     {/* Amount */}
-                    
 
                     {/* Bank Name */}
                     <td className="border-r border-slate-200 px-2 py-1">
@@ -433,12 +441,17 @@ const BudgetDetails = () => {
                       />
                     </td> */}
                     <td className="border-r border-slate-200 px-2 py-1">
-                      <InputField
-                        type="number"
-                        value={row.amount}
-                        onChange={(e) =>
-                          handleInput(index, "amount", e.target.value)
-                        }
+                      <input
+                        type="text"
+                        style={{ textAlign: "right" }}
+                        value={formatWithCommas(row.amount)}
+                        onChange={(e) => {
+                          const rawValue = removeCommas(e.target.value);
+
+                          if (/^\d*$/.test(rawValue)) {
+                            handleInput(index, "amount", rawValue);
+                          }
+                        }}
                         className="w-full rounded-md border border-gray-300 px-2.5 py-1.5 mt-1 text-sm"
                       />
                     </td>
@@ -528,11 +541,12 @@ const BudgetDetails = () => {
                   Amount (₹)
                 </th>
                 <th className="border text-[14px] py-3 px-2 text-start border-[#ebbea6] p-2">
-                  Date of Creation
+                  Budget Date
                 </th>
                 <th className="w-[380px] border text-[14px] py-3 px-2 text-start border-[#ebbea6]">
-      Account Information
-    </th>
+                  {/* Account Information */}
+                  Branch | Account Number | IFSC
+                </th>
               </tr>
             </thead>
 
@@ -586,7 +600,8 @@ const BudgetDetails = () => {
 
                     {/* IFSC */}
                     <td className="border border-[#ebbea6] px-2 py-1 text-sm">
-                      {row.bankName?.bankName} | {row.bankConfig?.accNo} | {row.bankConfig?.ifsc} 
+                      {row.bankName?.bankName} | {row.bankConfig?.accNo} |{" "}
+                      {row.bankConfig?.ifsc}
                     </td>
                   </tr>
                 ));

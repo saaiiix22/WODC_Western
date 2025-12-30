@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { encryptPayload } from "../crypto.js/encryption";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { logoutUser } from "../redux/slices/authThunks";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -106,17 +106,17 @@ const Navbar = () => {
 
               <ul className="py-1">
                 <li>
-                  <button className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/10 text-sm transition">
+                  <Link className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/10 text-sm transition" to={"/userProfile"}>
                     <FiUser size={18} className="text-[#feca57]" />
                     <span>View Profile</span>
-                  </button>
+                  </Link>
                 </li>
 
                 <li>
-                  <button className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/10 text-sm transition">
+                  <Link className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/10 text-sm transition" to={"/changePassword"} >
                     <FiKey size={18} className="text-[#4ecdc4]" />
                     <span>Change Password</span>
-                  </button>
+                  </Link>
                 </li>
 
                 <div className="border-t border-white/10 my-1"></div>

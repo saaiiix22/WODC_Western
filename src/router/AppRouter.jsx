@@ -1,56 +1,111 @@
-import React from "react";
+import React, { Suspense, lazy } from "react";
 import { Route, Routes } from "react-router-dom";
 import AuthLayout from "../layouts/AuthLayout";
-import { routes } from "./routeConfig";
-import ProtectedRoutes from "../components/ProtectedRoutes";
-import Login from "../pages/auth/Login";
-import Dashboard from "../pages/Dashboard";
 import MainLayout from "../layouts/MainLayout";
-import GetDistrict from "../pages/demography/district/GetDistrict";
-import Block from "../pages/demography/Block";
-import GramPanchayatPage from "../pages/demography/GramPanchayatPage";
-import Municipality from "../pages/demography/Municipality";
-import Ward from "../pages/demography/Ward";
-import VillagePage from "../pages/demography/VillagePage";
-import ConstituencyPage from "../pages/demography/ConstituencyPage";
-import Proposal from "../pages/demography/Proposal";
-import BudgetDetails from "../pages/budget/BudgetDetails";
-import GIApage from "../pages/demography/GIApage";
-import EditBudget from "../pages/budget/EditBudget";
-import Project from "../pages/project/Project";
-import ProjectList from "../pages/project/ProjectList";
-import Milestone from "../pages/master/Milestone";
-import Agency from "../pages/master/Agency";
-import SectorPage from "../pages/master/SectorPage";
-import VendorPage from "../pages/master/VendorPage";
-import SectorMilestoneMapping from "../pages/master/SectorMilestoneMapping";
-import ManageRole from "../pages/UMT/ManageRole";
-import AccessRole from "../pages/UMT/AccessRole";
-import AddUser from "../pages/UMT/AddUser";
-import UserProfilePage from "../pages/UMT/UserProfilePage";
-import Beneficiary from "../pages/master/Beneficiary";
-import RoleMenuMap from "../pages/UMT/RoleMenuMap";
-import ProjectAgencyMilestone from "../pages/project/ProjectAgencyMilestone";
-import AddBeneficiary from "../pages/beneficiary/AddBeneficiary";
-import WorkOrderGeneration from "../pages/project/WorkOrderGeneration";
-import BankAccountConfig from "../pages/master/BankAccountConfig";
-import FundReleaseInfo from "../pages/project/FundReleaseInfo";
-import BeneficiaryList from "../pages/project/BeneficiaryList";
-import UCsubmission from "../pages/project/UCsubmission";
-import ConfigureAccess from "../pages/UMT/ConfigureAccess";
+import ProtectedRoutes from "../components/ProtectedRoutes";
+import { routes } from "./routeConfig";
+import Loader from "../components/common/Loader";
+import ChangePassword from "../pages/UMT/ChangePassword";
+
+/* AUTH */
+const Login = lazy(() => import("../pages/auth/Login"));
+
+/* DASHBOARD */
+const Dashboard = lazy(() => import("../pages/Dashboard"));
+
+/* DEMOGRAPHY */
+const GetDistrict = lazy(() =>
+  import("../pages/demography/district/GetDistrict")
+);
+const Block = lazy(() => import("../pages/demography/Block"));
+const GramPanchayatPage = lazy(() =>
+  import("../pages/demography/GramPanchayatPage")
+);
+const Municipality = lazy(() =>
+  import("../pages/demography/Municipality")
+);
+const Ward = lazy(() => import("../pages/demography/Ward"));
+const VillagePage = lazy(() =>
+  import("../pages/demography/VillagePage")
+);
+const ConstituencyPage = lazy(() =>
+  import("../pages/demography/ConstituencyPage")
+);
+
+/* PROJECT */
+const ProjectList = lazy(() => import("../pages/project/ProjectList"));
+const Project = lazy(() => import("../pages/project/Project"));
+const ProjectAgencyMilestone = lazy(() =>
+  import("../pages/project/ProjectAgencyMilestone")
+);
+const WorkOrderGeneration = lazy(() =>
+  import("../pages/project/WorkOrderGeneration")
+);
+const FundReleaseInfo = lazy(() =>
+  import("../pages/project/FundReleaseInfo")
+);
+const BeneficiaryList = lazy(() =>
+  import("../pages/project/BeneficiaryList")
+);
+const UCsubmission = lazy(() =>
+  import("../pages/project/UCsubmission")
+);
+
+/* MASTER */
+const Proposal = lazy(() => import("../pages/demography/Proposal"));
+const GIApage = lazy(() => import("../pages/demography/GIApage"));
+const Milestone = lazy(() => import("../pages/master/Milestone"));
+const Agency = lazy(() => import("../pages/master/Agency"));
+const SectorPage = lazy(() => import("../pages/master/SectorPage"));
+const VendorPage = lazy(() => import("../pages/master/VendorPage"));
+const Beneficiary = lazy(() => import("../pages/master/Beneficiary"));
+const SectorMilestoneMapping = lazy(() =>
+  import("../pages/master/SectorMilestoneMapping")
+);
+const BankAccountConfig = lazy(() =>
+  import("../pages/master/BankAccountConfig")
+);
+
+/* BUDGET */
+const BudgetDetails = lazy(() =>
+  import("../pages/budget/BudgetDetails")
+);
+const EditBudget = lazy(() => import("../pages/budget/EditBudget"));
+
+/* UMT */
+const ManageRole = lazy(() => import("../pages/UMT/ManageRole"));
+const RoleMenuMap = lazy(() => import("../pages/UMT/RoleMenuMap"));
+const AccessRole = lazy(() => import("../pages/UMT/AccessRole"));
+const AddUser = lazy(() => import("../pages/UMT/AddUser"));
+const UserProfilePage = lazy(() =>
+  import("../pages/UMT/UserProfilePage")
+);
+const ConfigureAccess = lazy(() =>
+  import("../pages/UMT/ConfigureAccess")
+);
+const UserList = lazy(() =>
+  import("../pages/UMT/UserList")
+);
+
+/* BENEFICIARY */
+const AddBeneficiary = lazy(() =>
+  import("../pages/beneficiary/AddBeneficiary")
+);
+
+
 
 const AppRouter = () => {
   return (
-    <div>
+    <Suspense fallback={<Loader />}>
       <Routes>
         <Route element={<AuthLayout />}>
           <Route path={routes.login.path} element={<Login />} />
         </Route>
+
         <Route element={<ProtectedRoutes />}>
           <Route element={<MainLayout />}>
             <Route path={routes.dashboard.path} element={<Dashboard />} />
 
-            {/* DEOGRAPHY */}
             <Route path={routes.getDistrict.path} element={<GetDistrict />} />
             <Route path={routes.block.path} element={<Block />} />
             <Route path={routes.gramPanchayat.path} element={<GramPanchayatPage />} />
@@ -59,7 +114,6 @@ const AppRouter = () => {
             <Route path={routes.village.path} element={<VillagePage />} />
             <Route path={routes.constituencyPage.path} element={<ConstituencyPage />} />
 
-            {/* PROJECT  */}
             <Route path={routes.projectList.path} element={<ProjectList />} />
             <Route path={routes.projectManagementPage.path} element={<Project />} />
             <Route path={routes.projectAgencyMilestone.path} element={<ProjectAgencyMilestone />} />
@@ -68,38 +122,36 @@ const AppRouter = () => {
             <Route path={routes.beneficiaryList.path} element={<BeneficiaryList />} />
             <Route path={routes.ucSubmission.path} element={<UCsubmission />} />
 
-            {/* MASTER */}
             <Route path={routes.proposalPage.path} element={<Proposal />} />
             <Route path={routes.giaPage.path} element={<GIApage />} />
+
             <Route path={routes.milestone.path} element={<Milestone />} />
             <Route path={routes.agency.path} element={<Agency />} />
             <Route path={routes.sectorPage.path} element={<SectorPage />} />
             <Route path={routes.vendorPage.path} element={<VendorPage />} />
-            <Route path={routes.beneficiary.path} element={<Beneficiary/>} />
+            <Route path={routes.beneficiary.path} element={<Beneficiary />} />
             <Route path={routes.sectorMilestoneMapping.path} element={<SectorMilestoneMapping />} />
             <Route path={routes.bankAccoutConfig.path} element={<BankAccountConfig />} />
-            
-            {/* BUDGET */}
+
             <Route path={routes.budgetPage.path} element={<BudgetDetails />} />
             <Route path={routes.editBudgetPage.path} element={<EditBudget />} />
-            
-            {/* UMT - USER MANAGEMENT */}
+
             <Route path={routes.manageRole.path} element={<ManageRole />} />
-            <Route path={routes.roleMenuMapping.path} element={<RoleMenuMap/>} />
+            <Route path={routes.roleMenuMapping.path} element={<RoleMenuMap />} />
             <Route path={routes.roleAccess.path} element={<AccessRole />} />
             <Route path={routes.addUser.path} element={<AddUser />} />
             <Route path={routes.userProfile.path} element={<UserProfilePage />} />
             <Route path={routes.configureAccess.path} element={<ConfigureAccess />} />
+            <Route path={routes.userList.path} element={<UserList />} />
+            <Route path={routes.changePassword.path} element={<ChangePassword />} />
 
 
-            {/* ADD BENEFICIARY */}
+
             <Route path={routes.addBeneficiary.path} element={<AddBeneficiary />} />
-
-
           </Route>
         </Route>
       </Routes>
-    </div>
+    </Suspense>
   );
 };
 

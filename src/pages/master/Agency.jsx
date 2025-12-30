@@ -34,9 +34,12 @@ import {
 import {
   cleanAadhaarUtil,
   cleanContactNoUtil,
+  cleanEmailUtil,
   IFSCutil,
   validateAadhaarUtil,
   validateAccountNoUtil,
+  validateContactNoUtil,
+  validateEmailUtil,
   validateIfscUtil,
 } from "../../utils/validationUtils";
 import { Tooltip } from "@mui/material";
@@ -81,13 +84,16 @@ const Agency = () => {
   const handleChangeInput = (e) => {
     const { name, value } = e.target;
     let updatedValue = value;
+    
     // if (name === "aadhaarNo") {
     //   updatedValue = cleanAadhaarUtil(value);
     // }
     if (name === "contactNo") {
       updatedValue = cleanContactNoUtil(updatedValue);
     }
-
+     if(name==="email"){
+      updatedValue = cleanEmailUtil(updatedValue);
+     }
     // CLEAR ERROR WHEN USER TYPES
     setErrors((prev) => ({ ...prev, [name]: "" }));
 
@@ -182,7 +188,7 @@ const Agency = () => {
       setErrors(newErrors);
       return;
     }
-    
+
     // if (!aadhaarNo || !aadhaarNo.trim()) {
     //   newErrors.aadhaarNo = "Aadhar number is required";
     //   setErrors(newErrors);
@@ -199,14 +205,15 @@ const Agency = () => {
     //   setErrors(newErrors);
     //   return;
     // }
-    if (!contactNo || !contactNo.trim()) {
-      newErrors.contactNo = "Agency name is required";
-      setErrors(newErrors);
+    const contactError = validateContactNoUtil(contactNo);
+    if (contactError) {
+      setErrors((prev) => ({ ...prev, contactNo: contactError }));
       return;
     }
-    if (!email || !email.trim()) {
-      newErrors.email = "Email is required";
-      setErrors(newErrors);
+
+    const emailError = validateEmailUtil(email);
+    if (emailError) {
+      setErrors((prev) => ({ ...prev, email: emailError }));
       return;
     }
 
@@ -402,11 +409,10 @@ const Agency = () => {
           <Tooltip title={row.isActive ? "Active" : "Inactive"} arrow>
             <button
               className={`flex items-center justify-center h-8 w-8 rounded-full 
-            ${
-              row.isActive
-                ? "bg-green-600/25 hover:bg-green-700/25 text-green-600"
-                : "bg-red-500/25 hover:bg-red-600/25 text-red-500 "
-            }`}
+            ${row.isActive
+                  ? "bg-green-600/25 hover:bg-green-700/25 text-green-600"
+                  : "bg-red-500/25 hover:bg-red-600/25 text-red-500 "
+                }`}
               // onClick={() => toggleStatus(row?.blockId)}
               onClick={() => {
                 setMilestoneId(row?.agencyId);
@@ -705,7 +711,7 @@ const Agency = () => {
       <ReusableDialog
         open={openSubmit}
         // title="Submit"
-        description="Are you sure you want to submit?"
+        description="Are you sure you want submit?"
         onClose={() => setOpenSubmit(false)}
         onConfirm={handleSubmit}
       />

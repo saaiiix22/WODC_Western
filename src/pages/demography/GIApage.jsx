@@ -323,7 +323,7 @@ const GIApage = () => {
       <ReusableDialog
         open={openSubmit}
         // title="Submit"
-        description="Are you sure you want to submit?"
+        description="Are you sure you want submit?"
         onClose={() => setOpenSubmit(false)}
         onConfirm={handleSubmit}
       />

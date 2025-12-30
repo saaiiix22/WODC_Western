@@ -35,7 +35,18 @@ import {
   saveVendorDetailsService,
   toggleVendorStatusService,
 } from "../../services/vendorService";
-import { IFSCutil, numberOnlyUtil, onlyNumberUtil } from "../../utils/validationUtils";
+import {
+  cleanAadhaarUtil,
+  cleanContactNoUtil,
+  cleanEmailUtil,
+  IFSCutil,
+  validateAadhaarUtil,
+  validateAccountNoUtil,
+  validateContactNoUtil,
+  validateEmailUtil,
+  validateIfscUtil,
+  onlyNumberUtil,
+} from "../../utils/validationUtils";
 import { Tooltip } from "@mui/material";
 
 const VendorPage = () => {
@@ -52,7 +63,7 @@ const VendorPage = () => {
     vendorName: "",
     contactNo: "",
     email: "",
-    aadhaarNo:"",
+    aadhaarNo: "",
     address: "",
     districtId: "",
   });
@@ -65,19 +76,35 @@ const VendorPage = () => {
     aadhaarNo,
     districtId,
   } = formData;
+  
   const formatDateToDDMMYYYY = (dateStr) => {
     if (!dateStr) return "";
     const [yyyy, mm, dd] = dateStr.split("-");
     return `${dd}/${mm}/${yyyy}`;
   };
+  
   const formatDateMMDDYY = (dateStr) => {
     if (!dateStr) return "";
     const [dd, mm, yyyy] = dateStr.split("/");
     return `${yyyy}-${mm}-${dd}`;
   };
+  
   const handleChangeInput = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    let updatedValue = value;
+    
+    if (name === "aadhaarNo") {
+      updatedValue = cleanAadhaarUtil(updatedValue);
+    }
+    if (name === "contactNo") {
+      updatedValue = cleanContactNoUtil(updatedValue);
+    }
+    if (name === "email") {
+      updatedValue = cleanEmailUtil(updatedValue);
+    }
+    // CLEAR ERROR WHEN USER TYPES
+    setErrors((prev) => ({ ...prev, [name]: "" }));
+    setFormData({ ...formData, [name]: updatedValue });
   };
 
   const [distOptions, setDistOptions] = useState([]);
@@ -91,6 +118,7 @@ const VendorPage = () => {
       throw error;
     }
   };
+  
   const [bankNameOptions, setBankNameOptions] = useState([]);
   const getAllBankOptions = async () => {
     try {
@@ -115,18 +143,16 @@ const VendorPage = () => {
   ]);
 
   const handleAddRow = () => {
-    const hasIncompleteRow = rows.some(
-      (row) =>
-        !row.bankId?.trim() ||
-        !row.branchName?.trim() ||
-        !row.accountNo?.trim() ||
-        !row.ifscCode?.trim() ||
-        !row.bankName?.trim()
-    );
+    const lastRow = rows[rows.length - 1];
 
-    if (hasIncompleteRow) {
+    if (
+      !lastRow.bankId ||
+      !lastRow.branchName.trim() ||
+      !lastRow.accountNo.trim() ||
+      !lastRow.ifscCode.trim()
+    ) {
       toast.error(
-        "Please fill all fields in the existing rows before adding a new one."
+        "Please fill all fields in the previous row before adding a new one"
       );
       return;
     }
@@ -144,6 +170,7 @@ const VendorPage = () => {
       },
     ]);
   };
+  
   const handleRemoveRow = (index) => {
     const updated = [...rows];
     updated.splice(index, 1);
@@ -155,42 +182,87 @@ const VendorPage = () => {
     updated[index][name] = value;
     setRows(updated);
   };
+  
   const [errors, setErrors] = useState({});
   const [openSubmit, setOpenSubmit] = useState(false);
+  
   const handleSubmitConfirmModal = (e) => {
     e.preventDefault();
     let newErrors = {};
-    if (!vendorName || !vendorName.trim()) {
-      newErrors.vendorName = "Vendor name is required";
-      setErrors(newErrors);
-      return;
-    }
+    
+    
+    
     if (!districtId) {
       newErrors.districtId = "District name is required";
       setErrors(newErrors);
       return;
     }
+
+    if (!vendorName || !vendorName.trim()) {
+      newErrors.vendorName = "Vendor name is required";
+      setErrors(newErrors);
+      return;
+    }
+    
     if (!aadhaarNo || !aadhaarNo.trim()) {
       newErrors.aadhaarNo = "Aadhar number is required";
       setErrors(newErrors);
       return;
     }
-    if (!contactNo || !contactNo.trim()) {
-      newErrors.contactNo = "Contact number is required";
+    
+    if (!validateAadhaarUtil(aadhaarNo)) {
+      newErrors.aadhaarNo =
+        "Invalid Aadhaar number (must be 12 digits and cannot start with 0 or 1)";
       setErrors(newErrors);
       return;
     }
-    if (!email || !email.trim()) {
-      newErrors.vendorName = "Email is required";
-      setErrors(newErrors);
+    
+    const contactError = validateContactNoUtil(contactNo);
+    if (contactError) {
+      setErrors((prev) => ({ ...prev, contactNo: contactError }));
       return;
     }
+
+    const emailError = validateEmailUtil(email);
+    if (emailError) {
+      setErrors((prev) => ({ ...prev, email: emailError }));
+      return;
+    }
+
+    // Validate bank details rows
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+
+      if (!row.bankId) {
+        toast.error(` Bank Name is required in Row ${i + 1}`);
+        return;
+      }
+
+      if (!row.branchName || !row.branchName.trim()) {
+        toast.error(`Branch Name is required in Row ${i + 1}`);
+        return;
+      }
+
+      if (!validateAccountNoUtil(row.accountNo)) {
+        toast.error(
+          `Invalid Account Number (must be 8–18 digits) in Row ${i + 1}`
+        );
+        return;
+      }
+
+      if (!validateIfscUtil(row.ifscCode)) {
+        toast.error(`Invalid IFSC Code format in Row ${i + 1}`);
+        return;
+      }
+    }
+    
     if (Object.keys(newErrors).length === 0) {
       setOpenSubmit(true);
     } else {
       setOpenSubmit(false);
     }
   };
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -201,11 +273,11 @@ const VendorPage = () => {
       email,
       address,
       aadhaarNo,
-      // dob: formatDateToDDMMYYYY(dob),
       districtId,
       vendorBankDetailsDtoList: rows,
     };
     console.log(sendData);
+    
     try {
       const payload = encryptPayload(sendData);
       const res = await saveVendorDetailsService(payload);
@@ -214,6 +286,7 @@ const VendorPage = () => {
         setOpenSubmit(false);
         setExpanded("panel2");
         toast.success(res?.data.message);
+        getVendorTable();
         setFormData({
           vendorId: null,
           vendorName: "",
@@ -221,7 +294,6 @@ const VendorPage = () => {
           email: "",
           address: "",
           aadhaarNo: "",
-          // dob: "",
           districtId: "",
         });
         setRows([
@@ -230,6 +302,7 @@ const VendorPage = () => {
             branchName: "",
             accountNo: "",
             ifscCode: "",
+            bankName: "",
             vendorBankId: null,
           },
         ]);
@@ -242,7 +315,6 @@ const VendorPage = () => {
           email: "",
           address: "",
           aadhaarNo: "",
-          // dob: "",
           districtId: "",
         });
         setRows([
@@ -251,6 +323,7 @@ const VendorPage = () => {
             branchName: "",
             accountNo: "",
             ifscCode: "",
+            bankName: "",
             vendorBankId: null,
           },
         ]);
@@ -291,7 +364,6 @@ const VendorPage = () => {
       console.log(res);
       if (res?.status === 200 && res?.data.outcome) {
         setFormData(res?.data.data);
-        setFormData((prev) => ({ ...prev, dob: formatDateMMDDYY(prev.dob) }));
         setRows(res?.data.data.vendorBankDetailsDtoList);
         setExpanded("panel1");
       }
@@ -325,7 +397,7 @@ const VendorPage = () => {
       center: true,
     },
     {
-      name: "Agency Name / Code",
+      name: "Vendor Name / Code",
       selector: (row) =>
         (
           <div className="flex gap-1">
@@ -378,7 +450,6 @@ const VendorPage = () => {
                 ? "bg-green-600/25 hover:bg-green-700/25 text-green-600"
                 : "bg-red-500/25 hover:bg-red-600/25 text-red-500 "
             }`}
-            // onClick={() => toggleStatus(row?.blockId)}
             onClick={() => {
               setVendorId(row?.vendorId);
               setOpenModal(true);
@@ -401,7 +472,7 @@ const VendorPage = () => {
 
   return (
     <div className="mt-3">
-      {/* ---------- Accordion 1: Get District Form ---------- */}
+      {/* ---------- Accordion 1: Add Vendor Form ---------- */}
       <Accordion
         expanded={expanded === "panel1"}
         onChange={handleChange("panel1")}
@@ -454,6 +525,7 @@ const VendorPage = () => {
                   value={vendorName}
                   onChange={handleChangeInput}
                   error={errors.vendorName}
+                  maxLength={50}
                 />
               </div>
 
@@ -463,7 +535,7 @@ const VendorPage = () => {
                   required={true}
                   name="aadhaarNo"
                   placeholder="Enter aadhaar number"
-                  value={numberOnlyUtil(aadhaarNo)}
+                  value={aadhaarNo}
                   maxLength={12}
                   minLength={12}
                   onChange={handleChangeInput}
@@ -471,29 +543,17 @@ const VendorPage = () => {
                 />
               </div>
 
-              {/* <div className="col-span-2">
-                <InputField
-                  label="Date of birth"
-                  required={true}
-                  type="date"
-                  name="dob"
-                  value={dob}
-                  onChange={handleChangeInput}
-                  error={errors.dob}
-                />
-              </div> */}
-
               <div className="col-span-2">
                 <InputField
                   label="Contact Number"
                   required={true}
                   name="contactNo"
                   placeholder="Enter contact number"
-                  value={numberOnlyUtil(contactNo)}
-                  maxLength={10}
-                  minLength={10}
+                  value={contactNo}
                   onChange={handleChangeInput}
                   error={errors.contactNo}
+                  maxLength={10}
+                  minLength={10}
                 />
               </div>
 
@@ -516,6 +576,7 @@ const VendorPage = () => {
                   name="address"
                   placeholder="Enter address"
                   value={address}
+                  maxLength={255}
                   onChange={handleChangeInput}
                 />
               </div>
@@ -592,8 +653,8 @@ const VendorPage = () => {
                           </td>
                           <td className="border-r border-slate-200 px-2 py-1">
                             <input
-                              value={onlyNumberUtil(i.accountNo)}
-                              maxLength={17}
+                              name="accountNo"
+                              value={i.accountNo}
                               onChange={(e) =>
                                 handleInput(index, "accountNo", e.target.value)
                               }
@@ -640,7 +701,7 @@ const VendorPage = () => {
         </AccordionDetails>
       </Accordion>
 
-      {/* ---------- Accordion 2: District List ---------- */}
+      {/* ---------- Accordion 2: Vendor List ---------- */}
       <Accordion
         expanded={expanded === "panel2"}
         onChange={handleChange("panel2")}
@@ -675,7 +736,7 @@ const VendorPage = () => {
       <ReusableDialog
         open={openSubmit}
         // title="Submit"
-        description="Are you sure you want to submit?"
+        description="Are you sure you want submit?"
         onClose={() => setOpenSubmit(false)}
         onConfirm={handleSubmit}
       />

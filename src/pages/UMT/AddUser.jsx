@@ -8,10 +8,11 @@ import { ResetBackBtn, SubmitBtn } from "../../components/common/CommonButtons";
 import { encryptPayload } from "../../crypto.js/encryption";
 import {
   getRoleListService,
-  // saveAddUserService,
+  saveAddUserService,
   saveUserService,
 } from "../../services/umtServices";
 import { toast } from "react-toastify";
+import { useLocation } from "react-router-dom";
 
 const AddUser = () => {
   const [formData, setFormData] = useState({
@@ -26,6 +27,10 @@ const AddUser = () => {
 
   const { userId, userName, firstname, lastname, mobile, email, designation } =
     formData;
+
+  const userLoc = useLocation()
+  const { state } = userLoc
+
 
   const handleChangeInput = (e) => {
     const { name, value } = e.target;
@@ -47,9 +52,39 @@ const AddUser = () => {
     };
     try {
       const payload = encryptPayload(sendData)
-      // const res = await saveAddUserService(payload)
-      // console.log(res);
-      
+      const res = await saveAddUserService(payload)
+      console.log(res);
+      if (res?.status === 200 && res?.data.outcome) {
+        toast.success(res?.data.message)
+        setFormData({
+          userId: null,
+          userName: "",
+          firstname: "",
+          lastname: "",
+          designation: "",
+          mobile: "",
+          email: "",
+        })
+        setRows([
+          {
+            isPrimary: '',
+            roleCodes: '',
+            activeStatus: ''
+          }
+        ])
+      }
+      // else {
+      //   toast.error(res?.data.message)
+      //   setFormData({
+      //     userId: null,
+      //     userName: "",
+      //     firstname: "",
+      //     lastname: "",
+      //     designation: "",
+      //     mobile: "",
+      //     email: "",
+      //   })
+      // }
     } catch (error) {
       throw error
     }
@@ -74,13 +109,6 @@ const AddUser = () => {
     }
   };
 
-  const getAllPrimaryRoleOpts = async () => {
-    try {
-      const payload = encryptPayload(true);
-    } catch (error) {
-      throw error;
-    }
-  };
 
   useEffect(() => {
     getAllRoleOpts();
@@ -88,8 +116,8 @@ const AddUser = () => {
 
   const [rows, setRows] = useState([
     {
-      isPrimary: "",
       roleCodes: "",
+      isPrimary: "",
       activeStatus: "",
     },
   ]);
@@ -98,24 +126,59 @@ const AddUser = () => {
     setRows([
       ...rows,
       {
-        isPrimary: "",
         roleCodes: "",
+        isPrimary: "",
         activeStatus: "",
       },
     ]),
   ];
 
   const handleInput = (index, name, value) => {
-    const updated = [...rows];
-    updated[index][name] = value;
+    const updated = rows.map((row, i) => {
+
+      if (name === "isPrimary" && value === "true") {
+        return {
+          ...row,
+          isPrimary: i === index ? "true" : "false",
+        };
+      }
+
+      if (i === index) {
+        return {
+          ...row,
+          [name]: value,
+        };
+      }
+
+      return row;
+    });
+
     setRows(updated);
   };
+
+  const [lock, setLock] = useState(true)
 
   const handleRemoveRow = (index) => {
     const updated = [...rows];
     updated.splice(index, 1);
     setRows(updated);
   };
+
+  useEffect(() => {
+    if (state) {
+      setFormData({
+        userId: state?.userId,
+        userName: state?.userName,
+        firstname: state?.firstname,
+        lastname: state?.lastname,
+        designation: state?.designation,
+        mobile: state?.mobile,
+        email: state?.email,
+      })
+      setRows(state?.userRoleMaps)
+      setLock(state?.isLocked)
+    }
+  }, [state])
 
   return (
     <form onSubmit={handleSubmit}>
@@ -154,8 +217,9 @@ const AddUser = () => {
                 required={true}
                 name="userName"
                 value={userName}
+                disabled={lock === false ? true : false}
                 onChange={handleChangeInput}
-                //   error={errors.agencyName}
+              //   error={errors.agencyName}
               />
             </div>
             <div className="col-span-2">
@@ -164,8 +228,9 @@ const AddUser = () => {
                 required={true}
                 name="firstname"
                 value={firstname}
+                disabled={lock === false ? true : false}
                 onChange={handleChangeInput}
-                //   error={errors.agencyName}
+              //   error={errors.agencyName}
               />
             </div>
             <div className="col-span-2">
@@ -174,8 +239,9 @@ const AddUser = () => {
                 required={true}
                 name="lastname"
                 value={lastname}
+                disabled={lock === false ? true : false}
                 onChange={handleChangeInput}
-                //   error={errors.agencyName}
+              //   error={errors.agencyName}
               />
             </div>
             <div className="col-span-2">
@@ -184,9 +250,10 @@ const AddUser = () => {
                 required={true}
                 name="mobile"
                 value={mobile}
+                disabled={lock === false ? true : false}
                 onChange={handleChangeInput}
                 maxLength={10}
-                //   error={errors.agencyName}
+              //   error={errors.agencyName}
               />
             </div>
             <div className="col-span-2">
@@ -195,8 +262,9 @@ const AddUser = () => {
                 required={true}
                 name="email"
                 value={email}
+                disabled={lock === false ? true : false}
                 onChange={handleChangeInput}
-                //   error={errors.agencyName}
+              //   error={errors.agencyName}
               />
             </div>
             <div className="col-span-2">
@@ -205,8 +273,9 @@ const AddUser = () => {
                 required={true}
                 name="designation"
                 value={designation}
+                disabled={lock === false ? true : false}
                 onChange={handleChangeInput}
-                //   error={errors.agencyName}
+              //   error={errors.agencyName}
               />
             </div>
           </div>
@@ -253,6 +322,8 @@ const AddUser = () => {
                             value: i.value,
                             label: i.label,
                           }))}
+                          disabled={lock === false ? true : false}
+
                           onChange={(e) =>
                             handleInput(
                               index,
@@ -265,7 +336,7 @@ const AddUser = () => {
                         />
                       </td>
                       <td className="border-r border-b border-slate-200 px-2 py-1">
-                       
+
                         <SelectField
                           name="roleCodes"
                           value={row.roleCodes}
@@ -273,9 +344,11 @@ const AddUser = () => {
                             handleInput(
                               index,
                               "roleCodes",
-                              Number(e.target.value)
+                              e.target.value
                             )
                           }
+                          disabled={lock === false ? true : false}
+
                           options={getRoleOpts?.map((i) => ({
                             value: i.roleCode,
                             label: i.displayName,
@@ -294,6 +367,8 @@ const AddUser = () => {
                               e.target.value
                             )
                           }
+                          disabled={lock === false ? true : false}
+
                           options={[
                             { value: true, label: "Active" },
                             { value: false, label: "Inactive" },
@@ -319,12 +394,16 @@ const AddUser = () => {
                   ))}
               </tbody>
             </table>
+            
           </div>
 
           {/* Footer (Optional) */}
           <div className="flex justify-center gap-2 text-[13px] bg-[#42001d0f] border-t border-[#ebbea6] px-4 py-3 rounded-b-md mt-5">
             <ResetBackBtn />
-            <SubmitBtn type={"submit"} />
+            {lock === false ? "" : (
+              <SubmitBtn type={"submit"} btnText={state?.userId} />
+            )}
+
           </div>
         </div>
       </div>

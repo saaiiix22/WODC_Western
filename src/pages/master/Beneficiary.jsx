@@ -27,9 +27,11 @@ import {
 import {
   cleanAadhaarUtil,
   cleanContactNoUtil,
+  cleanEmailUtil,
   validateAadhaarUtil,
   validateAccountNoUtil,
   validateContactNoUtil,
+  validateEmailUtil,
   validateIfscUtil,
 } from "../../utils/validationUtils";
 import { getBlockThroughDistrictService } from "../../services/gpService";
@@ -103,7 +105,9 @@ const Beneficiary = () => {
     if (name === "contactNo") {
       updatedValue = cleanContactNoUtil(updatedValue);
     }
-
+    if (name === "email") {
+      updatedValue = cleanEmailUtil(updatedValue);
+    }
     // CLEAR ERROR WHEN USER TYPES
     setErrors((prev) => ({ ...prev, [name]: "" }));
 
@@ -148,7 +152,6 @@ const Beneficiary = () => {
       { isActive: true, districtId },
       setMunicipalityOpts
     );
-
   const getAllWardOptions = () =>
     load(
       getWardByMunicipalityService,
@@ -222,6 +225,25 @@ const Beneficiary = () => {
   const handleSubmitConfirmModal = (e) => {
     e.preventDefault();
     let newErrors = {};
+
+    if (!districtId) {
+      newErrors.districtId = "District name is required";
+      setErrors(newErrors);
+      return;
+    }
+
+    if (areaType === "BLOCK") {
+      if (!blockId) newErrors.blockId = "Block is required";
+      if (!gpId) newErrors.gpId = "GP is required";
+      if (!objectId) newErrors.objectId = "Village is required";
+    }
+
+    if (areaType === "MUNICIPALITY") {
+      if (!municipalityId)
+        newErrors.municipalityId = "Municipality is required";
+      if (!objectId) newErrors.objectId = "Ward is required";
+    }
+
     if (!beneficiaryName || !beneficiaryName.trim()) {
       newErrors.beneficiaryName = "Beneficiary name is required";
       setErrors(newErrors);
@@ -233,33 +255,42 @@ const Beneficiary = () => {
       setErrors(newErrors);
       return;
     }
+
     if (!validateAadhaarUtil(aadhaarNo)) {
       newErrors.aadhaarNo =
         "Invalid Aadhaar number (must be 12 digits and cannot start with 0 or 1)";
       setErrors(newErrors);
       return;
     }
+
     if (!dob || !dob.trim()) {
       newErrors.dob = "DOB is required";
       setErrors(newErrors);
       return;
     }
-    if (!contactNo || !contactNo.trim()) {
-      newErrors.contactNo = "Contact No is required";
-      setErrors(newErrors);
-      return;
-    }
-    if (!validateContactNoUtil(contactNo)) {
-      newErrors.contactNo = "Contact number must be exactly 10 digits";
+
+    // ✅ Contact validation (from second function)
+    const contactError = validateContactNoUtil(contactNo);
+    if (contactError) {
+      newErrors.contactNo = contactError;
       setErrors(newErrors);
       return;
     }
 
+    // ✅ Email validation (from second function)
+    const emailError = validateEmailUtil(email);
+    if (emailError) {
+      newErrors.email = emailError;
+      setErrors(newErrors);
+      return;
+    }
+
+    // Bank rows validation
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
 
       if (!row.bankId) {
-        toast.error(` Bank Name is required in Row ${i + 1}`);
+        toast.error(`Bank Name is required in Row ${i + 1}`);
         return;
       }
 
@@ -288,6 +319,7 @@ const Beneficiary = () => {
     }
   };
 
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -306,7 +338,7 @@ const Beneficiary = () => {
       beneficiaryCode: null,
       bankDetails: rows,
     };
-    console.log(sendData);
+    // console.log(sendData);
 
     try {
       const payload = encryptPayload(sendData);
@@ -335,6 +367,28 @@ const Beneficiary = () => {
           },
         ]);
         setExpanded("panel2");
+      }
+      else {
+        setOpenSubmit(false);
+        toast.error(res?.data.message);
+        setFormData({
+          beneficiaryId: null,
+          beneficiaryName: "",
+          contactNo: "",
+          email: "",
+          address: "",
+          aadhaarNo: "",
+          dob: "",
+        });
+        setRows([
+          {
+            beneficiaryBankId: null,
+            bankId: "",
+            branchName: "",
+            accountNo: "",
+            ifscCode: "",
+          },
+        ]);
       }
     } catch (error) {
       throw error;
@@ -471,11 +525,10 @@ const Beneficiary = () => {
           <Tooltip title={row.isActive ? "Active" : "Inactive"} arrow>
             <button
               className={`flex items-center justify-center h-8 w-8 rounded-full 
-            ${
-              row.isActive
-                ? "bg-green-600/25 hover:bg-green-700/25 text-green-600"
-                : "bg-red-500/25 hover:bg-red-600/25 text-red-500 "
-            }`}
+            ${row.isActive
+                  ? "bg-green-600/25 hover:bg-green-700/25 text-green-600"
+                  : "bg-red-500/25 hover:bg-red-600/25 text-red-500 "
+                }`}
               // onClick={() => toggleStatus(row?.blockId)}
               onClick={() => {
                 setMilestoneId(row?.beneficiaryId);
@@ -629,7 +682,7 @@ const Beneficiary = () => {
                         label: d.villageNameEn,
                       }))}
                       disabled={gpId ? false : true}
-                      error={errors.objectId}
+                      error={errors.villageId}
                       placeholder="Select"
                     />
                   </div>
@@ -898,7 +951,7 @@ const Beneficiary = () => {
       <ReusableDialog
         open={openSubmit}
         // title="Submit"
-        description="Are you sure you want to submit?"
+        description="Are you sure you want submit?"
         onClose={() => setOpenSubmit(false)}
         onConfirm={handleSubmit}
       />

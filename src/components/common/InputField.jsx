@@ -7,6 +7,7 @@ const InputField = ({
   name,
   value,
   onChange,
+  onBlur,
   error,
   textarea = false,
   placeholder,
@@ -14,8 +15,20 @@ const InputField = ({
   max,
   minLength,
   maxLength,
+  amount = false,
   disabled = false,
 }) => {
+  
+  const formatWithCommas = (value) => {
+    if (!value) return "";
+    return Number(value).toLocaleString("en-IN");
+  };
+
+  const removeCommas = (value) => {
+    if (!value) return "";
+    return value.replace(/,/g, "");
+  };
+  
   return (
     <div className="flex flex-col gap-1 w-full">
       {/* Label */}
@@ -33,7 +46,7 @@ const InputField = ({
           onChange={onChange}
           disabled={disabled}
           // placeholder={placeholder ?? ""}
-          placeholder={ ""}
+          placeholder={""}
           {...(minLength !== undefined && { minLength })}
           {...(maxLength !== undefined && { maxLength })}
           {...(min !== undefined && { min })}
@@ -43,10 +56,9 @@ const InputField = ({
             px-2.5 py-1.5 text-sm resize-none
             outline-none transition-all duration-200
             placeholder:text-gray-400
-            ${
-              disabled
-                ? "bg-gray-100 cursor-not-allowed"
-                : "focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+            ${disabled
+              ? "bg-gray-100 cursor-not-allowed"
+              : "focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
             }
           `}
           rows={1}
@@ -68,12 +80,11 @@ const InputField = ({
             file:rounded-md file:border-0
             file:bg-orange-200 file:text-orange-700
             hover:file:bg-orange-100
-            ${
-              disabled
-                ? "bg-gray-100 cursor-not-allowed"
-                : "focus:border-blue-200 focus:ring-2 focus:ring-blue-200"
+            ${disabled
+              ? "bg-gray-100 cursor-not-allowed"
+              : "focus:border-blue-200 focus:ring-2 focus:ring-blue-200"
             }
-          `} 
+          `}
         />
       )}
 
@@ -84,9 +95,10 @@ const InputField = ({
           name={name}
           value={value ?? ""}
           onChange={onChange}
+          onBlur={onBlur}
           disabled={disabled}
           // placeholder={placeholder ?? ""}
-          placeholder={ ""}
+          placeholder={""}
           {...(minLength !== undefined && { minLength })}
           {...(maxLength !== undefined && { maxLength })}
           className={`
@@ -94,10 +106,11 @@ const InputField = ({
             px-2.5 py-1.5 text-sm
             outline-none transition-all duration-200
             placeholder:text-gray-400
-            ${
-              disabled
-                ? "bg-gray-100 cursor-not-allowed"
-                : "focus:border-blue-200 focus:ring-2 focus:ring-blue-200"
+            ${amount ? "text-right" : ""
+            }
+            ${disabled
+              ? "bg-gray-100 cursor-not-allowed"
+              : "focus:border-blue-200 focus:ring-2 focus:ring-blue-200"
             }
           `}
         />

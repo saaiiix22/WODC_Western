@@ -52,14 +52,20 @@ const SectorMilestoneMapping = () => {
 
     if (name === "sectorId") {
       try {
-        const payload = encryptPayload({ sectorId: value });
-        const res = await getMilestoneBySectorService(payload);
+        if (value) {
+          const payload = encryptPayload({ sectorId: value });
+          const res = await getMilestoneBySectorService(payload);
 
-        setFormData((prev) => ({
-          ...prev,
-          sectorId: value,
-          milestoneIds: res?.data.data || [],
-        }));
+          setFormData((prev) => ({
+            ...prev,
+            sectorId: value,
+            milestoneIds: res?.data.data || [],
+          }));
+        }
+        else{
+          setFormData({...formData, milestoneIds: []});
+          // toast.error("Please select a valid sector");
+        }
       } catch (error) {
         throw error;
       }
@@ -86,7 +92,7 @@ const SectorMilestoneMapping = () => {
     if (!formData.sectorId || !formData.sectorId.trim()) {
       newErrors.sectorId = "Sector name is required";
     }
-
+    setErrors(newErrors);
     if (Object.keys(newErrors).length === 0) {
       try {
         const payload = encryptPayload(formData);

@@ -6,7 +6,8 @@ const SearchableInput = ({
   name,
   value,
   onChange,
-  options = [], // [{ label: "Odisha", value: "OD" }]
+  onSelect,
+  options = [],
   placeholder = "Select...",
   error,
   disabled = false,
@@ -15,7 +16,6 @@ const SearchableInput = ({
   const [search, setSearch] = useState("");
   const wrapperRef = useRef(null);
 
-  // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
@@ -37,11 +37,16 @@ const SearchableInput = ({
         value: option.value,
       },
     });
+
+    if (onSelect) {
+      onSelect(option);
+    }
+
     setSearch(option.label);
     setOpen(false);
   };
 
-  // Sync label when value changes
+
   useEffect(() => {
     const selected = options.find((o) => o.value === value);
     if (selected) setSearch(selected.label);
@@ -64,18 +69,26 @@ const SearchableInput = ({
         disabled={disabled}
         onFocus={() => !disabled && setOpen(true)}
         onChange={(e) => {
-          setSearch(e.target.value);
+          const typedValue = e.target.value;
+
+          setSearch(typedValue);
           setOpen(true);
+
+          onChange({
+            target: {
+              name,
+              value: typedValue,
+            },
+          });
         }}
         className={`
           w-full rounded-md border border-gray-300
           px-2.5 py-1.5 text-sm
           outline-none transition-all duration-200
           placeholder:text-gray-400
-          ${
-            disabled
-              ? "bg-gray-100 cursor-not-allowed"
-              : "focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+          ${disabled
+            ? "bg-gray-100 cursor-not-allowed"
+            : "focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
           }
         `}
       />

@@ -44,6 +44,7 @@ import { RiAiGenerate } from "react-icons/ri";
 import { ResetBackBtn, SubmitBtn } from "../../components/common/CommonButtons";
 import ReusableDialog from "../../components/common/ReusableDialog";
 import { avoidSpecialCharUtil } from "../../utils/validationUtils";
+import { useNavigate } from "react-router-dom";
 
 const Project = () => {
   const [expanded, setExpanded] = useState("panel1");
@@ -55,7 +56,7 @@ const Project = () => {
   const stateSelect = useSelector((state) => state.project.selectedProject);
   // console.log(stateSelect);
 
-  // FORM HANDLING 
+  // FORM HANDLING
 
   const [formData, setFormData] = useState({
     districtId: "",
@@ -343,23 +344,24 @@ const Project = () => {
   const handleRowChange = async (e, index) => {
     const { name, value } = e.target;
 
+    // ================= STATE UPDATE =================
     setFundReleaseRows((prev) => {
       const rows = [...prev];
       let row = { ...rows[index], [name]: value };
 
       const updatedYear = name === "giaYear" ? value : row.giaYear;
       const updatedType = name === "giaTypeId" ? value : row.giaTypeId;
-      const updatedBankName = name === "bankId" ? value : row.bankId;
+      const updatedBank = name === "bankId" ? value : row.bankId;
       const updatedBankConfig =
         name === "bankAccConfigId" ? value : row.bankAccConfigId;
 
-      // ---------------- Duplicate check ----------------
-      if (updatedYear && updatedType && updatedBankName) {
+      // -------- Duplicate Combination Check --------
+      if (updatedYear && updatedType && updatedBank && updatedBankConfig) {
         if (
           isDuplicateCombination(
             updatedYear,
             updatedType,
-            updatedBankName,
+            updatedBank,
             updatedBankConfig,
             index
           )
@@ -371,7 +373,7 @@ const Project = () => {
         }
       }
 
-      // ---------------- GIA change logic ----------------
+      // -------- GIA Change Reset --------
       if (name === "giaYear" || name === "giaTypeId") {
         row.bankId = "";
         row.bankAccConfigId = "";
@@ -380,14 +382,14 @@ const Project = () => {
         row.fundAllocDate = "";
       }
 
-      // ---------------- Bank change logic ----------------
+      // -------- Bank Change Reset --------
       if (name === "bankId") {
         row.bankAccConfigId = "";
         row.releaseAmount = "";
         row.maxamount = "";
       }
 
-      // ---------------- Release Amount validation ----------------
+      // -------- Release Amount Validation --------
       if (name === "releaseAmount") {
         if (value === "") {
           row.releaseAmount = "";
@@ -414,31 +416,34 @@ const Project = () => {
       return rows;
     });
 
-    // ---------------- API CALLS (SIDE EFFECTS) ----------------
+    // ⛔ STOP HERE — no async calls for typing amount
+    if (name === "releaseAmount") return;
 
+    // ================= SIDE EFFECTS =================
     const row = fundReleaseRows[index];
 
     const updatedYear = name === "giaYear" ? value : row.giaYear;
     const updatedType = name === "giaTypeId" ? value : row.giaTypeId;
-    const updatedBankName = name === "bankId" ? value : row.bankId;
+    const updatedBank = name === "bankId" ? value : row.bankId;
     const updatedBankConfig =
       name === "bankAccConfigId" ? value : row.bankAccConfigId;
 
-    // 🔹 Load banks when GIA changes
+    // -------- Load Banks on GIA Change --------
     if (
       (name === "giaYear" || name === "giaTypeId") &&
       updatedYear &&
       updatedType
     ) {
       await getUpdatedFuncDetails(updatedYear, updatedType, index);
+      return;
     }
 
-    // 🔹 Load bank configs when bank changes
-    if (name === "bankId" && updatedBankName) {
+    // -------- Load Bank Configs --------
+    if (name === "bankId" && updatedBank) {
       const payload = encryptPayload({
         finyearId: updatedYear,
         giaTypeId: updatedType,
-        bankId: updatedBankName,
+        bankId: updatedBank,
       });
 
       const res = await getBankConfigProjectService(payload);
@@ -449,33 +454,36 @@ const Project = () => {
           [index]: res.data.data,
         }));
       }
+      return;
     }
 
-    // 🔹 Load MAX BUDGET when all selected
-    if (updatedYear && updatedType && updatedBankName && updatedBankConfig) {
-      try {
-        const payload = encryptPayload({
-          finyearId: updatedYear,
-          giaTypeId: updatedType,
-          bankId: updatedBankName,
-          bankAccConfigId: updatedBankConfig,
+    // -------- Load Max Budget --------
+    if (
+      name === "bankAccConfigId" &&
+      updatedYear &&
+      updatedType &&
+      updatedBank &&
+      updatedBankConfig
+    ) {
+      const payload = encryptPayload({
+        finyearId: updatedYear,
+        giaTypeId: updatedType,
+        bankId: updatedBank,
+        bankAccConfigId: updatedBankConfig,
+      });
+
+      const res = await maxBudgetService(payload);
+
+      if (res?.status === 200 && res?.data?.outcome) {
+        setFundReleaseRows((prev) => {
+          const rows = [...prev];
+          rows[index] = {
+            ...rows[index],
+            maxamount: res.data.data.totalBudget || 0,
+            fundAllocDate: res.data.data.fundAllocDate || "",
+          };
+          return rows;
         });
-
-        const res = await maxBudgetService(payload);
-
-        if (res?.status === 200 && res?.data?.outcome) {
-          setFundReleaseRows((prev) => {
-            const rows = [...prev];
-            rows[index] = {
-              ...rows[index],
-              maxamount: res.data.data.totalBudget || 0,
-              fundAllocDate: res.data.data.fundAllocDate || "",
-            };
-            return rows;
-          });
-        }
-      } catch (err) {
-        console.error(err);
       }
     }
   };
@@ -483,9 +491,9 @@ const Project = () => {
   const handleChangeInput = (e) => {
     const { name, value } = e.target;
 
-    let updatedVal = value
+    let updatedVal = value;
     if (name === "proposedByName") {
-      updatedVal = avoidSpecialCharUtil(value)
+      updatedVal = avoidSpecialCharUtil(value);
     }
 
     // --- Date Validations ---
@@ -692,7 +700,7 @@ const Project = () => {
       setOpenSubmit(false);
     }
   };
-
+  const navigate = useNavigate();
   const handleSubmit = async (e) => {
     const sendData = {
       projectId,
@@ -730,6 +738,7 @@ const Project = () => {
       if (res?.status === 200 && res?.data.outcome) {
         setOpenSubmit(false);
         toast.success(res?.data.message);
+        navigate("/project-list");
         setFormData({
           districtId: "",
           blockId: "",
@@ -848,7 +857,6 @@ const Project = () => {
     }));
   };
 
-
   const [totalBudgetSum, setTotalBudgetSum] = useState("");
   const getTotalBudget = async () => {
     try {
@@ -868,14 +876,13 @@ const Project = () => {
     getGIATypeOpts();
     getTotalBudget();
     getFavourandModeOpts();
-
   }, []);
   useEffect(() => {
     if (stateSelect) {
       setFormData(mapProjectResponseToForm(stateSelect));
       setFundReleaseRows(mapFundReleaseRows(stateSelect.fundReleaseInfo || []));
     }
-  }, [stateSelect])
+  }, [stateSelect]);
 
   useEffect(() => {
     const total = fundReleaseRows.reduce(
@@ -936,13 +943,10 @@ const Project = () => {
     });
   };
 
-
-
   useEffect(() => {
     if (!stateSelect?.fundReleaseInfo?.length) return;
 
     stateSelect.fundReleaseInfo.forEach(async (row, index) => {
-
       if (row.giaYear && row.giaTypeId) {
         await getUpdatedFuncDetails(row.giaYear, row.giaTypeId, index);
       }
@@ -964,12 +968,7 @@ const Project = () => {
         }
       }
 
-      if (
-        row.giaYear &&
-        row.giaTypeId &&
-        row.bankId &&
-        row.bankAccConfigId
-      ) {
+      if (row.giaYear && row.giaTypeId && row.bankId && row.bankAccConfigId) {
         const payload = encryptPayload({
           fundReleaseInfoId: row.fundReleaseInfoId,
           finyearId: row.giaYear,
@@ -994,8 +993,6 @@ const Project = () => {
       }
     });
   }, [stateSelect]);
-
-
 
   return (
     <div className="mt-3">
@@ -1063,7 +1060,7 @@ const Project = () => {
                     disabled={true}
                     onChange={handleChangeInput}
                     maxLength={50}
-                  // error={errors.projectCode}
+                    // error={errors.projectCode}
                   />
                 </div>
                 <div className="col-span-2">
@@ -1273,7 +1270,7 @@ const Project = () => {
                 </div>
                 <div className="col-span-2">
                   <SelectField
-                    label="Sub Sector"
+                    label="Sub-Sector"
                     name="subSector"
                     value={subSector}
                     disabled={sectorId ? false : true}
@@ -1394,6 +1391,9 @@ const Project = () => {
                     maxLength={50}
                   />
                 </div>
+                <div className="col-span-2">
+                  <button type="button" className="px-5 py-1 text-sm bg-green-200 text-green-800 rounded-sm mt-6" onClick={()=>setExpanded("panel2")}>Next</button>
+                </div>
               </div>
             </div>
           </AccordionDetails>
@@ -1476,13 +1476,21 @@ const Project = () => {
                   <h1 className="font-semibold text-slate-500">
                     Total Budget :{" "}
                     <span className="font-normal text-sm text-blue-800 rounded-sm px-3 py-1 bg-blue-500/25 ">
-                      ₹ {totalBudgetSum}.00
+                      ₹{" "}
+                      {Number(totalBudgetSum).toLocaleString("en-IN", {
+                        maximumFractionDigits: 2,
+                        minimumFractionDigits: 2,
+                      })}
                     </span>
                   </h1>
                   <h1 className="font-semibold text-slate-500">
                     Released Amount :{" "}
                     <span className="font-normal text-sm text-green-800 rounded-sm px-3 py-1 bg-green-500/25 ">
-                      ₹ {totalAmount}.00
+                      ₹{" "}
+                      {Number(totalAmount).toLocaleString("en-IN", {
+                        maximumFractionDigits: 2,
+                        minimumFractionDigits: 2,
+                      })}
                     </span>
                   </h1>
                 </div>
@@ -1598,13 +1606,14 @@ const Project = () => {
                     <div className="col-span-2">
                       <InputField
                         type="number"
+                        amount={true}
                         label="Release Amount"
                         required={true}
                         name="releaseAmount"
                         value={i.releaseAmount}
                         // disabled={i.maxamount ? false : true}
                         onChange={(e) => handleRowChange(e, index)}
-                      //   error={errors.blockNameEN}
+                        //   error={errors.blockNameEN}
                       />
                       <div className="flex justify-between">
                         {i.maxamount !== undefined && i.maxamount !== null && (
