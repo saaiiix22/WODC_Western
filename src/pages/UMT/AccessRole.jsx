@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { FiFileText } from "react-icons/fi";
 import { ResetBackBtn, SubmitBtn } from "../../components/common/CommonButtons";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { encryptPayload } from "../../crypto.js/encryption";
 import { saveRoleLevelMapService } from "../../services/umtServices";
 import { toast } from "react-toastify";
@@ -30,6 +30,7 @@ const AccessRole = () => {
     setFormData(updated);
   };
 
+  const navigate = useNavigate()
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
@@ -45,6 +46,7 @@ const AccessRole = () => {
       console.log(res);
       if(res?.status === 200 && res?.data.outcome){
         toast.success(res?.data.message)
+        navigate('/get-manage-user')
       }
 
 
