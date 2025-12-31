@@ -24,7 +24,7 @@ import {
   AccordionSummary,
 } from "../../components/common/CommonAccordion";
 import { ResetBackBtn, SubmitBtn } from "../../components/common/CommonButtons";
-import { avoidSpecialCharUtil } from "../../utils/validationUtils";
+import { avoidSpecialCharUtil, LGDutil } from "../../utils/validationUtils";
 import { Tooltip } from "@mui/material";
 
 const Ward = () => {
@@ -40,10 +40,11 @@ const Ward = () => {
     districtId: "",
     municipalityId: "",
     wardName: "",
+    wardlgdCode: "",
     remarks: "",
     wardId: null,
   });
-  const { districtId, wardName, remarks, municipalityId, wardId } = formData;
+  const { districtId, wardName, remarks, municipalityId, wardlgdCode, wardId } = formData;
   const [distOptions, setDistOptions] = useState([]);
   const [municipalityOptions, setMunicipalityOptions] = useState([]);
   const getDistOptions = async () => {
@@ -59,7 +60,19 @@ const Ward = () => {
   };
   const handleChangeInput = async (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+
+    let updatedValue = value;
+
+    if (name === "wardlgdCode") {
+      updatedValue = LGDutil(value);
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: updatedValue,
+    }));
+
+    // Fetch municipality when district changes
     if (name === "districtId") {
       try {
         const payload = encryptPayload({
@@ -67,10 +80,9 @@ const Ward = () => {
           isActive: true,
         });
         const res = await getMunicipalityViaDistrictsService(payload);
-        // console.log(res?.data.data);
-        setMunicipalityOptions(res?.data.data);
+        setMunicipalityOptions(res?.data?.data || []);
       } catch (error) {
-        throw error;
+        console.error(error);
       }
     }
     setErrors((prev) => ({
@@ -78,6 +90,7 @@ const Ward = () => {
       [name]: "",
     }));
   };
+
   const [errors, setErrors] = useState({});
 
   const [openSubmit, setOpenSubmit] = useState(false);
@@ -101,10 +114,15 @@ const Ward = () => {
       setErrors(newErrors);
       return;
     }
-
+    if (!wardlgdCode || !wardlgdCode.trim()) {
+      newErrors.wardlgdCode = "Ward LGD Code is required";
+      setErrors(newErrors);
+      return;
+    }
     if (Object.keys(newErrors).length === 0) {
       const sendData = {
         wardName: wardName,
+        wardlgdCode: wardlgdCode,
         remarks: remarks,
         municipality: {
           municipalityId: municipalityId,
@@ -122,6 +140,7 @@ const Ward = () => {
             districtId: "",
             municipalityId: "",
             wardName: "",
+            wardlgdCode: "",
             remarks: "",
           });
           setExpanded("panel2");
@@ -132,6 +151,7 @@ const Ward = () => {
             districtId: "",
             municipalityId: "",
             wardName: "",
+            wardlgdCode: "",
             remarks: "",
           });
         }
@@ -156,6 +176,11 @@ const Ward = () => {
     }
     if (!wardName || !wardName.trim()) {
       newErrors.wardName = "Ward name is required";
+      setErrors(newErrors);
+      return;
+    }
+    if (!wardlgdCode || !wardlgdCode.trim()) {
+      newErrors.wardlgdCode = "Ward LGD Code is required";
       setErrors(newErrors);
       return;
     }
@@ -199,24 +224,24 @@ const Ward = () => {
       selector: (row) =>
         (
           <div className="flex gap-1">
-            <p className="text-slate-800">{row.wardName}</p> |{" "}
-            <p>{row.wardCode}</p>
+            <p>{row.wardlgdCode}</p> |{" "}
+            <p className="text-slate-800">{row.wardName}</p>
           </div>
         ) || "N/A",
       sortable: true,
     },
     {
-      name: "Remarks",
-      selector: (row) => row.remarks || "N/A",
-    },
-    {
       name: "Status",
-      width:"100px",
+      width: "100px",
       cell: (row) => (
         <span className={`px-2 py-1 rounded-sm text-xs ${row.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
           {row.isActive ? "Active" : "Inactive"}
         </span>
       )
+    },
+    {
+      name: "Remarks",
+      selector: (row) => row.remarks || "N/A",
     },
     {
       name: "Action",
@@ -226,38 +251,37 @@ const Ward = () => {
         <div className="flex items-center gap-2">
           {/* EDIT BUTTON */}
           <Tooltip title="Edit" arrow>
-          <button
-            type="button"
-            className="flex items-center justify-center h-8 w-8 bg-blue-500/25 text-blue-500 rounded-full"
-            onClick={() => {
-              handleEditClick(row?.wardId);
-            }}
-          >
-            <GoPencil className="w-4 h-4" />
-          </button>
+            <button
+              type="button"
+              className="flex items-center justify-center h-8 w-8 bg-blue-500/25 text-blue-500 rounded-full"
+              onClick={() => {
+                handleEditClick(row?.wardId);
+              }}
+            >
+              <GoPencil className="w-4 h-4" />
+            </button>
           </Tooltip>
 
           {/* ACTIVE / INACTIVE BUTTON */}
-          <Tooltip title={row.isActive?"Active" : "Inactive"} arrow>
-          <button
-            className={`flex items-center justify-center h-8 w-8 rounded-full 
-                  ${
-                    row.isActive
-                      ? "bg-green-600/25 hover:bg-green-700/25 text-green-600"
-                      : "bg-red-500/25 hover:bg-red-600/25 text-red-500 "
-                  }`}
-            onClick={() => {
-              setOpenModal(true);
-              setSelectedWardId(row?.wardId);
-              // toggleStatus(row?.wardId)
-            }}
-          >
-            {row.isActive ? (
-              <MdLockOutline className="w-4 h-4" />
-            ) : (
-              <MdLockOpen className="w-4 h-4" />
-            )}
-          </button>
+          <Tooltip title={row.isActive ? "Active" : "Inactive"} arrow>
+            <button
+              className={`flex items-center justify-center h-8 w-8 rounded-full 
+                  ${row.isActive
+                  ? "bg-green-600/25 hover:bg-green-700/25 text-green-600"
+                  : "bg-red-500/25 hover:bg-red-600/25 text-red-500 "
+                }`}
+              onClick={() => {
+                setOpenModal(true);
+                setSelectedWardId(row?.wardId);
+                // toggleStatus(row?.wardId)
+              }}
+            >
+              {row.isActive ? (
+                <MdLockOutline className="w-4 h-4" />
+              ) : (
+                <MdLockOpen className="w-4 h-4" />
+              )}
+            </button>
           </Tooltip>
         </div>
       ),
@@ -317,6 +341,7 @@ const Ward = () => {
             districtId: distId,
             municipalityId: wardDetails.municipality.municipalityId || "",
             wardName: wardDetails.wardName || "",
+            wardlgdCode: wardDetails.wardlgdCode || "",
             remarks: wardDetails.remarks || "",
             wardId: wardDetails.wardId || null,
           });
@@ -418,6 +443,18 @@ const Ward = () => {
                 />
               </div>
 
+              <div className="col-span-2">
+                <InputField
+                  label="Ward LGD Code"
+                  required={true}
+                  name="wardlgdCode"
+                  placeholder="Enter ward LGD code"
+                  value={formData.wardlgdCode}
+                  onChange={handleChangeInput}
+                  error={errors.wardlgdCode}
+                  maxLength={10}
+                />
+              </div>
               <div className="col-span-4">
                 <InputField
                   label="Description"

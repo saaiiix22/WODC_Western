@@ -157,13 +157,14 @@ const GIApage = () => {
       selector: (row) =>
         (
           <div className="flex gap-1">
-            <p className="text-slate-800">{row.giaTypeName}</p> |{" "}
-            <p>{row.giaTypeCode}</p>
+            <p>{row.giaTypeCode}</p> |{" "}
+            <p className="text-slate-800">{row.giaTypeName}</p>
           </div>
         ) || "N/A",
     },
     {
       name: "Status",
+      width: "100px",
       selector: (row) => (row.isActive ? "Active" : "Inactive"),
     },
     {

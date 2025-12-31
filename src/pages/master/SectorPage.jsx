@@ -231,8 +231,8 @@ const SectorPage = () => {
       selector: (row) =>
         (
           <div className="flex gap-1">
-            <p className="text-slate-800">{row.sectorName}</p> |{" "}
-            <p>{row.sectorCode}</p>
+            <p>{row.sectorCode}</p> |{" "}
+            <p className="text-slate-800">{row.sectorName}</p>
           </div>
         ) || "N/A",
       sortable: true,
@@ -245,7 +245,7 @@ const SectorPage = () => {
             {row.subSectorDtoList.map((i, idx) => {
               return (
                 <p
-                  className="px-2 py-1 text-[12px] rounded-sm bg-amber-500/25 text-amber-800"
+                  className="text-[12px] rounded-sm"
                   key={idx}
                 >
                   {i.subSectorName}
@@ -255,6 +255,7 @@ const SectorPage = () => {
           </div>
         ) || "N/A",
     },
+    
     {
       name: "Remarks",
       selector: (row) => row.remarks || "N/A",

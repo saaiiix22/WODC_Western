@@ -25,9 +25,11 @@ import {
   toggleBeneficiaryStatus,
 } from "../../services/beneficiaryService";
 import {
+  accountNumberUtil,
   cleanAadhaarUtil,
   cleanContactNoUtil,
   cleanEmailUtil,
+  ifscUtil,
   validateAadhaarUtil,
   validateAccountNoUtil,
   validateContactNoUtil,
@@ -105,9 +107,9 @@ const Beneficiary = () => {
     if (name === "contactNo") {
       updatedValue = cleanContactNoUtil(updatedValue);
     }
-    if (name === "email") {
-      updatedValue = cleanEmailUtil(updatedValue);
-    }
+    // if (name === "email") {
+    //   updatedValue = cleanEmailUtil(updatedValue);
+    // }
     // CLEAR ERROR WHEN USER TYPES
     setErrors((prev) => ({ ...prev, [name]: "" }));
 
@@ -216,6 +218,15 @@ const Beneficiary = () => {
 
   const handleInput = (index, name, value) => {
     const updated = [...rows];
+
+    if (name === "accountNo") {
+      value = accountNumberUtil(value); // digits only
+    }
+
+    if (name === "ifscCode") {
+      value = ifscUtil(value); // uppercase + format
+    }
+
     updated[index][name] = value;
     setRows(updated);
   };
@@ -278,12 +289,12 @@ const Beneficiary = () => {
     }
 
     // ✅ Email validation (from second function)
-    const emailError = validateEmailUtil(email);
-    if (emailError) {
-      newErrors.email = emailError;
-      setErrors(newErrors);
-      return;
-    }
+    // const emailError = validateEmailUtil(email);
+    // if (emailError) {
+    //   newErrors.email = emailError;
+    //   setErrors(newErrors);
+    //   return;
+    // }
 
     // Bank rows validation
     for (let i = 0; i < rows.length; i++) {
@@ -481,8 +492,8 @@ const Beneficiary = () => {
       selector: (row) =>
         (
           <div className="flex gap-1">
-            <p className="text-slate-800">{row.beneficiaryName}</p> |{" "}
-            <p>{row.beneficiaryCode}</p>
+            <p>{row.beneficiaryCode}</p> |{" "}
+            <p className="text-slate-800">{row.beneficiaryName}</p>
           </div>
         ) || "N/A",
       sortable: true,
@@ -781,7 +792,7 @@ const Beneficiary = () => {
                   placeholder="Enter email"
                   value={email}
                   onChange={handleChangeInput}
-                  error={errors.email}
+                // error={errors.email}
                 />
               </div>
 
@@ -870,6 +881,7 @@ const Beneficiary = () => {
                             <input
                               name="accountNo"
                               value={i.accountNo}
+                              maxLength={18}
                               onChange={(e) =>
                                 handleInput(index, "accountNo", e.target.value)
                               }

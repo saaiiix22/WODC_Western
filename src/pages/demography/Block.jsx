@@ -256,9 +256,9 @@ const Block = () => {
       selector: (row) =>
         (
           <div className="flex gap-1">
-            <p className="text-slate-800">{row.blockNameEN}</p> |{" "}
+            <p>{row.blocklgdCode}</p> |{" "}
+            <p className="text-slate-800">{row.blockNameEN}</p>
             {/* <p>{row.blockCode}</p> */}
-            <p>{row.blocklgdCode}</p>
           </div>
         ) || "N/A",
     },

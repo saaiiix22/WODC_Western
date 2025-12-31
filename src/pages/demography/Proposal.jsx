@@ -204,6 +204,7 @@ const Proposal = () => {
     },
     {
       name: "Status",
+      width: "100px",
       selector: (row) => (row.isActive ? "Active" : "Inactive"),
     },
     {

@@ -46,6 +46,8 @@ import {
   validateEmailUtil,
   validateIfscUtil,
   onlyNumberUtil,
+  ifscUtil,
+  accountNumberUtil,
 } from "../../utils/validationUtils";
 import { Tooltip } from "@mui/material";
 
@@ -176,12 +178,20 @@ const VendorPage = () => {
     updated.splice(index, 1);
     setRows(updated);
   };
+ const handleInput = (index, name, value) => {
+  const updated = [...rows];
 
-  const handleInput = (index, name, value) => {
-    const updated = [...rows];
-    updated[index][name] = value;
-    setRows(updated);
-  };
+  if (name === "accountNo") {
+    value = accountNumberUtil(value); // digits only
+  }
+
+  if (name === "ifscCode") {
+    value = ifscUtil(value); // uppercase + format
+  }
+
+  updated[index][name] = value;
+  setRows(updated);
+};
   
   const [errors, setErrors] = useState({});
   const [openSubmit, setOpenSubmit] = useState(false);
@@ -401,8 +411,8 @@ const VendorPage = () => {
       selector: (row) =>
         (
           <div className="flex gap-1">
-            <p className="text-slate-800">{row.vendorName}</p> |{" "}
-            <p>{row.vendorCode}</p>
+            <p>{row.vendorCode}</p> |{" "}
+            <p className="text-slate-800">{row.vendorName}</p>
           </div>
         ) || "N/A",
       sortable: true,
@@ -655,6 +665,7 @@ const VendorPage = () => {
                             <input
                               name="accountNo"
                               value={i.accountNo}
+                              maxLength={18}
                               onChange={(e) =>
                                 handleInput(index, "accountNo", e.target.value)
                               }

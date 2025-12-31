@@ -32,9 +32,11 @@ import {
   toggleAgencyStatus,
 } from "../../services/agencyService";
 import {
+  accountNumberUtil,
   cleanAadhaarUtil,
   cleanContactNoUtil,
   cleanEmailUtil,
+  ifscUtil,
   IFSCutil,
   validateAadhaarUtil,
   validateAccountNoUtil,
@@ -84,16 +86,23 @@ const Agency = () => {
   const handleChangeInput = (e) => {
     const { name, value } = e.target;
     let updatedValue = value;
-    
+
     // if (name === "aadhaarNo") {
     //   updatedValue = cleanAadhaarUtil(value);
     // }
     if (name === "contactNo") {
       updatedValue = cleanContactNoUtil(updatedValue);
     }
-     if(name==="email"){
+    if (name === "email") {
       updatedValue = cleanEmailUtil(updatedValue);
-     }
+    }
+
+    if (name === "accountNo") {
+      updatedValue = accountNumberUtil(value)
+    }
+    if (name === "ifscCode") {
+      updatedValue = ifscUtil(value)
+    }
     // CLEAR ERROR WHEN USER TYPES
     setErrors((prev) => ({ ...prev, [name]: "" }));
 
@@ -167,10 +176,20 @@ const Agency = () => {
   };
 
   const handleInput = (index, name, value) => {
-    const updated = [...rows];
-    updated[index][name] = value;
-    setRows(updated);
-  };
+  const updated = [...rows];
+
+  if (name === "accountNo") {
+    value = accountNumberUtil(value); // digits only
+  }
+
+  if (name === "ifscCode") {
+    value = ifscUtil(value); // uppercase + format
+  }
+
+  updated[index][name] = value;
+  setRows(updated);
+};
+
 
   const [errors, setErrors] = useState({});
 
@@ -365,8 +384,8 @@ const Agency = () => {
       selector: (row) =>
         (
           <div className="flex gap-1">
-            <p className="text-slate-800">{row.agencyName}</p> |{" "}
-            <p>{row.agencyCode}</p>
+            <p>{row.agencyCode}</p> |{" "}
+            <p className="text-slate-800">{row.agencyName}</p>
           </div>
         ) || "N/A",
       sortable: true,
@@ -630,6 +649,7 @@ const Agency = () => {
                             <input
                               name="accountNo"
                               value={i.accountNo}
+                              maxLength={18}
                               onChange={(e) =>
                                 handleInput(index, "accountNo", e.target.value)
                               }
@@ -639,7 +659,7 @@ const Agency = () => {
                           <td className="border-r border-slate-200 px-2 py-1">
                             <input
                               name="ifscCode"
-                              value={IFSCutil(i.ifscCode)}
+                              value={ifscUtil(i.ifscCode)}
                               maxLength={11}
                               onChange={(e) =>
                                 handleInput(index, "ifscCode", e.target.value)

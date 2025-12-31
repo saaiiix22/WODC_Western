@@ -219,9 +219,9 @@ const GramPanchayatPage = () => {
       selector: (row) =>
         (
           <div className="flex gap-1">
-            <p className="text-slate-800">{row.gpNameEN}</p> |{" "}
+            <p>{row.gpLgdCode}</p>|{" "}
+            <p className="text-slate-800">{row.gpNameEN}</p> 
             {/* <p>{row.gpCode}</p> */}
-            <p>{row.gpLgdCode}</p>
           </div>
         ) || "N/A",
     },

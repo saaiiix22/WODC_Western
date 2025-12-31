@@ -28,6 +28,7 @@ import {
 import {
   avoidSpecialCharUtil,
   cleanStringUtil,
+  LGDutil,
 } from "../../../utils/validationUtils";
 import Loader from "../../../components/common/Loader";
 
@@ -44,19 +45,23 @@ const GetDistrict = () => {
 
   const [formData, setFormData] = useState({
     districtName: "",
+    districtlgdCode: "",
     remark: "",
     districtId: null,
   });
-  const { districtName, remark, districtId } = formData;
+  const { districtName, districtlgdCode, remark, districtId } = formData;
   const [errors, setErrors] = useState({});
 
   const handleChangeInput = (e) => {
     const { name, value } = e.target;
-    
+
     let updatedValue = value;
 
     if (name === "districtName") {
       updatedValue = avoidSpecialCharUtil(value);
+    }
+    if (name === "districtlgdCode") {
+      updatedValue = LGDutil(value);
     }
     setFormData({ ...formData, [name]: updatedValue });
     setErrors((prev) => ({
@@ -70,19 +75,29 @@ const GetDistrict = () => {
     e.preventDefault();
 
     let newErrors = {};
-    if (!formData.districtName.trim())
+    if (!formData.districtName.trim()) {
       newErrors.districtName = "District name is required";
+      setErrors(newErrors);
+      return;
+    }
 
-    setErrors(newErrors);
+    if (!formData.districtlgdCode.trim()) {
+      newErrors.districtlgdCode = "District lgd code is required";
+      setErrors(newErrors);
+      return;
+    }
+
 
     if (Object.keys(newErrors).length === 0) {
       try {
         setLoading(true);
         const payload = encryptPayload({
           districtName: districtName,
+          districtlgdCode: districtlgdCode,
           remark: remark,
           districtId: districtId,
         });
+        console.log("bala na", payload);
         const res = await saveDistrictService(payload);
         // console.log(res);
         if (res?.data.outcome && res.status === 200) {
@@ -115,8 +130,17 @@ const GetDistrict = () => {
 
     let newErrors = {};
 
-    if (!formData.districtName.trim())
+    if (!formData.districtName.trim()){
       newErrors.districtName = "District name is required";
+      setErrors(newErrors);
+      return;
+    }
+
+    if (!formData.districtlgdCode ) {
+      newErrors.districtlgdCode = "District lgd code is required";
+      setErrors(newErrors);
+      return;
+    }   
 
     setErrors(newErrors);
 
@@ -164,8 +188,8 @@ const GetDistrict = () => {
       selector: (row) =>
         (
           <div className="flex gap-1">
-            <p className="text-slate-800">{row.districtName}</p> |{" "}
-            <p>{row.districtCode}</p>
+            <p>{row.districtlgdCode}</p> |{" "}
+            <p className="text-slate-800">{row.districtName}</p>
           </div>
         ) || "N/A",
     },
@@ -173,7 +197,7 @@ const GetDistrict = () => {
     {
       name: "Status",
       // selector: (row) => (row.isActive ? "Active" : "Inactive"),
-      width:"100px",
+      width: "100px",
       cell: (row) => (
         <span className={`px-2 py-1 rounded-sm text-xs ${row.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
           {row.isActive ? "Active" : "Inactive"}
@@ -209,11 +233,10 @@ const GetDistrict = () => {
           <Tooltip title={row.isActive ? "Active" : "Inactive"} arrow>
             <button
               className={`flex items-center justify-center h-8 w-8 rounded-full
-           ${
-             row.isActive
-               ? "bg-green-600/25 hover:bg-green-700/25 text-green-600"
-               : "bg-red-500/25 hover:bg-red-600/25 text-red-500 "
-           }`}
+           ${row.isActive
+                  ? "bg-green-600/25 hover:bg-green-700/25 text-green-600"
+                  : "bg-red-500/25 hover:bg-red-600/25 text-red-500 "
+                }`}
               onClick={() => {
                 setOpenModal(true);
                 setDistrictId(row?.districtId);
@@ -319,6 +342,19 @@ const GetDistrict = () => {
                   value={districtName}
                   onChange={handleChangeInput}
                   error={errors.districtName}
+                  maxLength={50}
+                />
+              </div>
+
+              <div className="col-span-3">
+                <InputField
+                  label="District Lgd Code"
+                  required={true}
+                  name="districtlgdCode"
+                  placeholder="Enter district lgd code"
+                  value={districtlgdCode}
+                  onChange={handleChangeInput}
+                  error={errors.districtlgdCode}
                   maxLength={50}
                 />
               </div>

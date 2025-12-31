@@ -162,19 +162,25 @@ const Milestone = () => {
       selector: (row) =>
         (
           <div className="flex gap-1">
-            <p className="text-slate-800">{row.milestoneName}</p> |{" "}
-            <p>{row.milestoneCode}</p>
+            <p>{row.milestoneCode}</p> |{" "}
+            <p className="text-slate-800">{row.milestoneName}</p>
           </div>
         ) || "N/A",
       sortable: true,
     },
 
-    {
+     {
       name: "Status",
-      selector: (row) => (row.isActive ? "Active" : "Inactive"),
+      width:"100px",
+      cell: (row) => (
+        <span className={`px-2 py-1 rounded-sm text-xs ${row.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+          {row.isActive ? "Active" : "Inactive"}
+        </span>
+      )
     },
     {
       name: "Remarks",
+
       selector: (row) => row.remark || "N/A",
       sortable: true,
     },

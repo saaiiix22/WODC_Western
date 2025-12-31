@@ -189,11 +189,20 @@ const Municipality = () => {
       selector: (row) =>
         (
           <div className="flex gap-1">
-            <p className="text-slate-800">{row.municipalityName}</p> |{" "}
+            <p>{row.lgdCode}</p> |{" "}
+            <p className="text-slate-800">{row.municipalityName}</p>
             {/* <p>{row.municipalityCode}</p> */}
-            <p>{row.lgdCode}</p>
           </div>
         ) || "N/A",
+    },
+    {
+      name: "Status",
+      width:"100px",
+      cell: (row) => (
+        <span className={`px-2 py-1 rounded-sm text-xs ${row.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+          {row.isActive ? "Active" : "Inactive"}
+        </span>
+      )
     },
     // {
     //   name: "LGD Code",

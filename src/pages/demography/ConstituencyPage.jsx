@@ -159,14 +159,15 @@ const ConstituencyPage = () => {
       selector: (row) =>
         (
           <div className="flex gap-1">
-            <p className="text-slate-800">{row.consName}</p> |{" "}
-            <p>{row.consCode}</p>
+            <p>{row.consCode}</p> |{" "}
+            <p className="text-slate-800">{row.consName}</p>
           </div>
         ) || "N/A",
     },
 
     {
       name: "Status",
+      width: "100px",
       selector: (row) => (row.isActive ? "Active" : "Inactive"),
     },
     {

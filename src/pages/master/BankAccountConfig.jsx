@@ -43,7 +43,14 @@ const BankAccountConfig = () => {
 
   const handleInp = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    let updatedVal = value
+    if(name === "accNo"){
+      updatedVal = accountNumberUtil(value)
+    }
+    if(name === "ifsc"){
+      updatedVal = ifscUtil(value)
+    }
+    setFormData({ ...formData, [name]: updatedVal });
 
     setErrors((prev) => ({
       ...prev,
@@ -336,7 +343,8 @@ const BankAccountConfig = () => {
                 onChange={handleInp}
                 required={true}
                 name="accNo"
-                value={accountNumberUtil(accNo)}
+                value={accNo}
+                maxLength={18}
                 placeholder="Enter account number"
                 error={errors.accNo}
               />
@@ -347,7 +355,7 @@ const BankAccountConfig = () => {
                 onChange={handleInp}
                 required={true}
                 name="ifsc"
-                value={ifscUtil(ifsc)}
+                value={ifsc}
                 placeholder="Enter IFSC code"
                 error={errors.ifsc}
               />
