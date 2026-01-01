@@ -268,8 +268,11 @@ const GetDistrict = () => {
       if (res?.status === 200 && res?.data.outcome) {
         setFormData(res?.data.data);
         setExpanded("panel1");
+        setErrors({})
       } else {
-        toast.error(res?.data.message);
+        // toast.error(res?.data.message);
+        console.log(error);
+        
       }
       // console.log(res);
     } catch (error) {

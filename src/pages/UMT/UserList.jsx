@@ -57,12 +57,12 @@ const UserList = () => {
     const navigate = useNavigate()
     const ViewUser = async(id)=>{
         try {
-            const payload = encryptPayload()
             const sendData = {
                 userId:Number(id),
-                isLocked:false
+                isActive:false
             }
-            const res = await editUserService(sendData)
+            const payload = encryptPayload(sendData)
+            const res = await editUserService(payload)
             console.log(res);
             if(res?.status === 200 && res?.data.outcome){
                 navigate('/addUser',{state:res?.data.data})
@@ -76,10 +76,10 @@ const UserList = () => {
         try {
             const sendData = {
                 userId:Number(id),
-                isLocked:true
+                isActive:true
             }
-            // const payload = encryptPayload(sendData)
-            const res = await editUserService(sendData)
+            const payload = encryptPayload(sendData)
+            const res = await editUserService(payload)
             console.log(res);
             if(res?.status === 200 && res?.data.outcome){
                 navigate('/addUser',{state:res?.data.data})
@@ -95,8 +95,8 @@ const UserList = () => {
                 userId:id,
                 isActive:!stat
             }
-            const payload = encryptPayload()
-            const res = await toggleUserStatusService(sendData)
+            const payload = encryptPayload(sendData)
+            const res = await toggleUserStatusService(payload)
             console.log(res);
             if(res?.status === 200 && res?.data.outcome){
                 getTableData()

@@ -127,6 +127,7 @@ const Milestone = () => {
       if (res?.status === 200 && res?.data.outcome) {
         setFormData(res?.data.data);
         setExpanded("panel1");
+        setErrors({})
       }
     } catch (error) {
       throw error;

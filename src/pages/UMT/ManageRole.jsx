@@ -11,6 +11,7 @@ import { MdLockOpen, MdLockOutline } from "react-icons/md";
 import { FaEye } from "react-icons/fa";
 import { FaLink } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import ReusableDialog from "../../components/common/ReusableDialog";
 
 const ManageRole = () => {
   const [formData, setFormData] = useState({
@@ -24,14 +25,22 @@ const ManageRole = () => {
   const { roleId, roleCode, displayName, description, maxAssignments } = formData;
   const [isEditing, setIsEditing] = useState(false);
   const [tableData, setTableData] = useState([]);
+  const [open, setOpen] = useState(false)
+
+  const [errors, setErrors] = useState({})
 
   const handleChangeInput = (e) => {
     const { name, value } = e.target;
+    setErrors((prev) => ({
+      ...prev,
+      [name]: "",
+    }))
     setFormData({ ...formData, [name]: value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
 
     try {
       const sendData = {
@@ -39,20 +48,60 @@ const ManageRole = () => {
         maxAssignments: maxAssignments ? Number(maxAssignments) : null
       };
 
-      console.log("Submitting data:", sendData);
-
       const payload = encryptPayload(sendData);
       const res = await saveRoleService(payload);
 
       if (res.status === 200 && res?.data.outcome) {
+        setOpen(false)
         toast.success(res?.data.message);
         resetForm();
         getTableData();
       }
+      else {
+        setOpen(false)
+        toast.error(res?.data.message);
+      }
     } catch (error) {
+      setOpen(false)
       console.error("Submit Error:", error);
     }
+
   };
+
+  const handleConfirmSubmit = (e) => {
+    e.preventDefault();
+
+    let newErrors = {}
+    if (!roleCode || !roleCode.trim()) {
+      newErrors.roleCode = "Role code is required";
+      setErrors(newErrors);
+      return;
+    }
+    if (!displayName || !displayName.trim()) {
+      newErrors.displayName = "Display name is required";
+      setErrors(newErrors);
+      return;
+    }
+    if (!maxAssignments) {
+      newErrors.maxAssignments = "Max assignments is required";
+      setErrors(newErrors);
+      return;
+    }
+
+    if (Object.keys(newErrors).length === 0) {
+      setOpen(true)
+    }
+    else {
+      setOpen(false)
+    }
+  }
+  const [openModal, setOpenModal] = useState(false)
+  const [addRoleID, setAddRoleID] = useState({
+    id: '',
+    stat: ''
+  })
+
+
 
   const handleEditClick = async (id) => {
     try {
@@ -65,6 +114,7 @@ const ManageRole = () => {
       if (res?.status == 200 && res?.data.outcome) {
         setFormData(res?.data.data)
         setIsEditing(true)
+        setErrors({})
       }
     } catch (error) {
       throw error
@@ -109,8 +159,7 @@ const ManageRole = () => {
         setTableData(res?.data.data);
       }
     } catch (error) {
-      console.error("Table Data Error:", error);
-      toast.error("Failed to load role list");
+      console.error(error);
     }
   };
 
@@ -192,7 +241,15 @@ const ManageRole = () => {
                 : "bg-red-500/25 hover:bg-red-600/25 text-red-500"
               }`}
             title={row.isActive ? "Active - Click to Deactivate" : "Inactive - Click to Activate"}
-            onClick={() => toggleStatus(row.roleId, row.isActive)}
+            onClick={() => {
+              setAddRoleID({
+                id: row.roleId,
+                stat: row.isActive,
+              });
+              setOpenModal(true)
+            }
+
+            }
           >
             {row.isActive ? (
               <MdLockOutline className="w-4 h-4" />
@@ -202,15 +259,15 @@ const ManageRole = () => {
           </button>
 
           {/* PERMISSIONS LINK BUTTON */}
-          <button
+          < button
             type="button"
             className="flex items-center justify-center h-8 w-8 bg-purple-500/25 text-purple-500 rounded-full hover:bg-purple-500/40 transition-colors"
             onClick={() => handlePermissionsClick(row.roleId)}
             title="Manage Permissions"
           >
             <FaLink className="w-4 h-4" />
-          </button>
-        </div>
+          </button >
+        </div >
       ),
       ignoreRowClick: true,
       allowOverflow: true,
@@ -218,18 +275,24 @@ const ManageRole = () => {
     },
   ];
 
-  const toggleStatus = async (id, stat) => {
+  const toggleStatus = async () => {
     try {
       const payload = encryptPayload({
-        roleId: id,
-        isActive: !stat
+        roleId: addRoleID?.id,
+        isActive: !addRoleID?.stat
 
       })
       const res = await toggleRoleStatusService(payload)
       console.log(res);
       if (res?.data.outcome && res?.status === 200) {
+        setOpenModal(false)
         getTableData()
         toast.success(res?.data.message)
+      }
+      else {
+        setOpenModal(false)
+        getTableData()
+        toast.error(res?.data.message)
       }
     } catch (error) {
       console.error("Toggle status error:", error);
@@ -280,7 +343,7 @@ const ManageRole = () => {
 
         {/* Body */}
         <div className="min-h-[120px] py-5 px-4 text-[#444]">
-          <form className="grid grid-cols-12 gap-6" onSubmit={handleSubmit}>
+          <form className="grid grid-cols-12 gap-6" onSubmit={handleConfirmSubmit}>
             <div className="col-span-2">
               <InputField
                 label="Role Code"
@@ -291,6 +354,7 @@ const ManageRole = () => {
                 readOnly={!isEditing && formData.roleId}
                 disabled={!isEditing && formData.roleId}
                 placeholder="Enter role code"
+                error={errors.roleCode}
               />
             </div>
             <div className="col-span-2">
@@ -303,6 +367,8 @@ const ManageRole = () => {
                 readOnly={!isEditing && formData.roleId}
                 disabled={!isEditing && formData.roleId}
                 placeholder="Enter display name"
+                error={errors.displayName}
+
               />
             </div>
             <div className="col-span-2">
@@ -317,6 +383,8 @@ const ManageRole = () => {
                 disabled={!isEditing && formData.roleId}
                 placeholder="Enter number"
                 min="0"
+                error={errors.maxAssignments}
+
               />
             </div>
             <div className="col-span-3">
@@ -329,6 +397,7 @@ const ManageRole = () => {
                 readOnly={!isEditing && formData.roleId}
                 disabled={!isEditing && formData.roleId}
                 placeholder="Enter description"
+
               />
             </div>
 
@@ -378,6 +447,20 @@ const ManageRole = () => {
           />
         </div>
       </div>
+      <ReusableDialog
+        open={openModal}
+        // title="Change Status"
+        description="Are you sure you want to change status?"
+        onClose={() => setOpenModal(false)}
+        onConfirm={toggleStatus}
+      />
+      <ReusableDialog
+        open={open}
+        // title="Submit"
+        description="Are you sure you want to submit?"
+        onClose={() => setOpen(false)}
+        onConfirm={handleSubmit}
+      />
     </>
   );
 };

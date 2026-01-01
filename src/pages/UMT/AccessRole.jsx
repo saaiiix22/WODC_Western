@@ -34,22 +34,20 @@ const AccessRole = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
-      // const payload = encryptPayload()
       const sendData = {
         roleId: role?.roleId,
         maxAllocations: formData.map(item => item.maxAllocations),
         roleLevelId: formData.map(item => item.roleLevelId),
         status: formData.map(item => item.status),
       };
+      const payload = encryptPayload(sendData)
       // console.log(sendData);
-      const res = await saveRoleLevelMapService(sendData)
+      const res = await saveRoleLevelMapService(payload)
       console.log(res);
       if(res?.status === 200 && res?.data.outcome){
         toast.success(res?.data.message)
         navigate('/get-manage-user')
       }
-
-
     } catch (error) {
       throw error
     }

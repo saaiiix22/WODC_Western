@@ -73,18 +73,18 @@ const AddUser = () => {
           }
         ])
       }
-      // else {
-      //   toast.error(res?.data.message)
-      //   setFormData({
-      //     userId: null,
-      //     userName: "",
-      //     firstname: "",
-      //     lastname: "",
-      //     designation: "",
-      //     mobile: "",
-      //     email: "",
-      //   })
-      // }
+      else {
+        toast.error(res?.data.message)
+        setFormData({
+          userId: null,
+          userName: "",
+          firstname: "",
+          lastname: "",
+          designation: "",
+          mobile: "",
+          email: "",
+        })
+      }
     } catch (error) {
       throw error
     }
@@ -176,7 +176,7 @@ const AddUser = () => {
         email: state?.email,
       })
       setRows(state?.userRoleMaps)
-      setLock(state?.isLocked)
+      setLock(state?.isActive)
     }
   }, [state])
 

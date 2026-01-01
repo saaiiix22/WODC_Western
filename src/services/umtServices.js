@@ -2,23 +2,23 @@ import Api from "../api/api";
 import endpoints from "../api/endpoints";
 
 // ADD USER
-export const saveAddUserService = (data) => Api.post(endpoints.umtEndpoints.saveUser, { obj: data })
+export const saveAddUserService = (data) => Api.post(endpoints.umtEndpoints.saveUser, { encryptedData: data })
 export const saveUserService = (data) => Api.post(endpoints.umtEndpoints.saveUser, { obj: data })
 export const getRoleListService = (data) => Api.get(endpoints.umtEndpoints.roleList, { params: { cipherText: data } })
 
 //  ROLE USER
-export const saveRoleService = (data) => Api.post(endpoints.umtEndpoints.saveRole, { obj: data })
+export const saveRoleService = (data) => Api.post(endpoints.umtEndpoints.saveRole, { encryptedData: data })
 export const editViewRoleService = (data) => Api.get(endpoints.umtEndpoints.editViewRole, { params:{cipherText:data}})
 export const roleListService = (data) => Api.get(endpoints.umtEndpoints.roleList, { params: { cipherText: data } })
 export const toggleRoleStatusService = (data) => Api.post(endpoints.umtEndpoints.toggleRoleStatus, null,{ params: { cipherText: data } })
-export const getRoleInfoService = (data) => Api.post(endpoints.umtEndpoints.getRoleInfo, { obj: data })
+export const getRoleInfoService = (data) => Api.get(endpoints.umtEndpoints.getRoleInfo, { params: {cipherText:data} })
 // export const userListService=(data)=>Api.get(endpoints.umtEndpoints.userList,{params:{cipherText:data}})
-export const saveRoleLevelMapService = (data) => Api.post(endpoints.umtEndpoints.saveRoleLevelMap, null, { params: data })
+export const saveRoleLevelMapService = (data) => Api.post(endpoints.umtEndpoints.saveRoleLevelMap, {encryptedData:data})
 
 // USER LIST
-export const userListService = (data) => Api.get(endpoints.umtEndpoints.userList, { params: data })
-export const editUserService = (data) => Api.get(endpoints.umtEndpoints.editUser, { params: data })
-export const toggleUserStatusService = (data) => Api.post(endpoints.umtEndpoints.toggleUserStatus, null, { params: data })
+export const userListService = (data) => Api.get(endpoints.umtEndpoints.userList, { params: {cipherText:data} })
+export const editUserService = (data) => Api.get(endpoints.umtEndpoints.editUser, { params: {cipherText:data} })
+export const toggleUserStatusService = (data) => Api.post(endpoints.umtEndpoints.toggleUserStatus, null, { params: {cipherText:data} })
 export const saveConfigAccessService = (data) => Api.post(endpoints.umtEndpoints.saveConfigAccess, null, { params: data })
 
 
@@ -42,7 +42,7 @@ export const changePasswordService = (data) => Api.post(endpoints.umtEndpoints.c
 export const userSearchService = (data) => Api.get(endpoints.umtEndpoints.userSearch, { params: { cipherText: data } })
 export const roleConfigListService = (data) => Api.get(endpoints.umtEndpoints.roleConfigList, { params: { cipherText: data } })
 export const getAccessLevelConfigService = (data) => Api.get(endpoints.umtEndpoints.getAccessLevelConfig, { params: { cipherText: data } })
-export const getConfigListService = (data) => Api.post(endpoints.umtEndpoints.getConfigList, null, { params: data })
+export const getConfigListService = (data,size,page) => Api.post(endpoints.umtEndpoints.getConfigList, null, { params: {cipherText:data,size:size,page:page} })
 
 
 

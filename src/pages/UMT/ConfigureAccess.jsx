@@ -15,8 +15,9 @@ const ConfigureAccess = () => {
         accessLevel: ''
     })
     const [isUserSelected, setIsUserSelected] = useState(false);
+    const [errors, setErrors] = useState({});
 
-    const [count, setCount] = useState(1); // current page (1-based)
+    const [count, setCount] = useState(1);
     const [pageSize, setPageSize] = useState(10);
 
     const [pageInfo, setPageInfo] = useState({
@@ -44,7 +45,9 @@ const ConfigureAccess = () => {
     }
     const getRoleOpts = async () => {
         try {
-            const payload = encryptPayload(formData.userId)
+            const payload = encryptPayload({
+                userId: formData.userId
+            })
             const res = await roleConfigListService(payload)
             console.log(res);
             if (res?.status === 200 && res?.data.outcome) {
@@ -56,7 +59,7 @@ const ConfigureAccess = () => {
     }
     const getAccessLevelOpts = async () => {
         try {
-            const payload = encryptPayload(formData.roleId)
+            const payload = encryptPayload({ roleId: formData.roleId })
             const res = await getAccessLevelConfigService(payload)
             console.log(res);
             if (res?.status === 200 && res?.data.outcome) {
@@ -68,6 +71,10 @@ const ConfigureAccess = () => {
     }
     const handleInputChange = (e) => {
         const { name, value } = e.target
+        setErrors((prev) => ({
+            ...prev,
+            [name]: "",
+        }));
         setFormData({ ...formData, [name]: value })
     }
     const [columnNames, setColumnNames] = useState([]);
@@ -76,31 +83,50 @@ const ConfigureAccess = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        try {
-            const sendData = {
-                userId: Number(formData.userId),
-                roleId: Number(formData.roleId),
-                roleLevelMasterId: Number(formData.accessLevel),
-                size: pageSize,
-                page: count - 1
-            };
-            const res = await getConfigListService(sendData);
-            console.log(res);
-            if (res?.status === 200 && res?.data.outcome) {
-                setColumnNames(res?.data.columnMetaData);
-                setTableData(res?.data.data);
-                setPrimaryKey(res?.data.primaryKey);
-                setCheckedBoxes(res?.data.allotedRowIds.map(Number))
-                const pageData = res.data.data;
-                setPageInfo({
-                    totalPages: pageData.totalPages,
-                    totalElements: pageData.totalElements,
-                    first: pageData.first,
-                    last: pageData.last
-                });
+        let newErrors = {}
+        if (!formData.userId) {
+            newErrors.userId = "User Id is required";
+            setErrors(newErrors);
+            return;
+        }
+
+        if (!formData.roleId) {
+            newErrors.roleId = "Role Id is required";
+            setErrors(newErrors);
+            return;
+        }
+        if (!formData.accessLevel) {
+            newErrors.accessLevel = "Access level is required";
+            setErrors(newErrors);
+            return;
+        }
+        setErrors(newErrors);
+        if (Object.keys(newErrors).length === 0) {
+            try {
+                const sendData = {
+                    userId: Number(formData.userId),
+                    roleId: Number(formData.roleId),
+                    roleLevelMasterId: Number(formData.accessLevel)
+                };
+                const payload = encryptPayload(sendData)
+                const res = await getConfigListService(payload, pageSize, count - 1);
+                console.log(res);
+                if (res?.status === 200 && res?.data.outcome) {
+                    setColumnNames(res?.data.columnMetaData);
+                    setTableData(res?.data.data);
+                    setPrimaryKey(res?.data.primaryKey);
+                    setCheckedBoxes(res?.data.allotedRowIds.map(Number))
+                    const pageData = res.data.data;
+                    setPageInfo({
+                        totalPages: pageData.totalPages,
+                        totalElements: pageData.totalElements,
+                        first: pageData.first,
+                        last: pageData.last
+                    });
+                }
+            } catch (error) {
+                console.error(error);
             }
-        } catch (error) {
-            console.error(error);
         }
     };
 
@@ -228,7 +254,7 @@ const ConfigureAccess = () => {
                                     value: i.userId,
                                 }))}
 
-                            // error={errors.userId}
+                                error={errors.userId}
                             />
                         </div>
                         <div className="col-span-2">
@@ -244,7 +270,7 @@ const ConfigureAccess = () => {
                                     value: i.roleId
                                 }))}
                                 onChange={handleInputChange}
-                            // error={errors.roleId}
+                                error={errors.roleId}
                             />
                         </div>
                         <div className="col-span-2">
@@ -260,7 +286,7 @@ const ConfigureAccess = () => {
                                     value: i.roleRightLevelId
                                 }))}
                                 onChange={handleInputChange}
-                            // error={errors.finyearId}
+                                error={errors.accessLevel}
                             />
                         </div>
                         <div className="col-span-2">
