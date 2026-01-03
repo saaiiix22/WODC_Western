@@ -6,6 +6,7 @@ import SelectField from '../../components/common/SelectField'
 import { encryptPayload } from '../../crypto.js/encryption'
 import { getAccessLevelConfigService, getConfigListService, roleConfigListService, saveConfigAccessService, userSearchService } from '../../services/umtServices'
 import { toast } from 'react-toastify'
+import useDebounce from '../../utils/useDebounce'
 
 const ConfigureAccess = () => {
 
@@ -81,6 +82,9 @@ const ConfigureAccess = () => {
     const [tableData, setTableData] = useState([]);
     const [primaryKey, setPrimaryKey] = useState("");
 
+    const debouncedUserId = useDebounce(formData.userId, 600);
+
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         let newErrors = {}
@@ -130,14 +134,12 @@ const ConfigureAccess = () => {
         }
     };
 
-
-
-
     useEffect(() => {
-        if (formData.userId) {
-            getUserOpts()
+        if (debouncedUserId) {
+            getUserOpts();
         }
-    }, [formData.userId])
+    }, [debouncedUserId]);
+
     useEffect(() => {
         if (isUserSelected && formData.userId) {
             getRoleOpts();
@@ -241,9 +243,15 @@ const ConfigureAccess = () => {
                                 placeholder=''
                                 name="userId"
                                 value={formData.userId}
+                                // onChange={(e) => {
+                                //     handleInputChange(e);
+                                //     setIsUserSelected(false);
+                                // }}
                                 onChange={(e) => {
                                     handleInputChange(e);
                                     setIsUserSelected(false);
+                                    setRoleOpts([]);
+                                    setAccessLevelOpts([]);
                                 }}
 
                                 onSelect={(option) => {

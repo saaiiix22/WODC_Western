@@ -21,6 +21,7 @@ import { getVendorDataService } from "../../services/vendorService";
 import InputField from "../../components/common/InputField";
 import { IoMdAddCircle } from "react-icons/io";
 import { getFinancialYearService } from "../../services/budgetService";
+import { formatWithCommas, removeCommas } from "../../utils/validationUtils";
 
 const ProjectAgencyMilestone = () => {
   const userSelection = useSelector((state) => state?.menu.userDetails);
@@ -87,7 +88,9 @@ const ProjectAgencyMilestone = () => {
         //   actualStartDate: formatToYYYYMMDD(row.actualStartDate),
         //   actualEndDate: formatToYYYYMMDD(row.actualEndDate),
         // }));
-
+        if (res3?.data.outcome || res3?.status === 200) {
+          setFlag(res?.data.outcome)
+        }
         const mappedRows = Array.isArray(res3?.data?.data)
           ? res3.data.data.map((row) => ({
             ...row,
@@ -198,7 +201,6 @@ const ProjectAgencyMilestone = () => {
     }
 
     if (name === "budgetPercentage") {
-      // allow empty (delete/backspace)
       if (value === "") {
         updated[index].budgetPercentage = "";
         updated[index].amount = "";
@@ -247,13 +249,55 @@ const ProjectAgencyMilestone = () => {
       setRows(updated);
       return;
     }
+    if (name === "amount") {
+      if (value === "") {
+        updated[index].amount = "";
+        updated[index].budgetPercentage = "";
+        setRows(updated);
+        return;
+      }
+
+      if (!/^\d+(\.\d+)?$/.test(value)) return;
+
+      const enteredAmount = parseFloat(value);
+      if (enteredAmount < 0) return;
+
+      const usedAmountExceptCurrent = rows.reduce((sum, row, idx) => {
+        if (idx === index) return sum;
+        return sum + (parseFloat(row.amount) || '');
+      }, 0);
+
+      const remainingBeforeCurrent = budgetAmount - usedAmountExceptCurrent;
+
+      if (enteredAmount > remainingBeforeCurrent) {
+        toast.error("Amount exceeds remaining budget");
+        return;
+      }
+
+      const calculatedPercent = (
+        (enteredAmount / remainingBeforeCurrent) *
+        100
+      ).toFixed(2);
+
+      if (calculatedPercent > 100) {
+        toast.error("Percentage cannot exceed 100%");
+        return;
+      }
+
+      updated[index].amount = enteredAmount;
+      updated[index].budgetPercentage = calculatedPercent;
+
+      setRows(updated);
+      return;
+    }
+
 
     updated[index][name] = value;
     setRows(updated);
   };
 
   const totalActualAmount = rows.reduce(
-    (sum, row) => sum + (parseFloat(row.amount) || 0),
+    (sum, row) => sum + (parseFloat(row.amount) || ''),
     0
   );
 
@@ -261,7 +305,7 @@ const ProjectAgencyMilestone = () => {
 
   const handleAddRow = () => {
     const totalPercent = rows.reduce(
-      (sum, row) => sum + (parseFloat(row.budgetPercentage) || 0),
+      (sum, row) => sum + (parseFloat(row.budgetPercentage) || ''),
       0
     );
 
@@ -302,7 +346,7 @@ const ProjectAgencyMilestone = () => {
     updated.splice(index, 1);
     setRows(updated);
   };
-
+  const [flag, setFlag] = useState(false)
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -506,7 +550,7 @@ const ProjectAgencyMilestone = () => {
                 }))}
               />
             </div>
-            {formData.projectId && (
+            {formData.projectId && flag &&(
               <>
                 <div className="col-span-12">
                   {rows.map((i, index) => {
@@ -528,7 +572,11 @@ const ProjectAgencyMilestone = () => {
                         <div className="col-span-2">
                           <SelectField
                             label={"Agency Name"}
-                            // required={true}
+                            required={
+                              userSelection.roleCode === "ROLE_AGENCY" || i.milestoneStatus === "CMPL"
+                                ? false
+                                : true
+                            }
                             name="agencyId"
                             value={i.agencyId}
                             onChange={(e) =>
@@ -551,6 +599,11 @@ const ProjectAgencyMilestone = () => {
                             label={"Milestone"}
                             name="milestoneId"
                             value={i.milestoneId}
+                            required={
+                              userSelection.roleCode === "ROLE_AGENCY" || i.milestoneStatus === "CMPL"
+                                ? false
+                                : true
+                            }
                             onChange={(e) =>
                               handleInput(index, "milestoneId", e.target.value)
                             }
@@ -571,6 +624,11 @@ const ProjectAgencyMilestone = () => {
                           <InputField
                             label={"Order"}
                             name="order"
+                            required={
+                              userSelection.roleCode === "ROLE_AGENCY" || i.milestoneStatus === "CMPL"
+                                ? false
+                                : true
+                            }
                             value={i.order}
                             onChange={(e) =>
                               handleInput(index, "order", e.target.value)
@@ -585,7 +643,7 @@ const ProjectAgencyMilestone = () => {
                         </div>
                         <div className="col-span-2">
                           <label className="text-[13px] font-medium text-gray-700">
-                            Start Date
+                            Start Date {userSelection?.roleCode === "ROLE_AGENCY" || i.milestoneStatus === "CMPL" ? '' : <span className="text-red-500">*</span>}
                           </label>
                           <input
                             name="startDate"
@@ -593,6 +651,7 @@ const ProjectAgencyMilestone = () => {
                             onChange={(e) =>
                               handleInput(index, "startDate", e.target.value)
                             }
+
                             disabled={userSelection?.roleCode === "ROLE_AGENCY" || i.milestoneStatus === "CMPL" ? true : false}
                             type="date"
                             className={`
@@ -609,7 +668,7 @@ const ProjectAgencyMilestone = () => {
                         </div>
                         <div className="col-span-2">
                           <label className="text-[13px] font-medium text-gray-700">
-                            End Date
+                            End Date {userSelection?.roleCode === "ROLE_AGENCY" || i.milestoneStatus === "CMPL" ? '' : <span className="text-red-500">*</span>}
                           </label>
                           <input
                             name="endDate"
@@ -634,7 +693,7 @@ const ProjectAgencyMilestone = () => {
                         </div>
                         <div className="col-span-2">
                           <label className="text-[13px] font-medium text-gray-700">
-                            Actual Start Date
+                            Actual Start Date {userSelection?.roleCode === "ROLE_WODC_ADMIN" || i.milestoneStatus === "CMPL" ? '' : <span className="text-red-500">*</span>}
                           </label>
                           <input
                             name="actualStartDate"
@@ -663,7 +722,7 @@ const ProjectAgencyMilestone = () => {
                         </div>
                         <div className="col-span-2">
                           <label className="text-[13px] font-medium text-gray-700">
-                            Actual End Date
+                            Actual End Date {userSelection?.roleCode === "ROLE_WODC_ADMIN" || i.milestoneStatus === "CMPL" ? '' : <span className="text-red-500">*</span>}
                           </label>
                           <input
                             name="actualEndDate"
@@ -718,11 +777,29 @@ const ProjectAgencyMilestone = () => {
                             label={"Amount"}
                             type="text"
                             name="amount"
-                            value={i.amount}
-                            onChange={(e) =>
-                              handleInput(index, "amount", e.target.value)
+                            amount={true}
+                            value={formatWithCommas(i.amount)}
+                            max={budgetAmount}
+                            // onChange={(e) =>
+                            //   handleInput(index, "amount", e.target.value)
+                            // }
+                            onChange={(e) => {
+                              const rawValue = removeCommas(e.target.value);
+                              if (/^\d*$/.test(rawValue)) {
+                                handleInput(index, "amount", rawValue);
+                              }
+                            }}
+                            required={
+                              userSelection.roleCode === "ROLE_AGENCY" || i.milestoneStatus === "CMPL"
+                                ? false
+                                : true
                             }
-                            disabled={true}
+                            disabled={
+                              userSelection.roleCode === "ROLE_AGENCY" || i.milestoneStatus === "CMPL"
+                                ? true
+                                : false
+                            }
+                          // disabled={true}
                           />
                         </div>
                         <div className="col-span-2">
@@ -732,6 +809,11 @@ const ProjectAgencyMilestone = () => {
                             value={i.vendorId}
                             onChange={(e) =>
                               handleInput(index, "vendorId", e.target.value)
+                            }
+                            required={
+                              userSelection.roleCode === "ROLE_WODC_ADMIN" || i.milestoneStatus === "CMPL"
+                                ? false
+                                : true
                             }
                             disabled={
                               userSelection.roleCode === "ROLE_WODC_ADMIN" || i.milestoneStatus === "CMPL"
@@ -762,6 +844,13 @@ const ProjectAgencyMilestone = () => {
                               value: d.lookupValueCode,
                               label: d.lookupValueEn,
                             }))}
+                            required={
+                              // userSelection.roleCode === "ROLE_WODC_ADMIN" || i.milestoneStatus === "CMPL"
+                              userSelection.roleCode === "ROLE_WODC_ADMIN"
+
+                                ? false
+                                : true
+                            }
                             disabled={
                               // userSelection.roleCode === "ROLE_WODC_ADMIN" || i.milestoneStatus === "CMPL"
                               userSelection.roleCode === "ROLE_WODC_ADMIN"

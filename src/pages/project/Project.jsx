@@ -43,7 +43,7 @@ import { clearSelectedProject } from "../../redux/slices/projectSlice";
 import { RiAiGenerate } from "react-icons/ri";
 import { ResetBackBtn, SubmitBtn } from "../../components/common/CommonButtons";
 import ReusableDialog from "../../components/common/ReusableDialog";
-import { avoidSpecialCharUtil } from "../../utils/validationUtils";
+import { avoidSpecialCharUtil, formatWithCommas, removeCommas } from "../../utils/validationUtils";
 import { useNavigate } from "react-router-dom";
 
 const Project = () => {
@@ -344,7 +344,6 @@ const Project = () => {
   const handleRowChange = async (e, index) => {
     const { name, value } = e.target;
 
-    // ================= STATE UPDATE =================
     setFundReleaseRows((prev) => {
       const rows = [...prev];
       let row = { ...rows[index], [name]: value };
@@ -391,16 +390,12 @@ const Project = () => {
 
       // -------- Release Amount Validation --------
       if (name === "releaseAmount") {
-        if (value === "") {
-          row.releaseAmount = "";
-          rows[index] = row;
-          return rows;
-        }
+        const raw = removeCommas(value);
 
-        if (!/^\d+$/.test(value)) return rows;
+        if (!/^\d*$/.test(raw)) return rows;
 
-        const entered = Number(value);
         const max = Number(row.maxamount);
+        const entered = Number(raw);
 
         if (entered < 0) return rows;
 
@@ -409,14 +404,14 @@ const Project = () => {
           return rows;
         }
 
-        row.releaseAmount = value;
+        row.releaseAmount = raw;
       }
+
 
       rows[index] = row;
       return rows;
     });
 
-    // ⛔ STOP HERE — no async calls for typing amount
     if (name === "releaseAmount") return;
 
     // ================= SIDE EFFECTS =================
@@ -496,7 +491,6 @@ const Project = () => {
       updatedVal = avoidSpecialCharUtil(value);
     }
 
-    // --- Date Validations ---
     if (name === "endDate" && formData.startDate) {
       if (new Date(value) < new Date(formData.startDate)) {
         setErrors((prev) => ({
@@ -524,6 +518,10 @@ const Project = () => {
         return;
       }
     }
+    if (name === "estimatedBudget") {
+      updatedVal = removeCommas(value).replace(/\D/g, "");
+    }
+
 
     // normal update
     setFormData((prev) => ({ ...prev, [name]: updatedVal }));
@@ -1060,7 +1058,7 @@ const Project = () => {
                     disabled={true}
                     onChange={handleChangeInput}
                     maxLength={50}
-                    // error={errors.projectCode}
+                  // error={errors.projectCode}
                   />
                 </div>
                 <div className="col-span-2">
@@ -1331,10 +1329,11 @@ const Project = () => {
                   <InputField
                     label="Estimated Project Cost"
                     required={true}
-                    type="number"
+                    // type="number"
+                    amount={true}
                     name="estimatedBudget"
                     placeholder="Enter estimated budget"
-                    value={estimatedBudget}
+                    value={formatWithCommas(estimatedBudget)}
                     onChange={handleChangeInput}
                     error={errors.estimatedBudget}
                   />
@@ -1392,7 +1391,7 @@ const Project = () => {
                   />
                 </div>
                 <div className="col-span-2">
-                  <button type="button" className="px-5 py-1 text-sm bg-green-200 text-green-800 rounded-sm mt-6" onClick={()=>setExpanded("panel2")}>Next</button>
+                  <button type="button" className="px-5 py-1 text-sm bg-green-200 text-green-800 rounded-sm mt-6" onClick={() => setExpanded("panel3")}>Next</button>
                 </div>
               </div>
             </div>
@@ -1423,55 +1422,6 @@ const Project = () => {
           <AccordionDetails>
             <div className="p-3">
               <div className="flex justify-end items-start mt-5">
-                {/* <div className="flex items-center gap-3 ">
-                  <label className="text-[13px] font-medium text-gray-700">
-                    Fund Release To <span className="text-red-500">*</span>
-                  </label>
-                  <div className="flex gap-5 items-center">
-                    <div className="flex gap-1">
-                      <input
-                        type="radio"
-                        name="fundReleaseTo"
-                        id="radio3"
-                        value={"DISTRICT"}
-                        // checked={
-                        //   stateSelect?.fundReleaseTo === "DISTRICT"
-                        //     ? true
-                        //     : false
-                        // }
-                        checked={formData.fundReleaseTo === "DISTRICT"}
-                        onChange={handleChangeInput}
-                      />
-                      <label
-                        htmlFor="radio3"
-                        className="text-sm text-slate-800"
-                      >
-                        District
-                      </label>
-                    </div>
-                    <div className="flex gap-1">
-                      <input
-                        type="radio"
-                        name="fundReleaseTo"
-                        id="radio4"
-                        value={"EXECUTIVE_AGENCY"}
-                        // checked={
-                        //   stateSelect?.fundReleaseTo === "EXECUTIVE_AGENCY"
-                        //     ? true
-                        //     : false
-                        // }
-                        checked={formData.fundReleaseTo === "EXECUTIVE_AGENCY"}
-                        onChange={handleChangeInput}
-                      />
-                      <label
-                        htmlFor="radio4"
-                        className="text-sm text-slate-800"
-                      >
-                        Executive Agency
-                      </label>
-                    </div>
-                  </div>
-                </div> */}
                 <div className=" flex items-center gap-3">
                   <h1 className="font-semibold text-slate-500">
                     Total Budget :{" "}
@@ -1588,32 +1538,18 @@ const Project = () => {
                         placeholder="Select "
                       />
                     </div>
-                    {/* <div className="col-span-2">
-                      <SelectField
-                        label="Favour of "
-                        name="favourOf"
-                        value={i.favourOf}
-                        onChange={(e) => handleRowChange(e, index)}
-                        options={favourList?.map((d) => ({
-                          value: d.lookupValueCode,
-                          label: d.lookupValueEn,
-                        }))}
-                        //   error={errors.districtId}
-                        placeholder="Select "
-                      />
-                    </div> */}
 
                     <div className="col-span-2">
                       <InputField
-                        type="number"
+                        // type="number"
                         amount={true}
                         label="Release Amount"
                         required={true}
                         name="releaseAmount"
-                        value={i.releaseAmount}
+                        value={formatWithCommas(i.releaseAmount)}
                         // disabled={i.maxamount ? false : true}
                         onChange={(e) => handleRowChange(e, index)}
-                        //   error={errors.blockNameEN}
+                      //   error={errors.blockNameEN}
                       />
                       <div className="flex justify-between">
                         {i.maxamount !== undefined && i.maxamount !== null && (
@@ -1638,48 +1574,6 @@ const Project = () => {
                         )}
                       </div>
                     </div>
-                    {/* <div className="col-span-2">
-                      <InputField
-                        label="Sanction Order No."
-                        required={true}
-                        name="sanctionOrderNo"
-                        value={i.sanctionOrderNo}
-                        onChange={(e) => handleRowChange(e, index)}
-                        //   error={errors.blockNameEN}
-                      />
-                    </div>
-                    <div className="col-span-2">
-                      <InputField
-                        label="Sanction Order Date"
-                        type="date"
-                        required={true}
-                        name="sanctionOrderDate"
-                        value={i.sanctionOrderDate}
-                        onChange={(e) => handleRowChange(e, index)}
-                        //   error={errors.blockNameEN}
-                      />
-                    </div>
-                    <div className="col-span-2">
-                      <InputField
-                        label="Release Letter No."
-                        required={true}
-                        name="releaseLetterNo"
-                        value={i.releaseLetterNo}
-                        onChange={(e) => handleRowChange(e, index)}
-                        //   error={errors.blockNameEN}
-                      />
-                    </div>
-                    <div className="col-span-2">
-                      <InputField
-                        label="Release Letter Date"
-                        type="date"
-                        required={true}
-                        name="releaseLetterDate"
-                        value={i.releaseLetterDate}
-                        onChange={(e) => handleRowChange(e, index)}
-                        //   error={errors.blockNameEN}
-                      />
-                    </div> */}
                     <div className="col-span-4">
                       <InputField
                         label="Description"
@@ -1709,16 +1603,6 @@ const Project = () => {
               <div className="flex justify-center gap-2 text-[13px] bg-[#42001d0f] border-t border-[#ebbea6] px-4 py-3 rounded-b-md">
                 <ResetBackBtn />
                 <SubmitBtn type={"submit"} btnText={projectId} />
-                {/* <button
-                  type="submit"
-                  className="bg-green-600 text-white px-3 py-1 rounded-md hover:bg-green-700 transition-all active:scale-95"
-                >
-                  Submit
-                </button>
-
-                <button className="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 transition-all active:scale-95">
-                  Back
-                </button> */}
               </div>
             </div>
           </AccordionDetails>

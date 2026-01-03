@@ -40,11 +40,12 @@ const ManageRole = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-
     try {
       const sendData = {
         ...formData,
+        roleCode: roleCode.trim(),
+        displayName: displayName.trim(),
+        description: description?.trim(),
         maxAssignments: maxAssignments ? Number(maxAssignments) : null
       };
 
@@ -64,6 +65,9 @@ const ManageRole = () => {
     } catch (error) {
       setOpen(false)
       console.error("Submit Error:", error);
+    }
+    finally {
+      setOpen(false)
     }
 
   };

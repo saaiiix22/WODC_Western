@@ -5,6 +5,7 @@ import InputField from '../../components/common/InputField'
 import { changePasswordService, checkOldPasswordService, getProfileInfoService } from '../../services/umtServices'
 import { encryptPayload } from '../../crypto.js/encryption'
 import { toast } from 'react-toastify'
+import ReusableDialog from '../../components/common/ReusableDialog'
 
 const ChangePassword = () => {
     const [formData, setFormData] = useState({
@@ -119,7 +120,37 @@ const ChangePassword = () => {
             setIsOldPasswordValid(false);
         }
     };
-
+    const [open, setOpen] = useState(false)
+    const confirmHandleSubmit = (e) => {
+        e.preventDefault()
+        let newErrors = {}
+        if (!formData.userName || !formData.userName.trim()) {
+            newErrors.userName = "User name is required";
+            setErrors(newErrors);
+            return;
+        }
+        if (!formData.oldPassword || !formData.oldPassword.trim()) {
+            newErrors.oldPassword = "Old password is required";
+            setErrors(newErrors);
+            return;
+        }
+        if (!formData.newPassword || !formData.newPassword.trim()) {
+            newErrors.newPassword = "New password is required";
+            setErrors(newErrors);
+            return;
+        }
+        if (!formData.confirmPassword || !formData.confirmPassword.trim()) {
+            newErrors.confirmPassword = "Confirm new password";
+            setErrors(newErrors);
+            return;
+        }
+        if (Object.keys(newErrors).length === 0) {
+            setOpen(true)
+        }
+        else {
+            setOpen(false)
+        }
+    }
     const handleSubmit = async (e) => {
         e.preventDefault()
         try {
@@ -132,6 +163,7 @@ const ChangePassword = () => {
             const res = await changePasswordService(payload)
             console.log(res);
             if (res?.status === 200 && res?.data.outcome === true) {
+                setOpen(false)
                 toast.success(res?.data.message)
                 setFormData({
                     ...formData,
@@ -141,6 +173,7 @@ const ChangePassword = () => {
                 })
             }
             else {
+                setOpen(false)
                 toast.error(res?.data.message)
                 setFormData({
                     ...formData,
@@ -163,7 +196,7 @@ const ChangePassword = () => {
 
 
     return (
-        <form action="" onSubmit={handleSubmit}>
+        <form action="" onSubmit={confirmHandleSubmit}>
             <div
                 className="
             mt-3 p-2 bg-white rounded-sm border border-[#f1f1f1]
@@ -193,7 +226,7 @@ const ChangePassword = () => {
                 <div className="min-h-[120px] py-5 px-4 text-[#444]">
                     <div className="grid grid-cols-12 gap-6">
                         <div className="col-span-2">
-                            <InputField label="User Id" required={true} name={'userName'} onChange={handleChange} value={formData.userName} />
+                            <InputField label="User Id" required={true} name={'userName'} onChange={handleChange} value={formData.userName} disabled={true} />
                         </div>
                         <div className="col-span-2">
                             <InputField label="Old Password" type='password' required={true} name={'oldPassword'} onChange={handleChange} value={formData.oldPassword} onBlur={handleOldPasswordBlur} />
@@ -227,6 +260,13 @@ const ChangePassword = () => {
 
                 </div>
             </div>
+            <ReusableDialog
+                open={open}
+                // title="Submit"
+                description="Are you sure you want to submit?"
+                onClose={() => setOpen(false)}
+                onConfirm={handleSubmit}
+            />
         </form>
     )
 }

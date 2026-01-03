@@ -13,6 +13,7 @@ import {
 } from "../../services/umtServices";
 import { ResetBackBtn, SubmitBtn } from "../../components/common/CommonButtons";
 import { toast } from "react-toastify";
+import ReusableDialog from "../../components/common/ReusableDialog";
 
 const RoleMenuMap = () => {
   const [selectedItems, setSelectedItems] = useState([]);
@@ -20,9 +21,15 @@ const RoleMenuMap = () => {
     roleId: "",
   });
   // console.log(selectedItems);
+  const [errors, setErrors] = useState({});
+  const [open, setOpen] = useState(false)
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    setErrors((prev) => ({
+      ...prev,
+      [name]: "",
+    }));
     setFormData({ ...formData, [name]: value });
   };
 
@@ -45,7 +52,7 @@ const RoleMenuMap = () => {
     return Array.from(result);
   };
 
-  
+
 
 
   const handleSelectionChange = (event, itemIds) => {
@@ -167,7 +174,7 @@ const RoleMenuMap = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+
     try {
       const normalizedMenuIds = addParentIds(selectedItems, menuList);
 
@@ -180,14 +187,37 @@ const RoleMenuMap = () => {
       const res = await saveRoleMenuMapService(payload);
 
       if (res?.status === 200 && res?.data.outcome) {
+        setOpen(false)
         toast.success(res?.data.message);
         setFormData({ roleId: "" });
         setSelectedItems([]);
       }
+      else{
+        setOpen(false)
+        toast.error(res?.data.message);
+      }
     } catch (error) {
       throw error;
     }
+
   };
+  const confirmHandleSubmit = (e) => {
+    e.preventDefault();
+    let newErrors = {}
+    if (!formData.roleId) {
+      newErrors.roleId = "Role is required";
+      setErrors(newErrors);
+      return;
+    }
+    setErrors(newErrors)
+    if (Object.keys(newErrors).length === 0) {
+      setOpen(true)
+    }
+    else{
+      setOpen(false)
+    }
+  }
+
 
 
 
@@ -213,7 +243,7 @@ const RoleMenuMap = () => {
 
 
   return (
-    <form action="" onSubmit={handleSubmit}>
+    <form action="" onSubmit={confirmHandleSubmit}>
       <div
         className="
         mt-3 p-2 bg-white rounded-sm border border-[#f1f1f1]
@@ -254,6 +284,7 @@ const RoleMenuMap = () => {
                   value: i.roleCode,
                   label: i.displayName,
                 }))}
+                error={errors.roleId}
               />
             </div>
             {formData.roleId && (
@@ -345,6 +376,13 @@ const RoleMenuMap = () => {
           <SubmitBtn type={"submit"} />
         </div>
       </div>
+      <ReusableDialog
+        open={open}
+        // title="Submit"
+        description="Are you sure you want to submit?"
+        onClose={() => setOpen(false)}
+        onConfirm={handleSubmit}
+      />
     </form>
   );
 };

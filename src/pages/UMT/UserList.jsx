@@ -7,6 +7,7 @@ import { editUserService, toggleUserStatusService, userListService } from '../..
 import { encryptPayload } from '../../crypto.js/encryption'
 import { data, useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
+import ReusableDialog from '../../components/common/ReusableDialog'
 
 const UserList = () => {
 
@@ -34,10 +35,10 @@ const UserList = () => {
         try {
             const res = await userListService({
                 size: formData.size,
-                page: count - 1 
+                page: count - 1
             })
             console.log(res);
-            
+
             if (res?.status === 200 && res?.data?.outcome) {
                 const pageData = res.data.data
 
@@ -55,52 +56,62 @@ const UserList = () => {
     }
 
     const navigate = useNavigate()
-    const ViewUser = async(id)=>{
+    const ViewUser = async (id) => {
         try {
             const sendData = {
-                userId:Number(id),
-                isActive:false
+                userId: Number(id),
+                isActive: false
             }
             const payload = encryptPayload(sendData)
             const res = await editUserService(payload)
             console.log(res);
-            if(res?.status === 200 && res?.data.outcome){
-                navigate('/addUser',{state:res?.data.data})
+            if (res?.status === 200 && res?.data.outcome) {
+                navigate('/addUser', { state: res?.data.data })
             }
         } catch (error) {
             throw error
         }
     }
 
-    const editUser = async(id)=>{
+    const editUser = async (id) => {
         try {
             const sendData = {
-                userId:Number(id),
-                isActive:true
+                userId: Number(id),
+                isActive: true
             }
             const payload = encryptPayload(sendData)
             const res = await editUserService(payload)
             console.log(res);
-            if(res?.status === 200 && res?.data.outcome){
-                navigate('/addUser',{state:res?.data.data})
+            if (res?.status === 200 && res?.data.outcome) {
+                navigate('/addUser', { state: res?.data.data })
             }
         } catch (error) {
             throw error
         }
     }
-
-    const toggleStatus = async(id,stat)=>{
+    const [open, setOpen] = useState(false)
+    const [statDetails, setStatDetails] = useState({
+        id: '',
+        stat: ''
+    })
+    const toggleStatus = async () => {
         try {
             const sendData = {
-                userId:id,
-                isActive:!stat
+                userId: statDetails.id,
+                isActive: !statDetails.stat
             }
             const payload = encryptPayload(sendData)
             const res = await toggleUserStatusService(payload)
             console.log(res);
-            if(res?.status === 200 && res?.data.outcome){
+            if (res?.status === 200 && res?.data.outcome) {
+                setOpen(false)
                 getTableData()
-               toast.success(res?.data.message)
+                toast.success(res?.data.message)
+            }
+            else {
+                setOpen(false)
+                getTableData()
+                toast.error(res?.data.message)
             }
         } catch (error) {
             throw error
@@ -116,7 +127,7 @@ const UserList = () => {
         setCount(1)
     }, [formData.size])
 
-    
+
 
     return (
         <div className="mt-3 p-2 bg-white rounded-sm border border-[#f1f1f1] shadow-[0_4px_12px_rgba(0,0,0,0.08)]">
@@ -150,7 +161,7 @@ const UserList = () => {
 
                             <tbody>
                                 {tableData.map((i, index) => (
-                                    <tr className={`border-b border-slate-200 ${(index+1)%2===0?"bg-slate-50":""}`} key={index}>
+                                    <tr className={`border-b border-slate-200 ${(index + 1) % 2 === 0 ? "bg-slate-50" : ""}`} key={index}>
                                         <td className="border-r border-slate-200  text-center py-1 px-3 text-sm">
                                             {(count - 1) * formData.size + index + 1}
                                         </td>
@@ -161,11 +172,11 @@ const UserList = () => {
                                         <td className="border-r border-slate-200 py-1 px-3 text-sm"></td>
 
                                         <td className="border-r border-slate-200 py-1 px-3 text-sm flex items-center gap-3">
-                                            <button className="h-8 w-8 bg-blue-500/25 text-blue-500 rounded-sm flex justify-center items-center" onClick={()=>ViewUser(i.userId)}>
+                                            <button className="h-8 w-8 bg-blue-500/25 text-blue-500 rounded-sm flex justify-center items-center" onClick={() => ViewUser(i.userId)}>
                                                 <FaEye />
                                             </button>
 
-                                            <button className="h-8 w-8 bg-yellow-500/25 text-yellow-500 rounded-sm flex justify-center items-center" onClick={()=>editUser(i.userId)}>
+                                            <button className="h-8 w-8 bg-yellow-500/25 text-yellow-500 rounded-sm flex justify-center items-center" onClick={() => editUser(i.userId)}>
                                                 <GoPencil />
                                             </button>
 
@@ -175,7 +186,14 @@ const UserList = () => {
                                                         ? "bg-green-600/25 text-green-600"
                                                         : "bg-red-500/25 text-red-500"
                                                     }`}
-                                                    onClick={()=>toggleStatus(i.userId,i.isActive)}
+                                                onClick={() => {
+                                                    
+                                                    setStatDetails({
+                                                        id: i.userId,
+                                                        stat: i.isActive
+                                                    })
+                                                    setOpen(true)
+                                                }}
                                             >
                                                 {i.isActive ? <MdLockOutline /> : <MdLockOpen />}
                                             </button>
@@ -249,6 +267,13 @@ const UserList = () => {
 
                 </div>
             </div>
+            <ReusableDialog
+                open={open}
+                // title="Submit"
+                description="Are you sure you want to submit?"
+                onClose={() => setOpen(false)}
+                onConfirm={toggleStatus}
+            />
         </div>
     )
 }

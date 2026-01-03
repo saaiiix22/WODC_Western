@@ -19,13 +19,13 @@ export const prevDateUtil = () => {
 export const alphaNumericUtil = (str = '') => {
   return str.replace(/[^a-zA-Z0-9]/g, '').trim();
 };
-export const numberOnlyUtil=(str='')=>{
-  return str.replace(/[^0-9]/g,'').trim();
+export const numberOnlyUtil = (str = '') => {
+  return str.replace(/[^0-9]/g, '').trim();
 }
 export const convertIntoINRutil = (str = "") => {
   const num = Number(str);
 
-  if (isNaN(num)) return str; 
+  if (isNaN(num)) return str;
 
   return num.toLocaleString("en-IN", {
     style: "currency",
@@ -48,7 +48,7 @@ export const IFSCutil = (value) => {
 
   return value.toUpperCase().replace(/[^0-9A-Z]/g, "");
 };
-export const onlyNumberUtil=(str ='')=>{
+export const onlyNumberUtil = (str = '') => {
   if (!str) return "";
   return str.toUpperCase().replace(/[^0-9]/g, "");
 }
@@ -60,8 +60,8 @@ export const ifscUtil = (str = "") => {
   if (!str) return "";
   return str
     .toUpperCase()
-    .replace(/[^A-Z0-9]/g, "")  
-    .slice(0, 11); 
+    .replace(/[^A-Z0-9]/g, "")
+    .slice(0, 11);
 };
 
 
@@ -71,7 +71,7 @@ export const ifscUtil = (str = "") => {
 ---------------------------*/
 export const validateAccountNoUtil = (accNo = '') => {
   const cleaned = accNo.replace(/\s+/g, '');
-  
+
   if (!/^[0-9]{8,18}$/.test(cleaned)) {
     return false;
   }
@@ -114,12 +114,12 @@ export const cleanAadhaarUtil = (str = "") => {
 
 // Must be exactly 10 digits and start with 6,7,8,9
 // export const validateContactNoUtil = (contactNo = "") => {
-  //   return /^[6-9][0-9]{9}$/.test(contactNo);
-  // };
-  
-  export const cleanContactNoUtil = (input = "") => {
-    return input.replace(/[^0-9]/g, "").slice(0, 10);
-  };
+//   return /^[6-9][0-9]{9}$/.test(contactNo);
+// };
+
+export const cleanContactNoUtil = (input = "") => {
+  return input.replace(/[^0-9]/g, "").slice(0, 10);
+};
 
 export const validateContactNoUtil = (contactNo = "") => {
   if (!contactNo) {
@@ -161,4 +161,15 @@ export const validateEmailUtil = (email = "") => {
   }
 
   return "";
+};
+
+
+export const formatWithCommas = (value) => {
+  if (!value) return "";
+  return Number(value).toLocaleString("en-IN");
+};
+
+export const removeCommas = (value) => {
+  if (!value) return "";
+  return value.replace(/,/g, "");
 };

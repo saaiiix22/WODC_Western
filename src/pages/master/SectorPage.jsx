@@ -365,7 +365,7 @@ const SectorPage = () => {
               <div className="col-span-12">
                 <div className="bg-slate-100 border-l-4 border-slate-600  px-4 py-2">
                   <h5 className="text-sm font-semibold text-slate-700">
-                    Add Sub Sectors
+                    Add Sub-sectors
                   </h5>
                 </div>
               </div>
@@ -378,7 +378,7 @@ const SectorPage = () => {
                         SL No
                       </td>
                       <td className="text-center text-sm font-semibold px-4 py-1 border-r border-slate-200">
-                        Sub Sector Name
+                        Sub-sector Name
                       </td>
                       <td className="text-center text-sm font-semibold px-4 py-1 border-r border-slate-200">
                         Code

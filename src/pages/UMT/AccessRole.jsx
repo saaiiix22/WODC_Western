@@ -5,6 +5,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { encryptPayload } from "../../crypto.js/encryption";
 import { saveRoleLevelMapService } from "../../services/umtServices";
 import { toast } from "react-toastify";
+import ReusableDialog from "../../components/common/ReusableDialog";
 
 const AccessRole = () => {
   const location = useLocation();
@@ -31,6 +32,11 @@ const AccessRole = () => {
   };
 
   const navigate = useNavigate()
+  const [open,setOpen] = useState(false)
+  const confirmHandleSubmit=(e)=>{
+    e.preventDefault()
+    setOpen(true)
+  }
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
@@ -45,8 +51,12 @@ const AccessRole = () => {
       const res = await saveRoleLevelMapService(payload)
       console.log(res);
       if(res?.status === 200 && res?.data.outcome){
+        setOpen(false)
         toast.success(res?.data.message)
         navigate('/get-manage-user')
+      }
+      else{
+        toast.error(res?.data.message)
       }
     } catch (error) {
       throw error
@@ -79,7 +89,7 @@ const AccessRole = () => {
 
 
   return (
-    <form action="" onSubmit={handleSubmit}>
+    <form action="" onSubmit={confirmHandleSubmit}>
 
 
       <div
@@ -198,6 +208,13 @@ const AccessRole = () => {
           <SubmitBtn type={'submit'} />
         </div>
       </div>
+      <ReusableDialog
+        open={open}
+        // title="Submit"
+        description="Are you sure you want to submit?"
+        onClose={() => setOpen(false)}
+        onConfirm={handleSubmit}
+      />
     </form>
   );
 };

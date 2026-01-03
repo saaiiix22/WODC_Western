@@ -13,6 +13,8 @@ import {
 } from "../../services/umtServices";
 import { toast } from "react-toastify";
 import { useLocation } from "react-router-dom";
+import ReusableDialog from "../../components/common/ReusableDialog";
+import { validateContactNoUtil } from "../../utils/validationUtils";
 
 const AddUser = () => {
   const [formData, setFormData] = useState({
@@ -34,20 +36,108 @@ const AddUser = () => {
 
   const handleChangeInput = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    if (name === "mobile") {
+      const errorMsg = validateContactNoUtil(value);
+      setErrors((prev) => ({
+        ...prev,
+        mobile: errorMsg,
+      }));
+    }
+    else if (name === "userName") {
+      if (value.length < 4) {
+        setErrors((prev) => ({
+          ...prev,
+          userName: 'Enter valid username',
+        }));
+      }
+      else {
+        setErrors((prev) => ({
+          ...prev,
+          [name]: "",
+        }));
+      }
+    }
+    else {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: "",
+      }));
+    }
   };
 
+  const [open, setOpen] = useState(false)
+  const [errors, setErrors] = useState({})
+  const confirmHandleSubmit = (e) => {
+    e.preventDefault()
+    let newErrors = {}
+    if (!formData.userName || !formData.userName.trim()) {
+      newErrors.userName = "Username is required";
+      setErrors(newErrors);
+      return;
+    }
+    if (!formData.firstname || !formData.firstname.trim()) {
+      newErrors.firstname = "First name is required";
+      setErrors(newErrors);
+      return;
+    }
+    if (!formData.lastname || !formData.lastname.trim()) {
+      newErrors.lastname = "Last name is required";
+      setErrors(newErrors);
+      return;
+    }
+    if (!formData.mobile || !formData.mobile.trim()) {
+      newErrors.mobile = "Mobile number is required";
+      setErrors(newErrors);
+      return;
+    }
+    if (!formData.email || !formData.email.trim()) {
+      newErrors.email = "Email is required";
+      setErrors(newErrors);
+      return;
+    }
+    if (!formData.designation || !formData.designation.trim()) {
+      newErrors.designation = "Designation is required";
+      setErrors(newErrors);
+      return;
+    }
+    if (rows.length === 0) {
+      toast.error("Please add at least one role");
+      return;
+    }
+
+    const incompleteRowIndex = rows.findIndex((row) => !isRowComplete(row));
+    if (incompleteRowIndex !== -1) {
+      toast.error(`Please complete role row ${incompleteRowIndex + 1}`);
+      return;
+    }
+
+    setErrors(newErrors);
+
+    if (Object.keys(newErrors).length === 0) {
+      setOpen(true);
+    }
+    else {
+      setOpen(false)
+    }
+  }
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     // console.log(formData);
     const sendData = {
       userId,
-      userName,
-      firstname,
-      lastname,
-      mobile,
-      email,
-      designation,
+      userName:userName.trim(),
+      firstname:firstname.trim(),
+      lastname:lastname.trim(),
+      mobile:mobile.trim(),
+      email:email.trim(),
+      designation:designation.trim(),
       userRoleMaps: rows,
     };
     try {
@@ -55,6 +145,7 @@ const AddUser = () => {
       const res = await saveAddUserService(payload)
       console.log(res);
       if (res?.status === 200 && res?.data.outcome) {
+        setOpen(false)
         toast.success(res?.data.message)
         setFormData({
           userId: null,
@@ -74,6 +165,7 @@ const AddUser = () => {
         ])
       }
       else {
+        setOpen(false)
         toast.error(res?.data.message)
         setFormData({
           userId: null,
@@ -121,8 +213,22 @@ const AddUser = () => {
       activeStatus: "",
     },
   ]);
+  const isRowComplete = (row) => {
+    return (
+      row.roleCodes !== "" &&
+      row.isPrimary !== "" &&
+      row.activeStatus !== ""
+    );
+  };
 
-  const handleAddRow = () => [
+  const handleAddRow = () => {
+    const lastRow = rows[rows.length - 1];
+
+    if (!isRowComplete(lastRow)) {
+      toast.error("Please complete the current row before adding a new one");
+      return;
+    }
+
     setRows([
       ...rows,
       {
@@ -130,8 +236,9 @@ const AddUser = () => {
         isPrimary: "",
         activeStatus: "",
       },
-    ]),
-  ];
+    ]);
+  };
+
 
   const handleInput = (index, name, value) => {
     const updated = rows.map((row, i) => {
@@ -181,7 +288,7 @@ const AddUser = () => {
   }, [state])
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={confirmHandleSubmit}>
       <div
         className="
             mt-3 p-2 bg-white rounded-sm border border-[#f1f1f1]
@@ -213,13 +320,13 @@ const AddUser = () => {
           <div className="grid grid-cols-12 gap-6">
             <div className="col-span-2">
               <InputField
-                label="User Id"
+                label="Username"
                 required={true}
                 name="userName"
                 value={userName}
                 disabled={lock === false ? true : false}
                 onChange={handleChangeInput}
-              //   error={errors.agencyName}
+                error={errors.userName}
               />
             </div>
             <div className="col-span-2">
@@ -230,7 +337,7 @@ const AddUser = () => {
                 value={firstname}
                 disabled={lock === false ? true : false}
                 onChange={handleChangeInput}
-              //   error={errors.agencyName}
+                error={errors.firstname}
               />
             </div>
             <div className="col-span-2">
@@ -241,7 +348,7 @@ const AddUser = () => {
                 value={lastname}
                 disabled={lock === false ? true : false}
                 onChange={handleChangeInput}
-              //   error={errors.agencyName}
+                error={errors.lastname}
               />
             </div>
             <div className="col-span-2">
@@ -253,7 +360,7 @@ const AddUser = () => {
                 disabled={lock === false ? true : false}
                 onChange={handleChangeInput}
                 maxLength={10}
-              //   error={errors.agencyName}
+                error={errors.mobile}
               />
             </div>
             <div className="col-span-2">
@@ -264,7 +371,7 @@ const AddUser = () => {
                 value={email}
                 disabled={lock === false ? true : false}
                 onChange={handleChangeInput}
-              //   error={errors.agencyName}
+                error={errors.email}
               />
             </div>
             <div className="col-span-2">
@@ -275,7 +382,7 @@ const AddUser = () => {
                 value={designation}
                 disabled={lock === false ? true : false}
                 onChange={handleChangeInput}
-              //   error={errors.agencyName}
+                error={errors.designation}
               />
             </div>
           </div>
@@ -394,7 +501,7 @@ const AddUser = () => {
                   ))}
               </tbody>
             </table>
-            
+
           </div>
 
           {/* Footer (Optional) */}
@@ -407,6 +514,13 @@ const AddUser = () => {
           </div>
         </div>
       </div>
+      <ReusableDialog
+        open={open}
+        // title="Submit"
+        description="Are you sure you want to submit?"
+        onClose={() => setOpen(false)}
+        onConfirm={handleSubmit}
+      />
     </form>
   );
 };

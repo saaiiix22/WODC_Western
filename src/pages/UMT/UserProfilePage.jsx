@@ -5,6 +5,8 @@ import InputField from "../../components/common/InputField";
 import { getProfileInfoService, saveProfileService } from "../../services/umtServices"
 import { encryptPayload } from "../../crypto.js/encryption";
 import { toast } from "react-toastify";
+import ReusableDialog from "../../components/common/ReusableDialog";
+import { validateContactNoUtil } from "../../utils/validationUtils";
 
 const UserProfilePage = () => {
   const [selectedImage, setSelectedImage] = useState(null);
@@ -44,18 +46,96 @@ const UserProfilePage = () => {
   })
   const handleChange = (e) => {
     const { name, value } = e.target
+    if (name === "mobile") {
+      const errorMsg = validateContactNoUtil(value);
+      setErrors((prev) => ({
+        ...prev,
+        mobile: errorMsg,
+      }));
+    }
+    else if (name === "userName") {
+      if (value.length < 4) {
+        setErrors((prev) => ({
+          ...prev,
+          userName: 'Enter valid username',
+        }));
+      }
+      else {
+        setErrors((prev) => ({
+          ...prev,
+          [name]: "",
+        }));
+      }
+    }
+    else {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: "",
+      }));
+    }
     setFormData({ ...formData, [name]: value })
   }
+  const [open, setOpen] = useState(false)
+  const confirmHandleSubmit = (e) => {
+    e.preventDefault()
+    let newErrors = {}
+    if (!formData.firstName || !formData.firstName.trim()) {
+      newErrors.firstName = "First name is required";
+      setErrors(newErrors);
+      return;
+    }
+    if (!formData.lastName || !formData.lastName.trim()) {
+      newErrors.lastName = "Last name is required";
+      setErrors(newErrors);
+      return;
+    }
+    if (!formData.mobile || !formData.mobile.trim()) {
+      newErrors.mobile = "First name is required";
+      setErrors(newErrors);
+      return;
+    }
+    if (!formData.email || !formData.email.trim()) {
+      newErrors.email = "First name is required";
+      setErrors(newErrors);
+      return;
+    }
+    if (!formData.userName || !formData.userName.trim()) {
+      newErrors.userName = "First name is required";
+      setErrors(newErrors);
+      return;
+    }
+    if (!formData.designation || !formData.designation.trim()) {
+      newErrors.designation = "First name is required";
+      setErrors(newErrors);
+      return;
+    }
+    setErrors(newErrors)
+    if (Object.keys(newErrors).length === 0) {
+      setOpen(true)
+    }
+    else {
+      setOpen(false)
+    }
+  }
+  const [errors, setErrors] = useState({})
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
-      const payload = encryptPayload(formData)
+      const payload = encryptPayload({
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        mobile: formData.mobile.trim(),
+        email: formData.email.trim(),
+        userName: formData.userName.trim(),
+        designation: formData.designation.trim()
+      })
       const fmData = new FormData()
       fmData.append("cipherText", payload)
       fmData.append("profilePicture", imageFile)
       const res = await saveProfileService(fmData)
       // console.log(res);
       if (res?.status === 200 && res?.data.outcome) {
+        setOpen(false)
         toast.success(res?.data.message)
         const userData = res.data.data;
 
@@ -71,6 +151,20 @@ const UserProfilePage = () => {
         if (userData.profileBase64) {
           setSelectedImage(`data:image/jpeg;base64,${userData.profileBase64}`);
         }
+      }
+      else {
+        setOpen(false)
+        toast.error(res?.data.message)
+        setFormData({
+          userId: "",
+          firstName: "",
+          lastName: "",
+          mobile: "",
+          email: "",
+          userName: "",
+          designation: ""
+        });
+        setSelectedImage(null)
       }
 
     } catch (error) {
@@ -107,7 +201,7 @@ const UserProfilePage = () => {
   }, [])
 
   return (
-    <form action="" onSubmit={handleSubmit}>
+    <form action="" onSubmit={confirmHandleSubmit}>
       <div
         className="
           mt-3 p-2 bg-white rounded-sm border border-[#f1f1f1]
@@ -139,22 +233,22 @@ const UserProfilePage = () => {
             <div className="col-span-9">
               <div className="grid grid-cols-12 gap-6">
                 <div className="col-span-4">
-                  <InputField label="First Name" required={true} name="firstName" onChange={handleChange} value={formData.firstName} />
+                  <InputField label="First Name" required={true} name="firstName" onChange={handleChange} value={formData.firstName} error={errors.firstName} />
                 </div>
                 <div className="col-span-4">
-                  <InputField label="Last Name" required={true} name="lastName" onChange={handleChange} value={formData.lastName} />
+                  <InputField label="Last Name" required={true} name="lastName" onChange={handleChange} value={formData.lastName} error={errors.lastName} />
                 </div>
                 <div className="col-span-4">
-                  <InputField label="Mobile" required={true} name="mobile" onChange={handleChange} value={formData.mobile} />
+                  <InputField label="Mobile" required={true} name="mobile" onChange={handleChange} value={formData.mobile} error={errors.mobile} />
                 </div>
                 <div className="col-span-4">
-                  <InputField label="Email ID" required={true} name="email" onChange={handleChange} value={formData.email} />
+                  <InputField label="Email ID" required={true} name="email" onChange={handleChange} value={formData.email} error={errors.email} />
                 </div>
                 <div className="col-span-4">
-                  <InputField label="User name" required={true} name="userName" onChange={handleChange} value={formData.userName} />
+                  <InputField label="User name" required={true} name="userName" onChange={handleChange} value={formData.userName} error={errors.userName} />
                 </div>
                 <div className="col-span-4">
-                  <InputField label="Designation" required={true} name="designation" onChange={handleChange} value={formData.designation} />
+                  <InputField label="Designation" required={true} name="designation" onChange={handleChange} value={formData.designation} error={errors.designation} />
                 </div>
               </div>
             </div>
@@ -215,6 +309,13 @@ const UserProfilePage = () => {
           <ResetBackBtn />
           <SubmitBtn type={"submit"} btnText={formData.userId} />
         </div>
+        <ReusableDialog
+          open={open}
+          // title="Submit"
+          description="Are you sure you want to submit?"
+          onClose={() => setOpen(false)}
+          onConfirm={handleSubmit}
+        />
       </div>
     </form>
   );
