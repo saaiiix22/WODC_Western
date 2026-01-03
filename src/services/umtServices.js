@@ -19,7 +19,7 @@ export const saveRoleLevelMapService = (data) => Api.post(endpoints.umtEndpoints
 export const userListService = (data) => Api.get(endpoints.umtEndpoints.userList, { params: {cipherText:data} })
 export const editUserService = (data) => Api.get(endpoints.umtEndpoints.editUser, { params: {cipherText:data} })
 export const toggleUserStatusService = (data) => Api.post(endpoints.umtEndpoints.toggleUserStatus, null, { params: {cipherText:data} })
-export const saveConfigAccessService = (data) => Api.post(endpoints.umtEndpoints.saveConfigAccess, null, { params: data })
+export const saveConfigAccessService = (data) => Api.post(endpoints.umtEndpoints.saveConfigAccess, {encryptedData: data })
 
 
 // USER PROFILE PAGE

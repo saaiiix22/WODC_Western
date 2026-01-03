@@ -179,7 +179,9 @@ const ConfigureAccess = () => {
                     objectId
                 };
 
-                const res = await saveConfigAccessService(sendData);
+                const payload = encryptPayload(sendData)
+
+                const res = await saveConfigAccessService(payload);
 
                 if (res?.status === 200 && res?.data.outcome) {
                     setCheckedBoxes(prev => [...prev, objectId]);
