@@ -81,15 +81,11 @@ const ProjectAgencyMilestone = () => {
         console.log(res3);
         setMilestoneOpts(res?.data.data);
         setBudgetAmount(res2?.data.data);
-        // const mappedRows = res3?.data?.data?.map((row) => ({
-        //   ...row,
-        //   startDate: formatToYYYYMMDD(row.startDate),
-        //   endDate: formatToYYYYMMDD(row.endDate),
-        //   actualStartDate: formatToYYYYMMDD(row.actualStartDate),
-        //   actualEndDate: formatToYYYYMMDD(row.actualEndDate),
-        // }));
-        if (res3?.data.outcome || res3?.status === 200) {
-          setFlag(res?.data.outcome)
+
+        if (res3?.status === 200 && res3?.data?.outcome) {
+          setFlag(true);
+        } else {
+          setFlag(false);
         }
         const mappedRows = Array.isArray(res3?.data?.data)
           ? res3.data.data.map((row) => ({
@@ -550,7 +546,7 @@ const ProjectAgencyMilestone = () => {
                 }))}
               />
             </div>
-            {formData.projectId && flag &&(
+            {formData.projectId && flag && (
               <>
                 <div className="col-span-12">
                   {rows.map((i, index) => {

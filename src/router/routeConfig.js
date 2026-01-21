@@ -17,6 +17,7 @@ export const routes = {
    budgetPage:{path: "/budget", label: "Budget Details", protected: true},
    editBudgetPage:{path: "/editbudget", label: "Edit Budget Details", protected: true},
    projectManagementPage:{path: "/project", label: "Project Details", protected: true},
+   EntireProjectDetails:{path: "/entireProjectDetails", label: "Entire Project Details", protected: true},
    projectList:{path: "/project-list", label: "Project List", protected: true},
    milestone:{path: "/get-milestone", label: "Milestone Details", protected: true},
    agency:{path: "/get-agency", label: "Agency Details", protected: true},
@@ -42,6 +43,20 @@ export const routes = {
    fundReleaseInfo:{path: "/fundReleaseInfo", label: "Fund Release Information", protected: true},
    beneficiaryList:{path: "/beneficiaryList", label: "Beneficiary List", protected: true},
    ucSubmission:{path: "/ucSubmission", label: "UC Submission", protected: true},
+
+   inspection:{path: "/inspection", label: "Inspection", protected: true},
+   inspectionCalender:{path: "/inspection-calendar", label: "Inspection Calender", protected: true},
+
+   // GRIEVANCE
+   addWorkConfig:{path: "/addWorkConfig", label: "Add Work Config", protected: true},
+   gisMap:{path: "/project/gis/map", label: "Gis Map", protected: true},
+
+
+   // Workflow
+   workflowConfig:{path: "/get-workflow-config", label: "Workflow Config Page", protected: true},
+
+
+
 
 
 }

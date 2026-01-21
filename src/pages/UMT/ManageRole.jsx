@@ -198,7 +198,7 @@ const ManageRole = () => {
       name: "Status",
       selector: (row) => row.isActive ? "Active" : "Inactive",
       center: true,
-      width: "80px",
+      width: "90px",
       cell: (row) => (
         <span className={`px-2 py-1 rounded-sm text-xs ${row.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
           {row.isActive ? "Active" : "Inactive"}

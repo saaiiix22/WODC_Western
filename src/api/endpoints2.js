@@ -4,7 +4,7 @@ const endpoints = {
         logout: '/logout',
     },
     menu: {
-        getMenuList: '/admin/menu/list',
+        getMenuList: '/admin/menu/get-menus-for-role-map',
         UserDetails: '/admin/role/getCurrentRole',
     },
     getDistrict: {
@@ -50,8 +50,6 @@ const endpoints = {
     constituencyEnpoints: {
         saveUpdateConstituency: '/mst/save-or-update-constituency',
         constituencyList: '/mst/get-constituency-list',
-        constituencyTypeList: '/cmn/get-all-constituencies-type-list',
-        constituencyListByType: '/cmn/get-constituency-list-by-constituency-type',
         toggleConstituencyStatus: '/mst/toggle-constituency-status-by-constituencyid',
         editConstituency: '/mst/get-constituency-by-constituencyid'
     },
@@ -217,14 +215,21 @@ const endpoints = {
         updateInspection: "/inspection-scheduling/get-inspection-scheduling-by-id",
         getAllInspection: "/inspection-scheduling/get-inspection-scheduling-list",
         getAllInspectionByCategory:"/inspection-scheduling/get-inspection-scheduling-list-by-iscomplete",
+        getInspectionCalendarData:'/inspection-scheduling/get-inspection-calendar-information',
+        getInspectionByDate:'/inspection-scheduling/get-inspection-calendar-by-date',
+
+
     },
 
-    workflow :{
-        moduleList: "/workflow/workflow-module-list",
-        actionTypeList: "/workflow/workflow-action-list",
-        statusList: "/workflow/workflow-status-list",
-        stageForwardedRuleListByModule: "/workflow/stage-forwarded-rule-list-by-module",
-        saveOrUpdateWorkflow: "/workflow/save-or-update-workflow",
+    gisdata:{
+        gisProjectData:"/dashboard/get-gis-projects-overview",
+        gisFyear:"/mst/get-financial-year-list",
+        gisMapPinIcon:"/cmn/get-base64-from-path",
+
+
+
+
+        
     }
 }
 export default endpoints 

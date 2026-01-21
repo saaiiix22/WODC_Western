@@ -9,9 +9,10 @@ import { GoPencil } from "react-icons/go";
 import { MdLockOutline } from "react-icons/md";
 import { MdLockOpen } from "react-icons/md";
 import SelectField from "../../components/common/SelectField";
-import { getAllDists } from "../../services/blockService";
+// import { getAllDists } from "../../services/blockService";
 import {
   constituencyListService,
+  constituencyTypeListService,
   editConstituencyService,
   saveUpdateConstituency,
   toggleConstituencyStatusService,
@@ -39,16 +40,18 @@ const ConstituencyPage = () => {
     consId: null,
     consName: "",
     remarks: "",
-    districtId: "",
-  });
-  const { consId, consName, remarks, districtId } = formData;
+    lookupValueCode: "",
 
-  const [distOptions, setDistOptions] = useState([]);
-  const getDistOptions = async () => {
+  });
+  const { consId, consName, remarks, lookupValueCode } = formData;
+
+  // const [distOptions, setDistOptions] = useState([]);
+  const [constituencyTypeOptions, setConstituencyTypeOptions] = useState([]);
+  const getconstituencyOptions = async () => {
     try {
-      const payload = encryptPayload({ isActive: true });
-      const res = await getAllDists(payload);
-      setDistOptions(res?.data.data);
+      // const payload = encryptPayload({ isActive: true });
+      const res = await constituencyTypeListService();
+      setConstituencyTypeOptions(res?.data.data);
     } catch (error) {
       throw error;
     }
@@ -68,8 +71,8 @@ const ConstituencyPage = () => {
     e.preventDefault();
     let newErrors = {};
 
-    if (!districtId) {
-      newErrors.districtId = "District name is required";
+    if (!lookupValueCode) {
+      newErrors.lookupValueCode = "Constituency type is required";
       setErrors(newErrors);
       return;
     }
@@ -88,15 +91,14 @@ const ConstituencyPage = () => {
   };
 
   const handleSubmit = async (e) => {
+    // debugger;
     e.preventDefault();
 
     const sendData = {
       consId: consId,
       consName: consName,
       remarks: remarks,
-      district: {
-        districtId: districtId,
-      },
+      constituencyCode: lookupValueCode,
     };
     try {
       const payload = encryptPayload(sendData);
@@ -109,7 +111,7 @@ const ConstituencyPage = () => {
           consId: null,
           consName: "",
           remarks: "",
-          districtId: "",
+          lookupValueCode: "",
         });
         setOpenSubmit(false);
 
@@ -120,14 +122,15 @@ const ConstituencyPage = () => {
           consId: null,
           consName: "",
           remarks: "",
-          districtId: "",
+          lookupValueCode: "",
         });
       }
     } catch (error) {
-      toast.error(res?.data.message);
-      throw error;
+      toast.error(
+        error?.response?.data?.message || "Something went wrong while saving"
+      );
     }
-    // console.log(sendData);
+    console.log(sendData);
   };
 
   const [tableData, setTableData] = useState([]);
@@ -151,8 +154,8 @@ const ConstituencyPage = () => {
       center: true,
     },
     {
-      name: "District Name",
-      selector: (row) => row.district.districtName || "N/A",
+      name: "Constituency Type",
+      selector: (row) => row.constituencyCode || "N/A",
     },
     {
       name: "Constituency Name",
@@ -199,11 +202,10 @@ const ConstituencyPage = () => {
           <Tooltip title={row.isActive ? "Active" : "Inactive"} arrow>
             <button
               className={`flex items-center justify-center h-8 w-8 rounded-full 
-                    ${
-                      row.isActive
-                        ? "bg-green-600/25 hover:bg-green-700/25 text-green-600"
-                        : "bg-red-500/25 hover:bg-red-600/25 text-red-500 "
-                    }`}
+                    ${row.isActive
+                  ? "bg-green-600/25 hover:bg-green-700/25 text-green-600"
+                  : "bg-red-500/25 hover:bg-red-600/25 text-red-500 "
+                }`}
               onClick={() => {
                 setOpenModal(true);
                 setConstituencyStatusId(row?.consId);
@@ -252,17 +254,18 @@ const ConstituencyPage = () => {
           consId: details?.consId || null,
           consName: details?.consName || "",
           remarks: details?.remarks || "",
-          districtId: details?.district.districtId || "",
+          lookupValueCode: details?.constituencyCode  || "",
         });
         setExpanded("panel1");
       }
     } catch (error) {
       throw error;
     }
+    // console.log(formData);
   };
 
   useEffect(() => {
-    getDistOptions();
+    getconstituencyOptions();
     getTableData();
   }, []);
 
@@ -298,16 +301,16 @@ const ConstituencyPage = () => {
             >
               <div className="col-span-2">
                 <SelectField
-                  label="District Name"
+                  label="Constituency Type"
                   required={true}
-                  name="districtId"
-                  value={districtId}
+                  name="lookupValueCode"
+                  value={lookupValueCode}
                   onChange={handleChangeInput}
-                  options={distOptions?.map((d) => ({
-                    value: d.districtId,
-                    label: d.districtName,
+                  options={constituencyTypeOptions?.map((d) => ({
+                    value: d.lookupValueCode,
+                    label: d.lookupValueEn,
                   }))}
-                  error={errors.districtId}
+                  error={errors.lookupValueCode}
                   placeholder="Select"
                 />
               </div>
@@ -334,7 +337,7 @@ const ConstituencyPage = () => {
                   value={remarks}
                   onChange={handleChangeInput}
                   maxLength={255}
-                  // error={errors.remark}
+                // error={errors.remark}
                 />
               </div>
 

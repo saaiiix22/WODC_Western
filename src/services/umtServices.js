@@ -59,3 +59,9 @@ export const getAllRolesService = (data) => Api.get(endpoints.umtEndpoints.getAl
 export const getAllMenuService = (data) => Api.get(endpoints.umtEndpoints.getAllMenu, { params: { cipherText: data } })
 export const saveRoleMenuMapService = (data) => Api.post(endpoints.umtEndpoints.saveRoleMenuMap, { encryptedData: data })
 
+
+
+
+
+export const getAllMenuForSideBarService = () => Api.get(endpoints.menu.getMenuList)
+

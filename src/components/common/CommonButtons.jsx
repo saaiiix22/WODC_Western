@@ -12,7 +12,7 @@ export const SubmitBtn = ({ type, btnText }) => {
     </button>
   );
 };
-export const ResetBackBtn = ({ path = "/dashboard" }) => {
+export const ResetBackBtn = ({  path = -1 }) => {
   const navigate = useNavigate();
 
   return (

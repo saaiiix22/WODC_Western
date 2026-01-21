@@ -47,3 +47,5 @@ export const getBankConfigProjectService = (data) => Api.get(endpoints.project.g
 export const getTemplateFileService = () => Api.get(endpoints.project.getTemplateFile, {
     responseType: "blob",
 })
+
+export const getEntireProjectDetailsService=(data)=>Api.get(endpoints.project.getEntireProjectDetails,{params:{cipherText:data}})

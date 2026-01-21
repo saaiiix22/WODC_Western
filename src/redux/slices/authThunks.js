@@ -1,3 +1,4 @@
+import { toast } from 'react-toastify';
 import {loginService, logoutService} from '../../services/authService'
 import { createAsyncThunk } from "@reduxjs/toolkit";
 
@@ -19,6 +20,14 @@ const withMinimumLoadingTime = (asyncOperation) => {
 export const loginUser = createAsyncThunk( "auth/loginUser", withMinimumLoadingTime(async (encryptedPayload, { rejectWithValue }) => {
     try {
       const res = await loginService(encryptedPayload);
+      console.log(res);
+      
+      if(res?.status === 200 && res?.data.outcome){
+        toast.success("Login Successful")
+      }
+      else{
+        toast.error(res?.data.message)
+      }
       return res.data;
     } catch (err) {
       return rejectWithValue(err.response?.data || "Login failed");

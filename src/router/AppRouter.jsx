@@ -6,6 +6,8 @@ import ProtectedRoutes from "../components/ProtectedRoutes";
 import { routes } from "./routeConfig";
 import Loader from "../components/common/Loader";
 import ChangePassword from "../pages/UMT/ChangePassword";
+import AddWorkFlowConfig from "../pages/grievance/AddWorkFlowConfig";
+import PublicRoute from "../components/PublicRoute";
 
 /* AUTH */
 const Login = lazy(() => import("../pages/auth/Login"));
@@ -50,6 +52,9 @@ const BeneficiaryList = lazy(() =>
 const UCsubmission = lazy(() =>
   import("../pages/project/UCsubmission")
 );
+const EntireProjectDetails = lazy(() =>
+  import("../pages/project/EntireProjectDetails")
+);
 
 /* MASTER */
 const Proposal = lazy(() => import("../pages/demography/Proposal"));
@@ -92,14 +97,31 @@ const AddBeneficiary = lazy(() =>
   import("../pages/beneficiary/AddBeneficiary")
 );
 
+const Inspection = lazy(() =>
+  import("../pages/inspection/Inspection")
+);
 
+
+const InspectionCalender = lazy(() =>
+  import("../pages/inspection/InspectionCalender")
+);
+
+const GisMain = lazy(() =>
+  import("../pages/project/gisMap/gisMain/GisMain")
+);
+
+const WorkflowConfig = lazy(() =>
+  import("../pages/workflow/WorkflowConfig")
+);
 
 const AppRouter = () => {
   return (
     <Suspense fallback={<Loader />}>
       <Routes>
-        <Route element={<AuthLayout />}>
-          <Route path={routes.login.path} element={<Login />} />
+        <Route element={<PublicRoute/>}>
+          <Route element={<AuthLayout />}>
+            <Route path={routes.login.path} element={<Login />} />
+          </Route>
         </Route>
 
         <Route element={<ProtectedRoutes />}>
@@ -121,6 +143,7 @@ const AppRouter = () => {
             <Route path={routes.fundReleaseInfo.path} element={<FundReleaseInfo />} />
             <Route path={routes.beneficiaryList.path} element={<BeneficiaryList />} />
             <Route path={routes.ucSubmission.path} element={<UCsubmission />} />
+            <Route path={routes.EntireProjectDetails.path} element={<EntireProjectDetails />} />
 
             <Route path={routes.proposalPage.path} element={<Proposal />} />
             <Route path={routes.giaPage.path} element={<GIApage />} />
@@ -148,6 +171,14 @@ const AppRouter = () => {
 
 
             <Route path={routes.addBeneficiary.path} element={<AddBeneficiary />} />
+            <Route path={routes.inspection.path} element={<Inspection />} />
+            <Route path={routes.inspectionCalender.path} element={<InspectionCalender />} />
+            {/* GRIEVANCE */}
+            <Route path={routes.addWorkConfig.path} element={<AddWorkFlowConfig />} />
+            <Route path={routes.gisMap.path} element={<GisMain />} />
+
+           <Route path={routes.workflowConfig.path} element={<WorkflowConfig  />} />
+
           </Route>
         </Route>
       </Routes>

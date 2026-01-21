@@ -1,15 +1,13 @@
-import React, { useEffect } from "react";
-import { Link, useLocation  } from "react-router-dom";
-import { RiMenu2Fill, RiSettings3Fill } from "react-icons/ri";
-import { MdDashboard, MdApartment } from "react-icons/md";
-import { FaChevronDown, FaMapMarkedAlt } from "react-icons/fa";
-import { TbReportAnalytics } from "react-icons/tb";
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { RiMenu2Fill } from "react-icons/ri";
+import { FaChevronDown } from "react-icons/fa";
 import { RxCross2 } from "react-icons/rx";
-import { RiAdminFill } from "react-icons/ri";
-import { MdManageAccounts } from "react-icons/md";
-import { encryptPayload } from "../crypto.js/encryption";
-import { MenuList } from "../services/authService";
 import { images } from "../assets/images";
+import "@fortawesome/fontawesome-free/css/all.min.css";
+import { getAllMenuForSideBarService } from "../services/umtServices";
+
+
 
 const iconColors = [
   "#ff6b6b",
@@ -24,87 +22,36 @@ const iconColors = [
 
 const Sidebar = ({ collapse, setCollapse }) => {
 
+ 
+  
 
-  const staticMenu = [
-    {
-      title: "Dashboard",
-      icon: <MdDashboard className="text-lg" />,
-      link: "/dashboard",
-    },
-    {
-      title: "Master",
-      icon: <RiAdminFill  className="text-lg" />,
-      subMenu: [
-        { title: "Milestone Details", link: "/get-milestone" },
-        { title: "Agency Details", link: "/get-agency" },
-        { title: "Sector Details", link: "/get-sector" },
-        { title: "Vendor Details", link: "/get-vendor" },
-        { title: "Sector Milestone Mapping", link: "/get-sector-milestone" },
-        { title: "Beneficiary Details", link: "/get-beneficiary" },
-        { title: "Constituency Details", link: "/get-constituency" },
-        { title: "Proposed By Details", link: "/get-proposal" },
-        { title: "GIA Details", link: "/get-gia" },
-        { title: "Bank Account Configuration", link: "/bankAccoutConfig" },
-      ],
-    },
-    {
-      title: "User Management",
-      icon: <MdManageAccounts   className="text-lg" />,
-      subMenu: [
-        { title: "Manage Role", link: "/get-manage-user" },
-        // { title: "Access Role To Levels", link: "/get-role-access" },
-        { title: "Add User", link: "/addUser" },
-        { title: "User List", link: "/userList" },
-        // { title: "User Profile", link: "/userProfile" },
-        { title: "Role Menu Map", link: "/roleMenuMapping" },
-        { title: "Configure Access", link: "/configureAccess" },
-        
-      ],
-    },
-    {
-      title: "Demography Master",
-      icon: <FaMapMarkedAlt className="text-lg" />,
-      subMenu: [
-        { title: "District Details", link: "/get-district" },
-        { title: "Block Details", link: "/get-block" },
-        { title: "Gram Panchayat", link: "/get-gp" },
-        { title: "Municipality Details", link: "/get-municipality" },
-        { title: "Ward Details", link: "/get-ward" },
-        { title: "Village Details", link: "/get-village" },
-       
-      ],
-    },
-    {
-      title: "Budget",
-      icon: <MdApartment className="text-lg" />,
-      subMenu: [
-        { title: "Budget Management", link: "/budget" },
-        // { title: "Edit Budget", link: "/editbudget" },
-      ],
-    },
-    {
-      title: "Project Management",
-      icon: <TbReportAnalytics className="text-lg" />,
-      subMenu: [
-        { title: "Create Project ", link: "/project" },
-        { title: "Project List", link: "/project-list" },
-        { title: "Project Agency Milestone Map", link: "/projectAgencyMilestoneMapping" },
-        { title: "Work Order Generation", link: "/workOrderGeneration" },
-        { title: "Fund Release Information", link: "/fundReleaseInfo" }, 
-        { title: "UC Submission", link: "/ucSubmission" }, 
-      ],
-    },
-  ];
+  const getAllMenu = async () => {
+    try {
+      const res = await getAllMenuForSideBarService();
+      console.log(res);
+      if (res?.data.outcome && res?.status === 200) {
+        setMenuList(res?.data.data);
+      }
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  useEffect(()=>{
+    getAllMenu()
+  },[])
+
+  const [menuList,setMenuList] = useState([])
+
 
   const [activeMenu, setActiveMenu] = React.useState(null);
   const toggleMenu = (title) => {
     setActiveMenu((prev) => (prev === title ? null : title));
   };
 
-  
+
   return (
     <div
-      // bg-[#22262b]
       className={`
         h-full flex flex-col transition-all duration-300 shadow-xl relative
         bg-[#141414] 
@@ -116,7 +63,7 @@ const Sidebar = ({ collapse, setCollapse }) => {
         {!collapse && (
           <div className="flex flex-col ">
             <span className="text-white text-lg font-semibold tracking-wide">
-               IPFMS Portal
+              IPFMS Portal
             </span>
             <span className="text-white text-[11px] opacity-70 tracking-wider">
               Administration
@@ -126,14 +73,12 @@ const Sidebar = ({ collapse, setCollapse }) => {
 
         <button
           onClick={() => setCollapse(!collapse)}
-          // className="p-1.5 bg-white/10 hover:bg-white/20 rounded-lg transition"
           className="p-1.5 bg-[#fe8b00]  rounded-sm transition"
         >
-          {collapse?<RiMenu2Fill className="text-white text-lg" />:<RxCross2 className="text-white text-lg" />}
+          {collapse ? <RiMenu2Fill className="text-white text-lg" /> : <RxCross2 className="text-white text-lg" />}
         </button>
       </div>
 
-      {/* SECTION LABEL */}
       {!collapse && (
         <p className="text-white/60 text-[9px]  uppercase tracking-widest mb-2">
           Navigation
@@ -142,8 +87,8 @@ const Sidebar = ({ collapse, setCollapse }) => {
 
       {/* MAIN MENU */}
       <ul className="flex flex-col gap-1 w-full z-50">
-        {staticMenu.map((item, index) => {
-          const hasSubMenu = item.subMenu?.length;
+        {menuList.map((item, index) => {
+          const hasSubMenu = item.subMenu?.length > 0;
           const isOpen = activeMenu === item.title;
           const color = iconColors[index % iconColors.length];
 
@@ -157,7 +102,9 @@ const Sidebar = ({ collapse, setCollapse }) => {
                     background: `linear-gradient(135deg, ${color}30, ${color}55)`,
                   }}
                 >
-                  {item.icon}
+                  {/* {item.icon} */}
+                  <i className={`${item.icon} text-sm`} />
+
                 </div>
 
                 {!collapse && (
@@ -179,7 +126,6 @@ const Sidebar = ({ collapse, setCollapse }) => {
           return (
             <li key={index} className="w-full">
               {hasSubMenu ? (
-                // DROPDOWN ITEM (NO REDIRECT)
                 <div
                   onClick={() => !collapse && toggleMenu(item.title)}
                   className={`
@@ -218,7 +164,6 @@ const Sidebar = ({ collapse, setCollapse }) => {
                     <Link
                       key={i}
                       to={sub.link}
-                      onClick={()=>{}}
                       className="block px-3 py-1.5 text-white/90 text-[11px] hover:bg-white/10 transition"
                     >
                       {sub.title}

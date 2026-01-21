@@ -31,6 +31,8 @@ import {
   LGDutil,
 } from "../../../utils/validationUtils";
 import Loader from "../../../components/common/Loader";
+import SelectField from "../../../components/common/SelectField";
+import { constituencyListByTypeService, constituencyTypeListService } from "../../../services/constituencyService";
 
 const GetDistrict = () => {
   const [expanded, setExpanded] = useState("panel2");
@@ -45,11 +47,14 @@ const GetDistrict = () => {
 
   const [formData, setFormData] = useState({
     districtName: "",
+    consName: "",
     districtlgdCode: "",
     remark: "",
     districtId: null,
+    constituencyTypeCode: "",
+    constituencyCode: "",
   });
-  const { districtName, districtlgdCode, remark, districtId } = formData;
+  const { districtName, consName, constituencyTypeCode, constituencyCode, districtlgdCode, remark, districtId, } = formData;
   const [errors, setErrors] = useState({});
 
   const handleChangeInput = (e) => {
@@ -92,12 +97,14 @@ const GetDistrict = () => {
       try {
         setLoading(true);
         const payload = encryptPayload({
+          districtId: districtId,
           districtName: districtName,
           districtlgdCode: districtlgdCode,
           remark: remark,
-          districtId: districtId,
+          constituency: {
+            consId: consName,
+          }
         });
-        console.log("bala na", payload);
         const res = await saveDistrictService(payload);
         // console.log(res);
         if (res?.data.outcome && res.status === 200) {
@@ -108,13 +115,18 @@ const GetDistrict = () => {
           setFormData({
             districtName: "",
             remark: "",
+            consName: "",
+            districtlgdCode: "",
+            constituencyTypeCode: "",
           });
         } else {
           toast.error(res?.data.message);
           setFormData({
+            consName: "",
             districtName: "",
             remark: "",
             districtId: null,
+            constituencyTypeCode: "",
           });
         }
         setLoading(false);
@@ -130,17 +142,23 @@ const GetDistrict = () => {
 
     let newErrors = {};
 
-    if (!formData.districtName.trim()){
+    if (!formData.constituencyTypeCode) {
+      newErrors.constituencyTypeCode = "Constituency type is required";
+      setErrors(newErrors);
+      return;
+    }
+
+    if (!formData.districtName.trim()) {
       newErrors.districtName = "District name is required";
       setErrors(newErrors);
       return;
     }
 
-    if (!formData.districtlgdCode ) {
+    if (!formData.districtlgdCode) {
       newErrors.districtlgdCode = "District lgd code is required";
       setErrors(newErrors);
       return;
-    }   
+    }
 
     setErrors(newErrors);
 
@@ -149,6 +167,33 @@ const GetDistrict = () => {
     } else {
       setOpenSubmit(false);
     }
+  };
+
+  const [constituencyTypeOptions, setConstituencyTypeOptions] = useState([]);
+  const getconstituencyOptions = async () => {
+    try {
+      // const payload = encryptPayload({ isActive: true });
+      const res = await constituencyTypeListService();
+      setConstituencyTypeOptions(res?.data.data);
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const [constituencyNameOptions, setConstituencyNameOptions] = useState([]);
+  const getconstituencyNameOptions = async () => {
+    try {
+      const payload = encryptPayload({
+        isActive: true,
+        constituencyTypeCode: constituencyTypeCode,
+      });
+      const res = await constituencyListByTypeService(payload);
+      setConstituencyNameOptions(res?.data.data);
+      console.log("res constituency", res);
+    } catch (error) {
+      throw error;
+    }
+    console.log("constituencyNameOptions", constituencyNameOptions);
   };
 
   const [tableData, setTableData] = useState([]);
@@ -165,9 +210,19 @@ const GetDistrict = () => {
       setLoading(false);
     }
   };
-  // console.log(tableData);
+
 
   useEffect(() => {
+    if (constituencyTypeCode) {
+      getconstituencyNameOptions();
+    } else {
+      setConstituencyNameOptions([]);
+    }
+  }, [constituencyTypeCode]);
+
+  useEffect(() => {
+    getconstituencyOptions();
+    // getconstituencyNameOptions();
     getDistrictList();
   }, []);
 
@@ -185,6 +240,7 @@ const GetDistrict = () => {
     // },
     {
       name: "District Name",
+
       selector: (row) =>
         (
           <div className="flex gap-1">
@@ -206,12 +262,11 @@ const GetDistrict = () => {
     },
     {
       name: "Remarks",
-      selector: (row) => row.remark || "N/A",
+      selector: (row) => <p className="text-wrap">{row.remark || "N/A"}</p>,
       sortable: true,
     },
     {
       name: "Action",
-
       width: "120px",
       cell: (row) => (
         <div className="flex items-center gap-2">
@@ -266,13 +321,22 @@ const GetDistrict = () => {
       console.log(res);
 
       if (res?.status === 200 && res?.data.outcome) {
-        setFormData(res?.data.data);
+        const data = res.data.data;
+        setFormData({
+          districtId: data.districtId,
+          districtName: data.districtName || "",
+          districtlgdCode: data.districtlgdCode || "",
+          remark: data.remark || "",
+          constituencyTypeCode: data.constituency?.constituencyCode || "",
+          consName: data.constituency?.consId || "",
+        });
+
         setExpanded("panel1");
         setErrors({})
       } else {
         // toast.error(res?.data.message);
         console.log(error);
-        
+
       }
       // console.log(res);
     } catch (error) {
@@ -336,6 +400,41 @@ const GetDistrict = () => {
               className="grid grid-cols-12 gap-6"
               onSubmit={handleSubmitConfirmModal}
             >
+
+              <div className="col-span-2">
+                <SelectField
+                  label="Constituency Type"
+                  required
+                  name="constituencyTypeCode"
+                  value={constituencyTypeCode}
+                  onChange={handleChangeInput}
+                  options={constituencyTypeOptions?.map((d) => ({
+                    value: d.lookupValueCode,
+                    label: d.lookupValueEn,
+                  }))}
+                  error={errors.constituencyTypeCode}
+                  placeholder="Select"
+                />
+
+              </div>
+
+              <div className="col-span-2">
+                <SelectField
+                  label="Constituency Name"
+                  required
+                  name="consName"
+                  value={consName}
+                  onChange={handleChangeInput}
+                  options={constituencyNameOptions?.map((d) => ({
+                    value: d.consId,
+                    label: d.consName,
+                  }))}
+                  error={errors.constituencyName}
+                  placeholder="Select"
+                  disabled={!constituencyTypeCode}
+                />
+
+              </div>
               <div className="col-span-3">
                 <InputField
                   label="District Name"

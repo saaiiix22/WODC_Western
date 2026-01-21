@@ -62,23 +62,32 @@ const RoleMenuMap = () => {
     const added = [...curr].filter(id => !prev.has(id));
     const removed = [...prev].filter(id => !curr.has(id));
 
-    let updated = new Set(curr);
+    const updated = new Set(curr);
 
-    menuList.forEach(menu => {
+    const changedIds = [...added, ...removed];
+
+    changedIds.forEach(changedId => {
+      const menu = menuList.find(
+        m =>
+          String(m.menuId) === changedId ||
+          m.subMenu?.some(s => String(s.menuId) === changedId)
+      );
+
+      if (!menu) return;
+
       const parentId = String(menu.menuId);
       const childIds = menu.subMenu?.map(s => String(s.menuId)) || [];
 
-      if (childIds.length === 0) {
-        updated.delete(parentId);
+      if (childIds.length === 0) return;
+
+      if (changedId === parentId) {
+        if (added.includes(parentId)) {
+          childIds.forEach(id => updated.add(id));
+        }
+        if (removed.includes(parentId)) {
+          childIds.forEach(id => updated.delete(id));
+        }
         return;
-      }
-
-      if (added.includes(parentId)) {
-        childIds.forEach(id => updated.add(id));
-      }
-
-      if (removed.includes(parentId)) {
-        childIds.forEach(id => updated.delete(id));
       }
 
       const selectedChildren = childIds.filter(id => updated.has(id));
@@ -90,17 +99,12 @@ const RoleMenuMap = () => {
       }
     });
 
-    const cleaned = filterParentsWithoutChildren(
-      Array.from(updated),
-      menuList
-    );
-
-    setSelectedItems(cleaned);
+    setSelectedItems(Array.from(updated));
   };
 
 
 
-  // console.log(selectedItems);
+
 
   const [roleOpts, setRoleOpts] = useState([]);
   const allRoles = async () => {
@@ -133,7 +137,7 @@ const RoleMenuMap = () => {
     try {
       const payload = encryptPayload(formData.roleId);
       const res = await getAllMenuService(payload);
-      console.log(res);
+      // console.log(formData.roleId);
       if (res?.status === 200 && res?.data.outcome) {
         setCurrUserMenu(res?.data.data)
       }
@@ -145,17 +149,16 @@ const RoleMenuMap = () => {
     const ids = [];
 
     menus.forEach(menu => {
-      if (menu.subMenu?.length) {
-        ids.push(String(menu.menuId));
+      ids.push(String(menu.menuId));
 
-        menu.subMenu.forEach(sub => {
-          ids.push(String(sub.menuId));
-        });
-      }
+      menu.subMenu?.forEach(sub => {
+        ids.push(String(sub.menuId));
+      });
     });
-
+    
     return ids;
   };
+
 
   const filterParentsWithoutChildren = (ids = [], menus = []) => {
     const parentsWithChildren = new Set(
@@ -172,6 +175,9 @@ const RoleMenuMap = () => {
       return isChild || parentsWithChildren.has(id);
     });
   };
+
+  // console.log(selectedItems);
+  
 
   const handleSubmit = async (e) => {
 
@@ -192,7 +198,7 @@ const RoleMenuMap = () => {
         setFormData({ roleId: "" });
         setSelectedItems([]);
       }
-      else{
+      else {
         setOpen(false)
         toast.error(res?.data.message);
       }
@@ -213,7 +219,7 @@ const RoleMenuMap = () => {
     if (Object.keys(newErrors).length === 0) {
       setOpen(true)
     }
-    else{
+    else {
       setOpen(false)
     }
   }
@@ -318,7 +324,6 @@ const RoleMenuMap = () => {
                     {menuList?.map((menu) => (
                       <TreeItem
                         key={menu.menuId}
-                        disabled={!menu.subMenu?.length}
                         itemId={String(menu.menuId)}
                         label={
                           <div className="flex items-center gap-3">

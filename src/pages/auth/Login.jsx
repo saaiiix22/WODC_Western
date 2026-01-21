@@ -6,6 +6,7 @@ import { loginService } from "../../services/authService";
 import { loginUser } from "../../redux/slices/authThunks";
 import { useNavigate } from "react-router-dom";
 import { fetchUserDetails } from "../../redux/slices/menuSlice";
+import { toast } from "react-toastify";
 
 const Login = () => {
   const generateCaptcha = () => {
@@ -38,44 +39,22 @@ const Login = () => {
 
   const navigate = useNavigate();
 
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   try {
-  //     const payload = encryptPayload(formData);
-
-  //     const res = await dispatch(loginUser(payload));
-  //     const roleRes = await dispatch(fetchUserDetails());
-  //     console.log(roleRes);
-
-  //     if (res?.payload?.outcome) {
-  //       if (roleRes) {
-  //         localStorage.setItem("token", res.payload.token);
-  //         navigate("/dashboard");
-  //       }
-  //     }
-  //   } catch (error) {
-  //     throw error;
-  //   }
-  // };
-
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  try {
-    const payload = encryptPayload(formData);
+    e.preventDefault();
+    try {
+      const payload = encryptPayload(formData);
 
-    const res = await dispatch(loginUser(payload)).unwrap();
-    // console.log(res);
-    
-
-    if (res?.outcome) {
-      localStorage.setItem("token", res.data);
-      await dispatch(fetchUserDetails());
-      navigate("/dashboard");
+      const res = await dispatch(loginUser(payload)).unwrap();
+      
+      if (res?.outcome) {
+        localStorage.setItem("token", res.data);
+        await dispatch(fetchUserDetails()); 
+        navigate("/dashboard");
+      }
+    } catch (error) {
+      console.error(error);
     }
-  } catch (error) {
-    console.error(error);
-  }
-};
+  };
 
 
   return (

@@ -18,3 +18,26 @@
 button{
   cursor: pointer;
 }
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #fe8b00 #1f1f1f;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1f1f1f;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #fe8b00;
+  border-radius: 6px;
+  border: 2px solid #1f1f1f;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #ff9f2e;
+}

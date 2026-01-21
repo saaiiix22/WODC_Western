@@ -45,6 +45,7 @@ import { ResetBackBtn, SubmitBtn } from "../../components/common/CommonButtons";
 import ReusableDialog from "../../components/common/ReusableDialog";
 import { avoidSpecialCharUtil, formatWithCommas, removeCommas } from "../../utils/validationUtils";
 import { useNavigate } from "react-router-dom";
+import { load } from "../../hooks/load";
 
 const Project = () => {
   const [expanded, setExpanded] = useState("panel1");
@@ -144,14 +145,7 @@ const Project = () => {
 
   // --------------------------------------------------------------------------
 
-  const load = async (serviceFn, payload, setter) => {
-    try {
-      const res = await serviceFn(encryptPayload(payload));
-      setter(res?.data.data || []);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  
 
   const getFinancialYearOptions = () =>
     load(getFinancialYearService, { isActive: true }, setFinYearOpts);

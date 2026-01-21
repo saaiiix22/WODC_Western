@@ -19,6 +19,7 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import Magnifier from "../../components/common/Magnifier";
 import ReusableDialog from "../../components/common/ReusableDialog";
+import { openDocument } from "../../utils/openDocument";
 
 const FundReleaseInfo = () => {
   const userSelect = useSelector((state) => state);
@@ -127,22 +128,7 @@ const FundReleaseInfo = () => {
     return Math.round((d1 - d2) / (1000 * 60 * 60 * 24));
   };
 
-  const openDocument = (base64Data, mimeType = "application/pdf") => {
-    const byteCharacters = atob(base64Data);
-    const byteNumbers = new Array(byteCharacters.length);
 
-    for (let i = 0; i < byteCharacters.length; i++) {
-      byteNumbers[i] = byteCharacters.charCodeAt(i);
-    }
-
-    const byteArray = new Uint8Array(byteNumbers);
-    const blob = new Blob([byteArray], { type: mimeType });
-
-    const blobUrl = URL.createObjectURL(blob);
-    window.open(blobUrl, "_blank");
-
-    setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
-  };
 
   const [wordOrderDetails, setWorkOrderDetails] = useState({});
   const getDeatilsByProjectMilestone = async () => {
@@ -204,8 +190,8 @@ const FundReleaseInfo = () => {
     }));
     setFormData(updatedForm);
   };
-  const [open,setOpen] = useState(false)
-  const confirmSubmit=(e)=>{
+  const [open, setOpen] = useState(false)
+  const confirmSubmit = (e) => {
     e.preventDefault()
     let newErrors = {};
     if (!finYear) {
@@ -239,7 +225,7 @@ const FundReleaseInfo = () => {
         setErrors(newErrors);
         return;
       }
-       if (!releaseLetterDate) {
+      if (!releaseLetterDate) {
         newErrors.releaseLetterDate = "Release Letter Date is required";
         setErrors(newErrors);
         return;
@@ -252,30 +238,30 @@ const FundReleaseInfo = () => {
   }
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-      try {
-        const sendData = {
-          fundReleaseId: null,
-          sanctionOrderNo,
-          sanctionOrderDate: sanctionOrderDate.split("-").reverse().join("/"),
-          releaseLetterDate: releaseLetterDate.split("-").reverse().join("/"),
-          releaseLetterNo,
-          workOrderId: wordOrderDetails?.workOrderId,
-          projectAgencyMilestoneMapId:
-            milestoneDetails?.projectAgencyMilestoneMapId,
-          penaltyAmount,
-          penaltyPercentage,
-          agencyBankId,
-        };
-        console.log(sendData);
 
-        const payload = encryptPayload(sendData);
-        const res = await saveFundReleasInfoServicePrimary(payload);
-        console.log(res);
-      } catch (error) {
-        throw error;
-      }
-    
+    try {
+      const sendData = {
+        fundReleaseId: null,
+        sanctionOrderNo,
+        sanctionOrderDate: sanctionOrderDate.split("-").reverse().join("/"),
+        releaseLetterDate: releaseLetterDate.split("-").reverse().join("/"),
+        releaseLetterNo,
+        workOrderId: wordOrderDetails?.workOrderId,
+        projectAgencyMilestoneMapId:
+          milestoneDetails?.projectAgencyMilestoneMapId,
+        penaltyAmount,
+        penaltyPercentage,
+        agencyBankId,
+      };
+      console.log(sendData);
+
+      const payload = encryptPayload(sendData);
+      const res = await saveFundReleasInfoServicePrimary(payload);
+      console.log(res);
+    } catch (error) {
+      throw error;
+    }
+
     // console.log(formData);
   };
 

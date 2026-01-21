@@ -249,11 +249,13 @@ const Block = () => {
 
     {
       name: "District Name",
+      width:"200px",
       selector: (row) => row.district.districtName || "N/A",
       sortable: true,
     },
     {
       name: "Block Name",
+      width:"200px",
       selector: (row) =>
         (
           <div className="flex gap-1">
@@ -279,7 +281,7 @@ const Block = () => {
     },
     {
       name: "Remarks",
-      selector: (row) => row.remark || "N/A",
+      selector: (row) => <p className="text-wrap">{row.remark || "N/A"}</p>,
       sortable: true,
     },
     {
