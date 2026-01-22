@@ -9,7 +9,7 @@ const SelectField = ({
   options = [],
   error,
   disabled = false,
-  placeholder = "Select an option",
+  placeholder = "Select",
 }) => {
   return (
     <div className="flex flex-col gap-1 w-full">

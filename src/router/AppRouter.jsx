@@ -70,7 +70,9 @@ const SectorMilestoneMapping = lazy(() =>
 const BankAccountConfig = lazy(() =>
   import("../pages/master/BankAccountConfig")
 );
-
+const JudictionMapConfiguration = lazy(() =>
+import("../pages/master/JudictionMapConfiguration")
+)
 /* BUDGET */
 const BudgetDetails = lazy(() =>
   import("../pages/budget/BudgetDetails")
@@ -109,16 +111,21 @@ const InspectionCalender = lazy(() =>
 const GisMain = lazy(() =>
   import("../pages/project/gisMap/gisMain/GisMain")
 );
-
 const WorkflowConfig = lazy(() =>
   import("../pages/workflow/WorkflowConfig")
+);
+const DistrictConstituencyMap = lazy(() =>
+  import("../pages/master/DistrictConstituencyMap")
+);
+const ErrorPage = lazy(() =>
+  import("../pages/ErrorPage")
 );
 
 const AppRouter = () => {
   return (
     <Suspense fallback={<Loader />}>
       <Routes>
-        <Route element={<PublicRoute/>}>
+        <Route element={<PublicRoute />}>
           <Route element={<AuthLayout />}>
             <Route path={routes.login.path} element={<Login />} />
           </Route>
@@ -126,6 +133,7 @@ const AppRouter = () => {
 
         <Route element={<ProtectedRoutes />}>
           <Route element={<MainLayout />}>
+            <Route path="*" element={<ErrorPage />} />
             <Route path={routes.dashboard.path} element={<Dashboard />} />
 
             <Route path={routes.getDistrict.path} element={<GetDistrict />} />
@@ -155,6 +163,9 @@ const AppRouter = () => {
             <Route path={routes.beneficiary.path} element={<Beneficiary />} />
             <Route path={routes.sectorMilestoneMapping.path} element={<SectorMilestoneMapping />} />
             <Route path={routes.bankAccoutConfig.path} element={<BankAccountConfig />} />
+            <Route path={routes.judictionMapConfiguration.path} element={<JudictionMapConfiguration  />} />
+            <Route path={routes.districtConstituencyMap.path} element={<DistrictConstituencyMap  />} />
+
 
             <Route path={routes.budgetPage.path} element={<BudgetDetails />} />
             <Route path={routes.editBudgetPage.path} element={<EditBudget />} />
@@ -177,10 +188,13 @@ const AppRouter = () => {
             <Route path={routes.addWorkConfig.path} element={<AddWorkFlowConfig />} />
             <Route path={routes.gisMap.path} element={<GisMain />} />
 
-           <Route path={routes.workflowConfig.path} element={<WorkflowConfig  />} />
+            <Route path={routes.workflowConfig.path} element={<WorkflowConfig />} />
 
+
+            
           </Route>
         </Route>
+
       </Routes>
     </Suspense>
   );

@@ -27,7 +27,7 @@ const TreeNode = () => {
         </label>
       </div>
 
-      {/* Animated dropdown */}
+    
       <div
         className={`overflow-hidden transition-all duration-300 ease-in-out ${
           isOpen ? "max-h-96 mt-2" : "max-h-0"

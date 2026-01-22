@@ -81,8 +81,7 @@ const ReusableDataTable = ({ data = [], columns }) => {
   };
 
   return (
-    <div className="w-full">
-      {/* 🔍 Search Box */}
+    <div className="w-full ">
       <div className="mb-3 flex justify-end">
         <input
           type="text"

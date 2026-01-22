@@ -12,8 +12,10 @@ import { FaEye } from "react-icons/fa";
 import { FaLink } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import ReusableDialog from "../../components/common/ReusableDialog";
+import { useTranslation } from "react-i18next";
 
 const ManageRole = () => {
+  const { t , i18n} = useTranslation("manageRole");
   const [formData, setFormData] = useState({
     roleId: null,
     roleCode: '',
@@ -350,7 +352,8 @@ const ManageRole = () => {
           <form className="grid grid-cols-12 gap-6" onSubmit={handleConfirmSubmit}>
             <div className="col-span-2">
               <InputField
-                label="Role Code"
+                // label="Role Code"
+                label={t("roleCode")}
                 required={true}
                 name="roleCode"
                 value={roleCode}
@@ -363,7 +366,7 @@ const ManageRole = () => {
             </div>
             <div className="col-span-2">
               <InputField
-                label="Display Name"
+                label={t("displayName")}
                 required={true}
                 name="displayName"
                 value={displayName}
@@ -377,7 +380,8 @@ const ManageRole = () => {
             </div>
             <div className="col-span-2">
               <InputField
-                label="Maximum Assignments"
+                // label="Maximum Assignments"
+                label={t("maxAssignments")}
                 type="number"
                 required={true}
                 name="maxAssignments"
@@ -393,7 +397,8 @@ const ManageRole = () => {
             </div>
             <div className="col-span-3">
               <InputField
-                label="Description"
+                // label="Description"
+                label={t("description")}
                 name="description"
                 value={description}
                 textarea={true}

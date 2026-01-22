@@ -15,8 +15,12 @@ import { toast } from "react-toastify";
 import { useLocation } from "react-router-dom";
 import ReusableDialog from "../../components/common/ReusableDialog";
 import { validateContactNoUtil } from "../../utils/validationUtils";
+import { useTranslation } from "react-i18next";
 
 const AddUser = () => {
+
+  const { t } = useTranslation("addUser")
+
   const [formData, setFormData] = useState({
     userId: null,
     userName: "",
@@ -132,12 +136,12 @@ const AddUser = () => {
     // console.log(formData);
     const sendData = {
       userId,
-      userName:userName.trim(),
-      firstname:firstname.trim(),
-      lastname:lastname.trim(),
-      mobile:mobile.trim(),
-      email:email.trim(),
-      designation:designation.trim(),
+      userName: userName.trim(),
+      firstname: firstname.trim(),
+      lastname: lastname.trim(),
+      mobile: mobile.trim(),
+      email: email.trim(),
+      designation: designation.trim(),
       userRoleMaps: rows,
     };
     try {
@@ -320,7 +324,8 @@ const AddUser = () => {
           <div className="grid grid-cols-12 gap-6">
             <div className="col-span-2">
               <InputField
-                label="Username"
+                // label="Username"
+                label={t("username")}
                 required={true}
                 name="userName"
                 value={userName}
@@ -331,7 +336,7 @@ const AddUser = () => {
             </div>
             <div className="col-span-2">
               <InputField
-                label="First Name"
+                label={t("firstName")}
                 required={true}
                 name="firstname"
                 value={firstname}
@@ -342,7 +347,8 @@ const AddUser = () => {
             </div>
             <div className="col-span-2">
               <InputField
-                label="Last Name"
+                // label="Last Name"
+                label={t("lastName")}
                 required={true}
                 name="lastname"
                 value={lastname}
@@ -353,7 +359,8 @@ const AddUser = () => {
             </div>
             <div className="col-span-2">
               <InputField
-                label="Mobile"
+                // label="Mobile"
+                label={t("mob")}
                 required={true}
                 name="mobile"
                 value={mobile}
@@ -365,7 +372,7 @@ const AddUser = () => {
             </div>
             <div className="col-span-2">
               <InputField
-                label="Email"
+                label={t("email")}
                 required={true}
                 name="email"
                 value={email}
@@ -376,7 +383,7 @@ const AddUser = () => {
             </div>
             <div className="col-span-2">
               <InputField
-                label="Designation"
+                label={t("designation")}
                 required={true}
                 name="designation"
                 value={designation}

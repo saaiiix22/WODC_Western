@@ -8,7 +8,7 @@ export const load = async (serviceFn, payload, setter) => {
             setter(res?.data.data || []);
         }
         else{
-            toast.error('Something Went Wrong')
+            toast.error(res?.data.message)
         }
     } catch (err) {
         console.error(err);

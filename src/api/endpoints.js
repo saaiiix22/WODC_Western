@@ -72,8 +72,8 @@ const endpoints = {
         getBankNames: '/mst/list-bank-master',
         saveUpdateBudget: '/fund/save-or-update-budget',
 
-        getUpdatedBankList:'/mst/get-distinct-bank-list',
-        getBankConfigByBankId:'/mst/get-bankconfig-list-by-bankid'
+        getUpdatedBankList: '/mst/get-distinct-bank-list',
+        getBankConfigByBankId: '/mst/get-bankconfig-list-by-bankid'
     },
     editBudget: {
         getBudgetByFinancialYear: '/fund/get-budget-list'
@@ -94,7 +94,7 @@ const endpoints = {
         totalBudget: '/fund/budget-total',
         // maxBudget: '/fund/budget-by-finyear-giatype',
         maxBudget: '/fund/budget-by-giatypeyear-bankconfig-ids',
-        
+
 
         getProjectList: '/project/get-project-list',
         getMilestone: '/project/get-milestone-list-by-projectid',
@@ -102,30 +102,25 @@ const endpoints = {
         saveProjectAgencyMilestone: '/project/save-update-project-agency-milestone',
         getAllProjectMapById: '/project/project-agency-milestone-list-by-projectid',
         projectAlllookUpValue: '/cmn/get-all-lookup-value',
-        getMilestoneByProjectId:'/project/get-milestone-list-by-projectid',
-        
+        getMilestoneByProjectId: '/project/get-milestone-list-by-projectid',
 
-        getProjectAgencyMilestoneMapDetails:"/project/get-projagymlst-by-projectid-and-mlstnid",
+
+        getProjectAgencyMilestoneMapDetails: "/project/get-projagymlst-by-projectid-and-mlstnid",
         // getBeneficiaryDetails:"/mst/get-beneficiary-list-by-districtid",
-        getBeneficiaryDetails:"/mst/get-beneficiary-list",
-        saveUpdateAgencyMilestone:"/project/save-or-update-milestone-beneficiary",
-        saveBeneficaryByExcel:"/excel/save-benefic-temp-data-by-excel",
-        saveTempBenList:"/excel/save-or-update-temp-beneficiary-list",
-        
-
-        getBeneficiaryByIds:"/project/get-beneficiary-ids-by-id",
-        getProjectByFinYear:"/project/get-project-list-by-finyear",
-        getUpdatedFuncDetails:"/fund/bank-by-finyear-giatype",
-        getBankConfigProject:"/fund/bank-config-by-finyear-giatype-bankid",
+        getBeneficiaryDetails: "/mst/get-beneficiary-list",
+        saveUpdateAgencyMilestone: "/project/save-or-update-milestone-beneficiary",
+        saveBeneficaryByExcel: "/excel/save-benefic-temp-data-by-excel",
+        saveTempBenList: "/excel/save-or-update-temp-beneficiary-list",
 
 
-        getTemplateFile:"/excel/download-beneficiary-template",
-        getEntireProjectDetails:'/project/get-all-details-by-projectid'
-        
-        
-        
+        getBeneficiaryByIds: "/project/get-beneficiary-ids-by-id",
+        getProjectByFinYear: "/project/get-project-list-by-finyear",
+        getUpdatedFuncDetails: "/fund/bank-by-finyear-giatype",
+        getBankConfigProject: "/fund/bank-config-by-finyear-giatype-bankid",
 
 
+        getTemplateFile: "/excel/download-beneficiary-template",
+        getEntireProjectDetails: '/project/get-all-details-by-projectid'
 
     },
     milesStone: {
@@ -162,69 +157,85 @@ const endpoints = {
         saveSectorMilestoneMap: '/mst/save-n-update-sector-milestone-map',
         getMilestoneBySector: '/mst/get-milestones-by-sectorid'
     },
-    bankAccounConfigEndpoints:{
-        saveBankAccountConfig:'/mst/save-or-update-bank-config',
-        getBankList:'/mst/get-bank-config-list',
-        editBankDetails:'/mst/get-bankconfig-by-bankconfigid',
-        toggleBankStatus:'/mst/toggle-bankconfig-status-by-bankconfigid'
+    bankAccounConfigEndpoints: {
+        saveBankAccountConfig: '/mst/save-or-update-bank-config',
+        getBankList: '/mst/get-bank-config-list',
+        editBankDetails: '/mst/get-bankconfig-by-bankconfigid',
+        toggleBankStatus: '/mst/toggle-bankconfig-status-by-bankconfigid'
     },
-    wordOrderGeneration:{
-        saveWorkOrder:'/order/save-or-update-work-order',
-        getDetailsByProjectAndMilestoneId:'/project/get-all-details-by-projectid-and-mlstnid',
-        getAllWorkOrderData:'/order/get-work-order-list'
+    wordOrderGeneration: {
+        saveWorkOrder: '/order/save-or-update-work-order',
+        getDetailsByProjectAndMilestoneId: '/project/get-all-details-by-projectid-and-mlstnid',
+        getAllWorkOrderData: '/order/get-work-order-list'
     },
-    fundReleaseInfo:{
-        getCompleteMilestone:"/project/get-cmplmilestone-list-by-projectid",
-        saveFundReleasInfo:"/order/save-or-update-fund-release-info"
+    fundReleaseInfo: {
+        getCompleteMilestone: "/project/get-cmplmilestone-list-by-projectid",
+        saveFundReleasInfo: "/order/save-or-update-fund-release-info"
     },
-    ucSubmission:{
-        getUCdetails:"/project/get-uc-details-by-projectid-and-mlstnid",
-        saveUCdetails:"/order/save-or-update-uc-details-info"
+    ucSubmission: {
+        getUCdetails: "/project/get-uc-details-by-projectid-and-mlstnid",
+        saveUCdetails: "/order/save-or-update-uc-details-info"
     },
     umtEndpoints: {
-        
+
         saveRole: '/admin/role/save',
-        editViewRole:'/admin/role/edit',
+        editViewRole: '/admin/role/edit',
         roleList: '/admin/role/list',
         toggleRoleStatus: '/admin/role/is-active',
-        getRoleInfo:"/admin/role/roleLevelMap",
+        getRoleInfo: "/admin/role/roleLevelMap",
 
-        saveUser:'/save',
+        saveUser: '/save',
         // userList:"/get-all-users",
-        userList:"/user/list",
-        saveRoleLevelMap:"/admin/role/roleLevelMap/addNupdate",
-        editUser:'/user/edit',
-        toggleUserStatus:'/user/is-active',
+        userList: "/user/list",
+        saveRoleLevelMap: "/admin/role/roleLevelMap/addNupdate",
+        editUser: '/user/edit',
+        toggleUserStatus: '/user/is-active',
 
-        userSearch:'/admin/user/search',
-        roleConfigList:'/admin/role/byUser',
-        getAccessLevelConfig:'/admin/acl/byRole',
-        getConfigList:"admin/acl/config/list",
-        saveConfigAccess:"/admin/acl/config/save",
+        userSearch: '/admin/user/search',
+        roleConfigList: '/admin/role/byUser',
+        getAccessLevelConfig: '/admin/acl/byRole',
+        getConfigList: "admin/acl/config/list",
+        saveConfigAccess: "/admin/acl/config/save",
 
-        getProfileInfo:"/user/profile",
-        saveProfile:'/update/user/profile',
-        checkOldPassword:"/user/check-password",
-        changePassword:"/change/password",
+        getProfileInfo: "/user/profile",
+        saveProfile: '/update/user/profile',
+        checkOldPassword: "/user/check-password",
+        changePassword: "/change/password",
 
 
-        getAllRoles:"/admin/role/list",
-        getAllMenu:"/admin/menu/get-menus-for-role-map",
-        saveRoleMenuMap:"/admin/menu/role-menu-map"
+        getAllRoles: "/admin/role/list",
+        getAllMenu: "/admin/menu/get-menus-for-role-map",
+        saveRoleMenuMap: "/admin/menu/role-menu-map"
     },
-    inspection :{
+    inspection: {
         saveInspection: "/inspection-scheduling/save-or-update-inspection-scheduling",
         updateInspection: "/inspection-scheduling/get-inspection-scheduling-by-id",
         getAllInspection: "/inspection-scheduling/get-inspection-scheduling-list",
-        getAllInspectionByCategory:"/inspection-scheduling/get-inspection-scheduling-list-by-iscomplete",
+        getAllInspectionByCategory: "/inspection-scheduling/get-inspection-scheduling-list-by-iscomplete",
     },
 
-    workflow :{
+    workflow: {
         moduleList: "/workflow/workflow-module-list",
         actionTypeList: "/workflow/workflow-action-list",
         statusList: "/workflow/workflow-status-list",
         stageForwardedRuleListByModule: "/workflow/stage-forwarded-rule-list-by-module",
         saveOrUpdateWorkflow: "/workflow/save-or-update-workflow",
+    },
+
+    gisdata: {
+        gisProjectData: "/dashboard/get-gis-projects-overview",
+        gisFyear: "/mst/get-financial-year-list",
+        gisMapPinIcon: "/cmn/get-base64-from-path",
+    },
+
+    judictionMapConfig: {
+        judictionMapConfigList: "/cmn/get-all-judiction-list",
+        getDistrictListByConstituencyType: "/cmn/get-district-list-by-constituency-id",
+        getConstituencyName: "/cmn/get-constituency-list-by-constituency-type",
+        saveDistConsMap: '/mst/save-or-update-constituency-district-mapping',
+
+        saveJurisdictionConfig: "/mst/save-or-update-judiction-configuration"
+
     }
 }
 export default endpoints 

@@ -47,14 +47,11 @@ const GetDistrict = () => {
 
   const [formData, setFormData] = useState({
     districtName: "",
-    consName: "",
     districtlgdCode: "",
     remark: "",
     districtId: null,
-    constituencyTypeCode: "",
-    constituencyCode: "",
   });
-  const { districtName, consName, constituencyTypeCode, constituencyCode, districtlgdCode, remark, districtId, } = formData;
+  const { districtName, districtlgdCode, remark, districtId, } = formData;
   const [errors, setErrors] = useState({});
 
   const handleChangeInput = (e) => {
@@ -101,9 +98,6 @@ const GetDistrict = () => {
           districtName: districtName,
           districtlgdCode: districtlgdCode,
           remark: remark,
-          constituency: {
-            consId: consName,
-          }
         });
         const res = await saveDistrictService(payload);
         // console.log(res);
@@ -115,18 +109,16 @@ const GetDistrict = () => {
           setFormData({
             districtName: "",
             remark: "",
-            consName: "",
+            districtId: null,
             districtlgdCode: "",
-            constituencyTypeCode: "",
           });
         } else {
           toast.error(res?.data.message);
           setFormData({
-            consName: "",
             districtName: "",
             remark: "",
+            districtlgdCode: "",
             districtId: null,
-            constituencyTypeCode: "",
           });
         }
         setLoading(false);
@@ -142,11 +134,6 @@ const GetDistrict = () => {
 
     let newErrors = {};
 
-    if (!formData.constituencyTypeCode) {
-      newErrors.constituencyTypeCode = "Constituency type is required";
-      setErrors(newErrors);
-      return;
-    }
 
     if (!formData.districtName.trim()) {
       newErrors.districtName = "District name is required";
@@ -168,34 +155,7 @@ const GetDistrict = () => {
       setOpenSubmit(false);
     }
   };
-
-  const [constituencyTypeOptions, setConstituencyTypeOptions] = useState([]);
-  const getconstituencyOptions = async () => {
-    try {
-      // const payload = encryptPayload({ isActive: true });
-      const res = await constituencyTypeListService();
-      setConstituencyTypeOptions(res?.data.data);
-    } catch (error) {
-      throw error;
-    }
-  };
-
-  const [constituencyNameOptions, setConstituencyNameOptions] = useState([]);
-  const getconstituencyNameOptions = async () => {
-    try {
-      const payload = encryptPayload({
-        isActive: true,
-        constituencyTypeCode: constituencyTypeCode,
-      });
-      const res = await constituencyListByTypeService(payload);
-      setConstituencyNameOptions(res?.data.data);
-      console.log("res constituency", res);
-    } catch (error) {
-      throw error;
-    }
-    console.log("constituencyNameOptions", constituencyNameOptions);
-  };
-
+  
   const [tableData, setTableData] = useState([]);
   const getDistrictList = async () => {
     try {
@@ -213,16 +173,6 @@ const GetDistrict = () => {
 
 
   useEffect(() => {
-    if (constituencyTypeCode) {
-      getconstituencyNameOptions();
-    } else {
-      setConstituencyNameOptions([]);
-    }
-  }, [constituencyTypeCode]);
-
-  useEffect(() => {
-    getconstituencyOptions();
-    // getconstituencyNameOptions();
     getDistrictList();
   }, []);
 
@@ -234,10 +184,6 @@ const GetDistrict = () => {
       center: true,
       sortable: true,
     },
-    // {
-    //   name: "Distict Code",
-    //   selector: (row) => row.districtCode || "N/A",
-    // },
     {
       name: "District Name",
 
@@ -327,8 +273,6 @@ const GetDistrict = () => {
           districtName: data.districtName || "",
           districtlgdCode: data.districtlgdCode || "",
           remark: data.remark || "",
-          constituencyTypeCode: data.constituency?.constituencyCode || "",
-          consName: data.constituency?.consId || "",
         });
 
         setExpanded("panel1");
@@ -401,7 +345,7 @@ const GetDistrict = () => {
               onSubmit={handleSubmitConfirmModal}
             >
 
-              <div className="col-span-2">
+              {/* <div className="col-span-2">
                 <SelectField
                   label="Constituency Type"
                   required
@@ -434,8 +378,8 @@ const GetDistrict = () => {
                   disabled={!constituencyTypeCode}
                 />
 
-              </div>
-              <div className="col-span-3">
+              </div> */}
+              <div className="col-span-2">
                 <InputField
                   label="District Name"
                   required={true}
@@ -448,7 +392,7 @@ const GetDistrict = () => {
                 />
               </div>
 
-              <div className="col-span-3">
+              <div className="col-span-2">
                 <InputField
                   label="District Lgd Code"
                   required={true}
@@ -461,7 +405,7 @@ const GetDistrict = () => {
                 />
               </div>
 
-              <div className="col-span-3">
+              <div className="col-span-4">
                 <InputField
                   label="Description"
                   textarea={true}
@@ -474,7 +418,7 @@ const GetDistrict = () => {
               </div>
 
               <div className="col-span-3">
-                <div className="flex justify-start items-center gap-2 text-[13px] mt-7">
+                <div className="flex justify-start items-center gap-2 text-[13px] mt-6">
                   <ResetBackBtn />
                   <SubmitBtn type={"submit"} btnText={districtId} />
                   {/* <button className="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 transition-all active:scale-95">

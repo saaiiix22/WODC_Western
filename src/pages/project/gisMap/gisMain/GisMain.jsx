@@ -48,7 +48,7 @@ const GisMain = () => {
   };
 
   return (
-    <div className="p-4 space-y-4 bg-gray-50 min-h-screen">
+    <div className="space-y-4 bg-gray-50 min-h-screen">
       <div className="grid grid-cols-12 gap-4">
 
         {/* Left Sidebar: Filter */}

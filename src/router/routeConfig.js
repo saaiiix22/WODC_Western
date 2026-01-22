@@ -25,6 +25,9 @@ export const routes = {
    vendorPage:{path: "/get-vendor", label: "Vendor Details", protected: true},
    sectorMilestoneMapping:{path: "/get-sector-milestone", label: "Sector Milestone Mapping", protected: true},
    beneficiary:{path: "/get-beneficiary", label: "Beneficiary Details", protected: true},
+   judictionMapConfiguration:{path: "/jurisdictionMapConfiguration", label: "Judiction Map Configuration", protected: true},
+   districtConstituencyMap:{path: "/districtConstituencyMap", label: "Distrcit Constituency Map", protected: true},
+
 
 
    manageRole:{path: "/get-manage-user", label: "Manage Role", protected: true},

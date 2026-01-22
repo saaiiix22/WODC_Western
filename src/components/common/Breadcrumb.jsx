@@ -7,7 +7,6 @@ const Breadcrumb = () => {
 
   const paths = location.pathname.split("/").filter((x) => x !== "");
 
-  // Helper to get label from route path
   const getLabelFromPath = (path) => {
     const routeEntry = Object.values(routes).find((r) => r.path === path);
     return routeEntry ? routeEntry.label : null;

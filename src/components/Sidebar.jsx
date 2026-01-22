@@ -28,7 +28,7 @@ const Sidebar = ({ collapse, setCollapse }) => {
   const getAllMenu = async () => {
     try {
       const res = await getAllMenuForSideBarService();
-      console.log(res);
+      // console.log(res);
       if (res?.data.outcome && res?.status === 200) {
         setMenuList(res?.data.data);
       }
@@ -53,10 +53,13 @@ const Sidebar = ({ collapse, setCollapse }) => {
   return (
     <div
       className={`
-        h-full flex flex-col transition-all duration-300 shadow-xl relative
-        bg-[#141414] 
+        h-full flex flex-col transition-all duration-300 shadow-xl relative 
+        bg-[#2a2e34] 
+        overflow-auto
         ${collapse ? "w-20 min-w-20 p-2" : "w-64 min-w-64 p-3"}
+        
       `}
+      id="sidebar"
     >
       {/* HEADER */}
       <div className={`flex items-center  mb-6 w-full mt-3 ${collapse ? "justify-center" : "justify-between"}`}>

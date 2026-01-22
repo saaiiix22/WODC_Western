@@ -207,23 +207,6 @@ const Agency = () => {
       setErrors(newErrors);
       return;
     }
-
-    // if (!aadhaarNo || !aadhaarNo.trim()) {
-    //   newErrors.aadhaarNo = "Aadhar number is required";
-    //   setErrors(newErrors);
-    //   return;
-    // }
-    // if (!validateAadhaarUtil(aadhaarNo)) {
-    //   newErrors.aadhaarNo =
-    //     "Invalid Aadhaar number (must be 12 digits and cannot start with 0 or 1)";
-    //   setErrors(newErrors);
-    //   return;
-    // }
-    // if (!dob || !dob.trim()) {
-    //   newErrors.dob = "DOB is required";
-    //   setErrors(newErrors);
-    //   return;
-    // }
     const contactError = validateContactNoUtil(contactNo);
     if (contactError) {
       setErrors((prev) => ({ ...prev, contactNo: contactError }));
