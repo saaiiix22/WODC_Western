@@ -14,7 +14,7 @@ import {
 } from "../../components/common/CommonAccordion";
 import { ResetBackBtn, SubmitBtn } from "../../components/common/CommonButtons";
 import { Tooltip } from "@mui/material";
-import { districtListByConstituencyTypeService, getConstituencyNameService, judictionMapConfigService, saveJurisdictionConfig } from '../../services/judictionMapConfigService';
+import { districtListByConstituencyTypeService, getConstituencyNameService, getJurisdictionConfigByConsIdService, judictionMapConfigService, saveJurisdictionConfig } from '../../services/judictionMapConfigService';
 import { constituencyTypeListService } from '../../services/constituencyService';
 import { encryptPayload } from '../../crypto.js/encryption';
 import MultiSelectDropdown from '../../components/common/MultiSelectDropdown';
@@ -101,18 +101,22 @@ const JudictionMapConfiguration = () => {
   }
 
   const [blockOptions, setBlockOptions] = useState([]);
-
   const getBlocksByDistricts = async () => {
     try {
       let fetchedBlocks = [];
 
-      for (const districtId of districtIds) {
+      const validDistrictIds = districtIds.filter(
+        (id) => id !== null && id !== undefined
+      );
+
+      for (const districtId of validDistrictIds) {
         const payload = encryptPayload({
           isActive: true,
-          districtId,
+          districtId: Number(districtId),
         });
 
         const res = await getBlockThroughDistrictService(payload);
+
         if (res?.data?.outcome) {
           fetchedBlocks.push(...res.data.data);
         }
@@ -124,10 +128,12 @@ const JudictionMapConfiguration = () => {
           new Map(merged.map((b) => [b.blockId, b])).values()
         );
       });
+
     } catch (err) {
       console.log(err);
     }
   };
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -142,7 +148,7 @@ const JudictionMapConfiguration = () => {
               block.district?.districtId === Number(districtId) &&
               blockIds.includes(block.blockId)
           )
-          .map((block) => block.blockId);
+          .map((block) => Number(block.blockId));
 
         if (blocksForDistrict.length > 0) {
           districtBlockMap[districtId] = blocksForDistrict;
@@ -175,6 +181,29 @@ const JudictionMapConfiguration = () => {
     }
   };
 
+  const getSelectedData = async () => {
+    try {
+      const payload = encryptPayload({
+        consId: constituencyName
+      })
+      const res = await getJurisdictionConfigByConsIdService(payload)
+
+      const data = res?.data.data
+
+      if (res?.status === 200 && res?.data.outcome) {
+        setFormData((prev) => ({
+          ...prev,
+          judictionConfigId: data.judictionConfigId,
+          districtIds: Object.keys(data.districtBlockMap).map(Number),
+          blockIds: Object.values(data.districtBlockMap).flat(),
+        }));
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  console.log(formData);
 
 
 
@@ -200,25 +229,25 @@ const JudictionMapConfiguration = () => {
     }
   }, [constituencyTypeCode])
   useEffect(() => {
-    if (constituencyName) {
-      getDistrictListByType();
-      setFormData((prev) => ({
-        ...prev,
-        districtIds: [],
-        blockIds: [],
-      }));
-      setBlockOptions([]);
-    }
+    if (!constituencyName) return;
+
+    getDistrictListByType();
+    setBlockOptions([]);
+    getSelectedData();
+
   }, [constituencyName]);
 
+
+  // console.log(formData);
+
+
   useEffect(() => {
-    if (districtIds.length === 0) {
+    if (!districtIds || districtIds.length === 0) {
       setBlockOptions([]);
       setFormData((prev) => ({ ...prev, blockIds: [] }));
       return;
     }
 
-    getBlocksByDistricts();
 
     setBlockOptions((prev) =>
       prev.filter((block) =>
@@ -226,17 +255,35 @@ const JudictionMapConfiguration = () => {
       )
     );
 
-    setFormData((prev) => ({
+    // setFormData((prev) => ({
+    //   ...prev,
+    //   blockIds: prev.blockIds.filter((blockId) =>
+    //     blockOptions.some(
+    //       (block) =>
+    //         block.blockId === blockId &&
+    //         districtIds.includes(block.district?.districtId)
+    //     )
+    //   ),
+    // }));
+
+    // getSelectedData()
+    getBlocksByDistricts();
+
+  }, [districtIds]);
+
+
+  useEffect(() => {
+    if (!blockOptions.length || !blockIds.length) return;
+
+    setFormData(prev => ({
       ...prev,
-      blockIds: prev.blockIds.filter((blockId) =>
-        blockOptions.some(
-          (block) =>
-            block.blockId === blockId &&
-            districtIds.includes(block.district?.districtId)
-        )
+      blockIds: prev.blockIds.filter(blockId =>
+        blockOptions.some(b => b.blockId === blockId)
       ),
     }));
-  }, [districtIds]);
+  }, [blockOptions]);
+
+
 
 
   return (

@@ -1,166 +1,182 @@
-import axios from "axios";
 import React, { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { encryptPayload } from "../../crypto.js/encryption";
-import { loginService } from "../../services/authService";
 import { loginUser } from "../../redux/slices/authThunks";
-import { useNavigate } from "react-router-dom";
 import { fetchUserDetails } from "../../redux/slices/menuSlice";
-import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
+import { images } from "../../assets/images";
 
 const Login = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
   const generateCaptcha = () => {
     const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-    let text = "";
-    for (let i = 0; i < 5; i++) {
-      text += chars[Math.floor(Math.random() * chars.length)];
-    }
-    return text;
+    return Array.from({ length: 5 }, () =>
+      chars[Math.floor(Math.random() * chars.length)]
+    ).join("");
   };
-  const dispatch = useDispatch();
 
   const [captcha, setCaptcha] = useState(generateCaptcha());
-
-  const refreshCaptcha = () => {
-    setCaptcha(generateCaptcha());
-    setFormData({ ...formData, captchaText: "" });
-  };
-
   const [formData, setFormData] = useState({
     userName: "",
     password: "",
     captchaText: "",
   });
 
+  const refreshCaptcha = () => {
+    setCaptcha(generateCaptcha());
+    setFormData({ ...formData, captchaText: "" });
+  };
+
   const handleInp = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  const navigate = useNavigate();
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const payload = encryptPayload(formData);
-
       const res = await dispatch(loginUser(payload)).unwrap();
-      
+
       if (res?.outcome) {
         localStorage.setItem("token", res.data);
-        await dispatch(fetchUserDetails()); 
+        await dispatch(fetchUserDetails());
         navigate("/dashboard");
       }
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      console.error(err);
     }
   };
 
-
   return (
     <div
-      className="min-h-screen w-full flex flex-col items-center justify-center px-4 relative"
+      className="min-h-screen flex items-center justify-center px-4"
       style={{
-        backgroundImage:
-          "url(https://apps.odishatourism.gov.in/Application/uploadDocuments/UserContribution/Thumb20230508_103106.jpg)",
+        background: `linear-gradient(
+          to right,
+          rgba(17,24,39,0.95),
+          rgba(15,118,110,0.85)
+        ), url(${images.loginBg})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
       }}
     >
-      <form
-        onSubmit={handleSubmit}
-        className="
-          w-full max-w-[420px] backdrop-blur-lg p-8 rounded-xl border border-blue-300
-        "
-      >
-        <div className="w-full px-4 py-2 mb-2 rounded-lg flex flex-col items-center">
-          <h1 className="text-2xl font-bold text-[#003b7b]">WODC - Odisha</h1>
-          <p className="text-sm text-gray-600 mt-1">
-            Government of Odisha – Login Portal
-          </p>
-        </div>
+      <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 rounded-lg overflow-hidden shadow-2xl bg-white/90 backdrop-blur-lg">
 
-        {/* Username */}
-        <label className="text-[#003b7b] text-[15px] font-medium">
-          Username
-        </label>
-        <input
-          type="text"
-          placeholder="Enter your username"
-          name="userName"
-          value={formData.userName}
-          onChange={handleInp}
-          className="
-            w-full h-[46px] mt-1 px-3 rounded-md border
-            border-gray-300 text-gray-700 text-sm
-            focus:border-[#003b7b] focus:outline-none
-          "
-        />
+        {/* LEFT – Branding */}
+        <div className="relative hidden md:flex flex-col justify-center items-center bg-[#111827] text-white px-10">
+          <div className="absolute inset-0 opacity-20">
+            <img
+              src={images.loginBg}
+              alt=""
+              className="w-full h-full object-cover"
+            />
+          </div>
 
-        {/* Password */}
-        <label className="text-[#003b7b] text-[15px] font-medium mt-5 block">
-          Password
-        </label>
-        <input
-          type="password"
-          placeholder="Enter your password"
-          name="password"
-          value={formData.password}
-          onChange={handleInp}
-          className="
-            w-full h-[46px] mt-1 px-3 rounded-md border
-            border-gray-300 text-gray-700 text-sm
-            focus:border-[#003b7b] focus:outline-none
-          "
-        />
+          <div className="relative z-10 flex flex-col items-center">
+            <div className="flex items-center gap-4 mb-6">
+              <img src={images.emblem} alt="Emblem" className="w-16 invert" />
+              <span className="h-10 w-[1px] bg-gray-400" />
+              <img src={images.wodc} alt="WODC" className="w-16" />
+            </div>
 
-        {/* Captcha */}
-        <label className="text-[#003b7b] text-[15px] font-medium mt-5 block">
-          Captcha Code
-        </label>
-        <div className="flex items-center gap-3 mt-1">
-          <input
-            type="text"
-            name="captchaText"
-            value={formData.captchaText}
-            onChange={handleInp}
-            placeholder="Enter code"
-            className="
-              w-1/2 h-[46px] px-3 rounded-md border border-gray-300
-              text-gray-700 text-sm focus:border-[#003b7b]
-              focus:outline-none
-            "
-          />
-          <div
-            className="
-              w-1/2 h-[46px] flex items-center justify-center
-              bg-[#eaf1ff] text-[#003b7b] font-bold tracking-widest
-              rounded-md border border-[#003b7b] cursor-pointer select-none
-            "
-            onClick={refreshCaptcha}
-            title="Click to refresh"
-          >
-            {captcha}
+            <h1 className="text-3xl font-bold tracking-wide">
+              WODC Odisha
+            </h1>
+            <p className="mt-3 text-sm text-gray-300 text-center leading-relaxed">
+              Western Odisha Development Council 
+              <br />
+              Government of Odisha 
+            </p>
+
+            <div className="mt-12 text-xs text-gray-400 tracking-wide">
+              Authorized Personnel Only
+            </div>
           </div>
         </div>
 
-        {/* Login Button */}
-        <button
-          type="submit"
-          className="
-            w-full mt-8 bg-[#003b7b] text-white
-            py-3 rounded-md font-semibold text-lg
-            hover:bg-[#024a9b] transition-all
-          "
+        {/* RIGHT – Login Form */}
+        <form
+          onSubmit={handleSubmit}
+          className="px-8 py-10 md:px-12 flex flex-col justify-center"
         >
-          Log In
-        </button>
-      </form>
+          <h2 className="text-2xl font-bold text-gray-800 mb-1">
+            User Authentication
+          </h2>
+          <p className="text-sm text-gray-500 mb-8">
+            Login using your official credentials
+          </p>
 
-      {/* Footer */}
-      <p className="text-xs text-white mt-5">
-        © {new Date().getFullYear()} WODC Odisha | All Rights Reserved
-      </p>
+          {/* Username */}
+          <label className="text-sm font-medium text-gray-700 mb-1">
+            Username
+          </label>
+          <input
+            type="text"
+            name="userName"
+            value={formData.userName}
+            onChange={handleInp}
+            placeholder="Enter username"
+            className="h-11 px-3 rounded-md border border-gray-300 text-sm mb-5
+            focus:ring-2 focus:ring-blue-600 focus:outline-none"
+          />
+
+          {/* Password */}
+          <label className="text-sm font-medium text-gray-700 mb-1">
+            Password
+          </label>
+          <input
+            type="password"
+            name="password"
+            value={formData.password}
+            onChange={handleInp}
+            placeholder="Enter password"
+            className="h-11 px-3 rounded-md border border-gray-300 text-sm mb-5
+            focus:ring-2 focus:ring-blue-600 focus:outline-none"
+          />
+
+          {/* Captcha */}
+          <label className="text-sm font-medium text-gray-700 mb-1">
+            Captcha Code
+          </label>
+          <div className="flex gap-3 mb-8">
+            <input
+              type="text"
+              name="captchaText"
+              value={formData.captchaText}
+              onChange={handleInp}
+              placeholder="Enter code"
+              className="w-1/2 h-11 px-3 rounded-md border border-gray-300 text-sm
+              focus:ring-2 focus:ring-blue-600 focus:outline-none"
+            />
+
+            <div
+              onClick={refreshCaptcha}
+              className="w-1/2 h-11 flex items-center justify-center
+              rounded-md bg-teal-50 border border-teal-600
+              text-teal-700 font-bold tracking-widest cursor-pointer select-none"
+              title="Refresh Captcha"
+            >
+              {captcha}
+            </div>
+          </div>
+
+          {/* Submit */}
+          <button
+            type="submit"
+            className="h-12 rounded-md bg-light-dark/90 text-white font-semibold
+            hover:bg-light-dark transition-all"
+          >
+            Login Securely
+          </button>
+
+          <p className="text-xs text-gray-400 text-center mt-8">
+            © {new Date().getFullYear()} WODC Odisha | All Rights Reserved
+          </p>
+        </form>
+      </div>
     </div>
   );
 };

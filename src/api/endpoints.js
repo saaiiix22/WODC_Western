@@ -234,7 +234,8 @@ const endpoints = {
         getConstituencyName: "/cmn/get-constituency-list-by-constituency-type",
         saveDistConsMap: '/mst/save-or-update-constituency-district-mapping',
 
-        saveJurisdictionConfig: "/mst/save-or-update-judiction-configuration"
+        saveJurisdictionConfig: "/mst/save-or-update-judiction-configuration",
+        getJurisdictionConfigByConsId:'/mst/get-jurisdiction-configuration-by-constituency-id'
 
     }
 }

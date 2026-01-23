@@ -7,5 +7,6 @@ export const getConstituencyNameService=(data)=>Api.get(endpoints.judictionMapCo
 
 export const saveDistConsMapService=(data)=>Api.post(endpoints.judictionMapConfig.saveDistConsMap,{obj:data})
 export const saveJurisdictionConfig=(data)=>Api.post(endpoints.judictionMapConfig.saveJurisdictionConfig,{obj:data})
+export const getJurisdictionConfigByConsIdService=(data)=>Api.get(endpoints.judictionMapConfig.getJurisdictionConfigByConsId,{params:{cipherText:data}})
 
 

@@ -20,11 +20,11 @@ const InspectionCalendar = () => {
             agencyId: '',
         }
     )
-    
+
     const [events, setEvents] = useState([]);
-    
+
     const [cards, setCards] = useState([])
-    
+
     const loadCalendarData = async () => {
         try {
             const payload = encryptPayload({
@@ -34,11 +34,11 @@ const InspectionCalendar = () => {
                 milestoneId: null,
                 agencyId: null,
             });
-            
+
             const res = await getInspectionCalendarDataService(payload);
             const formattedEvents = res?.data?.data.map(item => {
                 const [day, month, year] = item.date.split('/');
-                
+
                 return {
                     title: `${item.inspectionCount} Inspection${item.inspectionCount > 1 ? 's' : ''}`,
                     date: `${year}-${month}-${day}`,
@@ -57,7 +57,7 @@ const InspectionCalendar = () => {
                 date: inspDate.split('-').reverse().join('/')
             })
             const res = await getInspectionByDateService(payload)
-            
+
             if (res?.status === 200 && res?.data.outcome) {
                 setCards(res?.data.data)
             }
@@ -65,8 +65,8 @@ const InspectionCalendar = () => {
             console.log(error);
         }
     }
-    
-    
+
+
     useEffect(() => {
         loadCalendarData();
     }, []);
@@ -75,23 +75,23 @@ const InspectionCalendar = () => {
             getInspectionByDate()
         }
     }, [inspDate])
-    
-     
+
+
     const navigate = useNavigate();
     const handleEditInspection = (inspection) => {
         navigate("/inspection", {
             state: {
                 inspectionId: inspection.inspectionId,
-                isViewMode: false, 
+                isViewMode: false,
             },
         });
     };
-    
+
     const handleViewInspection = (inspection) => {
         navigate("/inspection", {
             state: {
                 inspectionId: inspection.inspectionId,
-                isViewMode: true, // VIEW MODE
+                isViewMode: true,
             },
         });
     };
@@ -99,6 +99,14 @@ const InspectionCalendar = () => {
 
     return (
         <div className="grid grid-cols-12 gap-2">
+
+            <div className="col-span-12">
+                <div className="flex-1 bg-white border border-slate-200 p-6">
+                    <form action="" className="grid grid-cols-12 gap-6">
+
+                    </form>
+                </div>
+            </div>
 
             <div className={`${cards.length === 0 ? "col-span-12" : "col-span-9"}`}>
                 <div className="flex-1 bg-white shadow-lg p-6">
@@ -114,6 +122,11 @@ const InspectionCalendar = () => {
                             center: "title",
                             right: "",
                         }}
+                        // initialDate="2002-04-01"
+                        // visibleRange={{
+                        //     start: "2002-04-01",
+                        //     end: "2003-04-01",
+                        // }}
                         dateClick={(info) => setInspDate(info.dateStr)}
                     />
                 </div>
