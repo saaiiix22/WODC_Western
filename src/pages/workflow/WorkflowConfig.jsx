@@ -272,7 +272,7 @@ const WorkflowConfig = () => {
       if (res?.data?.outcome && res.data.data?.length) {
         const rowsWithUpdatedFlags = calculateStageFlags(res.data.data);
         setRules(rowsWithUpdatedFlags);
-        // toast.success("Loaded existing workflow rules");
+      
       } else {
         setRules([]);
         toast.info("No existing rules found for this module");

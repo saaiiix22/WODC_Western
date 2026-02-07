@@ -1,17 +1,19 @@
 import { useState, useEffect, useRef } from "react";
-import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Outlet, useLocation, useNavigate, Navigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import Breadcrumb from "../components/common/Breadcrumb";
 import { useLoader } from "../context/LoaderContext";
 import Loader from "../components/common/Loader";
 import SessionExpiredModal from "../components/common/SessionExpiredModal";
+import { useSelector } from "react-redux";
 
-const IDLE_TIMEOUT = 15 * 60 * 1000; 
+const IDLE_TIMEOUT = 15 * 60 * 1000;
 
 const MainLayout = () => {
   const { loading } = useLoader();
   const navigate = useNavigate();
+
 
   const [collapse, setCollapse] = useState(false);
   const sidebarWidth = collapse ? 80 : 250;
@@ -39,7 +41,7 @@ const MainLayout = () => {
       window.addEventListener(event, resetIdleTimer)
     );
 
-    resetIdleTimer(); // start timer initially
+    resetIdleTimer();
 
     return () => {
       events.forEach((event) =>
@@ -67,6 +69,7 @@ const MainLayout = () => {
     setSessionExpired(false);
     resetIdleTimer();
   };
+
 
   return (
     <>

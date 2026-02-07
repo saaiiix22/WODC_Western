@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import { RiMenu2Fill } from "react-icons/ri";
 import { FaChevronDown } from "react-icons/fa";
 import { RxCross2 } from "react-icons/rx";
 import { images } from "../assets/images";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import { getAllMenuForSideBarService } from "../services/umtServices";
-
+import { useDispatch, useSelector } from "react-redux";
+import { setMenuData } from "../redux/slices/menuSlice";
 
 
 const iconColors = [
@@ -22,13 +23,14 @@ const iconColors = [
 
 const Sidebar = ({ collapse, setCollapse }) => {
 
- 
-  
+  const dispatch = useDispatch()
+
+  const [menuList, setMenuList] = useState([])
+  const { menuData, isLoading } = useSelector(state => state.menu);
 
   const getAllMenu = async () => {
     try {
       const res = await getAllMenuForSideBarService();
-      // console.log(res);
       if (res?.data.outcome && res?.status === 200) {
         setMenuList(res?.data.data);
       }
@@ -36,12 +38,38 @@ const Sidebar = ({ collapse, setCollapse }) => {
       throw error;
     }
   };
+  // console.log(menuList);
+  // const getAllowedRoutesArr = (menus = []) => {
+  //   const arr = [];
 
-  useEffect(()=>{
+  //   menus.forEach(menu => {
+  //     if (menu?.link && menu.link !== "#") {
+  //       arr.push(menu.link);
+  //     }
+
+  //     menu?.subMenu?.forEach(sub => {
+  //       if (sub?.link) {
+  //         arr.push(sub.link);
+  //       }
+  //     });
+  //   });
+
+  //   return arr;
+  // };
+
+  useEffect(() => {
     getAllMenu()
-  },[])
+  }, [])
+  useEffect(() => {
+    if (menuList) {
+      // const arr = getAllowedRoutesArr(menuList);
+      dispatch(setMenuData(menuList))
+      // dispatch(setMenuData(arr))
+    }
+  }, [menuList])
 
-  const [menuList,setMenuList] = useState([])
+
+
 
 
   const [activeMenu, setActiveMenu] = React.useState(null);
@@ -66,7 +94,7 @@ const Sidebar = ({ collapse, setCollapse }) => {
         {!collapse && (
           <div className="flex flex-col ">
             <span className="text-white text-lg font-semibold tracking-wide">
-              IPFMS Portal
+              WODC Portal
             </span>
             <span className="text-white text-[11px] opacity-70 tracking-wider">
               Administration
@@ -141,7 +169,7 @@ const Sidebar = ({ collapse, setCollapse }) => {
                 </div>
               ) : (
                 // DIRECT LINK ITEM
-                <Link
+                <NavLink
                   to={item.link}
                   className={`
             flex items-center px-2 py-2 rounded-lg cursor-pointer w-full
@@ -150,7 +178,7 @@ const Sidebar = ({ collapse, setCollapse }) => {
           `}
                 >
                   {content}
-                </Link>
+                </NavLink>
               )}
 
               {/* SUBMENU */}
@@ -164,13 +192,13 @@ const Sidebar = ({ collapse, setCollapse }) => {
           `}
                 >
                   {item.subMenu.map((sub, i) => (
-                    <Link
+                    <NavLink
                       key={i}
                       to={sub.link}
                       className="block px-3 py-1.5 text-white/90 text-[11px] hover:bg-white/10 transition"
                     >
                       {sub.title}
-                    </Link>
+                    </NavLink>
                   ))}
                 </div>
               )}

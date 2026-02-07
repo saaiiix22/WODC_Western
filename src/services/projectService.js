@@ -49,3 +49,12 @@ export const getTemplateFileService = () => Api.get(endpoints.project.getTemplat
 })
 
 export const getEntireProjectDetailsService=(data)=>Api.get(endpoints.project.getEntireProjectDetails,{params:{cipherText:data}})
+
+export const getConsByDistService = (data) => Api.get(endpoints.project.getConsByDist,{params:{cipherText:data}})
+export const getConsByBlockService = (data) => Api.get(endpoints.project.getConsByBlock,{params:{cipherText:data}})
+
+export const getJuridictionService = (data) => Api.get(endpoints.project.getJuridiction,{params:{cipherText:data}})
+
+export const getTabsService=()=>Api.get(endpoints.project.getTabs)
+
+export const getProjectByTabCodeService=(data)=>Api.get(endpoints.project.getProjectByTabCode,{params:{cipherText:data}})

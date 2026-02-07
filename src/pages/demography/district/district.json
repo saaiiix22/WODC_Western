@@ -1,0 +1,32 @@
+[
+  {
+    "label": "districtName",
+    "type": "text",
+    "name": "districtName",
+    "placeholder": "Enter district name",
+    "textArea": false,
+    "required": true,
+    "maxLength": 50,
+    "colSpan": 2
+  },
+  {
+    "label": "districtlgdCode",
+    "type": "text",
+    "name": "districtlgdCode",
+    "placeholder": "Enter district lgd code",
+    "textArea": false,
+    "required": true,
+    "maxLength": 50,
+    "colSpan": 2
+  },
+  {
+    "label": "remark",
+    "type": "text",
+    "name": "remark",
+    "placeholder": "Write remarks",
+    "textArea": true,
+    "required": false,
+    "maxLength": 255,
+    "colSpan": 4
+  }
+]

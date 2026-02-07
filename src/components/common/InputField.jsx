@@ -2,7 +2,7 @@ import React from "react";
 
 const InputField = ({
   label,
-  required,
+  required = false,
   type = "text",
   name,
   value,
@@ -10,25 +10,22 @@ const InputField = ({
   onBlur,
   error,
   textarea = false,
-  placeholder,
+  placeholder = "",
   min,
   max,
   minLength,
   maxLength,
   amount = false,
   disabled = false,
+  readOnly = false,
 }) => {
-  
-  const formatWithCommas = (value) => {
-    if (!value) return "";
-    return Number(value).toLocaleString("en-IN");
+
+  // Prevent state updates when readOnly / disabled
+  const safeOnChange = (e) => {
+    if (disabled || readOnly) return;
+    onChange?.(e);
   };
 
-  const removeCommas = (value) => {
-    if (!value) return "";
-    return value.replace(/,/g, "");
-  };
-  
   return (
     <div className="flex flex-col gap-1 w-full">
       {/* Label */}
@@ -43,14 +40,14 @@ const InputField = ({
         <textarea
           name={name}
           value={value ?? ""}
-          onChange={onChange}
+          onChange={safeOnChange}
+          onBlur={onBlur}
+          readOnly={readOnly}
           disabled={disabled}
-          // placeholder={placeholder ?? ""}
-          placeholder={""}
+          placeholder={placeholder}
           {...(minLength !== undefined && { minLength })}
           {...(maxLength !== undefined && { maxLength })}
-          {...(min !== undefined && { min })}
-          {...(max !== undefined && { max })}
+          rows={1}
           className={`
             w-full rounded-md border border-gray-300 
             px-2.5 py-1.5 text-sm resize-none
@@ -58,20 +55,24 @@ const InputField = ({
             placeholder:text-gray-400
             ${disabled
               ? "bg-gray-100 cursor-not-allowed"
+              : readOnly
+              ? "bg-gray-50 cursor-default"
               : "focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
             }
+            ${
+              error? "border-red-500": ""
+            }
           `}
-          rows={1}
         />
       )}
 
-      {/* FILE INPUT (UNCONTROLLED) */}
+      {/* FILE INPUT (readOnly NOT supported by HTML) */}
       {type === "file" && (
         <input
           type="file"
           name={name}
-          onChange={onChange}
-          disabled={disabled}
+          onChange={safeOnChange}
+          disabled={disabled}   // only valid lock for file inputs
           className={`
             w-full rounded-md border border-gray-300 
             px-0.5 py-0.5 text-sm
@@ -82,7 +83,10 @@ const InputField = ({
             hover:file:bg-orange-100
             ${disabled
               ? "bg-gray-100 cursor-not-allowed"
-              : "focus:border-blue-200 focus:ring-2 focus:ring-blue-200"
+              : "focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+            }
+            ${
+              error? "border-red-500": ""
             }
           `}
         />
@@ -94,11 +98,13 @@ const InputField = ({
           type={type}
           name={name}
           value={value ?? ""}
-          onChange={onChange}
+          onChange={safeOnChange}
           onBlur={onBlur}
+          readOnly={readOnly}
           disabled={disabled}
-          // placeholder={placeholder ?? ""}
-          placeholder={""}
+          placeholder={placeholder}
+          {...(min !== undefined && { min })}
+          {...(max !== undefined && { max })}
           {...(minLength !== undefined && { minLength })}
           {...(maxLength !== undefined && { maxLength })}
           className={`
@@ -106,11 +112,15 @@ const InputField = ({
             px-2.5 py-1.5 text-sm
             outline-none transition-all duration-200
             placeholder:text-gray-400
-            ${amount ? "text-right" : ""
+            ${
+              error? "border-red-500": ""
             }
+            ${amount ? "text-right" : ""}
             ${disabled
               ? "bg-gray-100 cursor-not-allowed"
-              : "focus:border-blue-200 focus:ring-2 focus:ring-blue-200"
+              : readOnly
+              ? "bg-gray-50 cursor-default"
+              : "focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
             }
           `}
         />

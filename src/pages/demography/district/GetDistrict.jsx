@@ -30,9 +30,9 @@ import {
   cleanStringUtil,
   LGDutil,
 } from "../../../utils/validationUtils";
-import Loader from "../../../components/common/Loader";
-import SelectField from "../../../components/common/SelectField";
-import { constituencyListByTypeService, constituencyTypeListService } from "../../../services/constituencyService";
+import districtFormFields from './district.json'
+import { useTranslation } from "react-i18next";
+import { sanitizeInputUtil } from "../../../utils/sanitizeInputUtil";
 
 const GetDistrict = () => {
   const [expanded, setExpanded] = useState("panel2");
@@ -44,6 +44,8 @@ const GetDistrict = () => {
   const [loading, setLoading] = useState(false);
 
   // FORM HANDLING
+
+  const {t} = useTranslation("getDistrict")
 
   const [formData, setFormData] = useState({
     districtName: "",
@@ -65,7 +67,7 @@ const GetDistrict = () => {
     if (name === "districtlgdCode") {
       updatedValue = LGDutil(value);
     }
-    setFormData({ ...formData, [name]: updatedValue });
+    setFormData({ ...formData, [name]: sanitizeInputUtil(updatedValue) });
     setErrors((prev) => ({
       ...prev,
       [name]: "",
@@ -113,6 +115,7 @@ const GetDistrict = () => {
             districtlgdCode: "",
           });
         } else {
+          setOpenSubmit(false);
           toast.error(res?.data.message);
           setFormData({
             districtName: "",
@@ -155,7 +158,7 @@ const GetDistrict = () => {
       setOpenSubmit(false);
     }
   };
-  
+
   const [tableData, setTableData] = useState([]);
   const getDistrictList = async () => {
     try {
@@ -311,11 +314,7 @@ const GetDistrict = () => {
 
   return (
     <div className="mt-3">
-      {loading && (
-        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-          <Loader />
-        </div>
-      )}
+
       {/* ---------- Accordion 1: Get District Form ---------- */}
       <Accordion
         expanded={expanded === "panel1"}
@@ -344,92 +343,26 @@ const GetDistrict = () => {
               className="grid grid-cols-12 gap-6"
               onSubmit={handleSubmitConfirmModal}
             >
-
-              {/* <div className="col-span-2">
-                <SelectField
-                  label="Constituency Type"
-                  required
-                  name="constituencyTypeCode"
-                  value={constituencyTypeCode}
-                  onChange={handleChangeInput}
-                  options={constituencyTypeOptions?.map((d) => ({
-                    value: d.lookupValueCode,
-                    label: d.lookupValueEn,
-                  }))}
-                  error={errors.constituencyTypeCode}
-                  placeholder="Select"
-                />
-
-              </div>
-
-              <div className="col-span-2">
-                <SelectField
-                  label="Constituency Name"
-                  required
-                  name="consName"
-                  value={consName}
-                  onChange={handleChangeInput}
-                  options={constituencyNameOptions?.map((d) => ({
-                    value: d.consId,
-                    label: d.consName,
-                  }))}
-                  error={errors.constituencyName}
-                  placeholder="Select"
-                  disabled={!constituencyTypeCode}
-                />
-
-              </div> */}
-              <div className="col-span-2">
-                <InputField
-                  label="District Name"
-                  required={true}
-                  name="districtName"
-                  placeholder="Enter district name"
-                  value={districtName}
-                  onChange={handleChangeInput}
-                  error={errors.districtName}
-                  maxLength={50}
-                />
-              </div>
-
-              <div className="col-span-2">
-                <InputField
-                  label="District Lgd Code"
-                  required={true}
-                  name="districtlgdCode"
-                  placeholder="Enter district lgd code"
-                  value={districtlgdCode}
-                  onChange={handleChangeInput}
-                  error={errors.districtlgdCode}
-                  maxLength={50}
-                />
-              </div>
-
-              <div className="col-span-4">
-                <InputField
-                  label="Description"
-                  textarea={true}
-                  name="remark"
-                  placeholder="Write remarks"
-                  value={remark}
-                  onChange={handleChangeInput}
-                  maxLength={255}
-                />
-              </div>
+              {districtFormFields.map((field) => (
+                <div key={field.name} className={`col-span-${field.colSpan}`}>
+                  <InputField
+                    label={t(field.label)}
+                    required={field.required}
+                    name={field.name}
+                    placeholder={field.placeholder}
+                    textarea={field.textarea}
+                    maxLength={field.maxLength}
+                    value={formData[field.name]}
+                    onChange={handleChangeInput}
+                    error={errors?.[field.name]}
+                  />
+                </div>
+              ))}
 
               <div className="col-span-3">
                 <div className="flex justify-start items-center gap-2 text-[13px] mt-6">
                   <ResetBackBtn />
                   <SubmitBtn type={"submit"} btnText={districtId} />
-                  {/* <button className="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 transition-all active:scale-95">
-                    Back
-                  </button>
-                  <button
-                    type="submit"
-                    className="bg-green-600 text-white px-3 py-1 rounded-md hover:bg-green-700 transition-all active:scale-95"
-                  >
-                    Submit
-                  </button> */}
                 </div>
               </div>
             </form>

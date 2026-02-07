@@ -16,9 +16,31 @@ import { IoIosRemoveCircleOutline } from "react-icons/io";
 import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
 import ReusableDialog from "../../components/common/ReusableDialog";
+import { GrSave } from "react-icons/gr";
+import { useLocation } from "react-router-dom";
+import { forwardListByMenuService } from "../../services/workflowService";
 
 const UCsubmission = () => {
   const userSelect = useSelector((state) => state);
+
+  const [button, setButtons] = useState([])
+
+
+  const location = useLocation()
+  // console.log(location.pathname);
+
+  const getWorkFlow = async () => {
+    try {
+      const payload = encryptPayload({ appModuleUrl: location.pathname })
+      const res = await forwardListByMenuService(payload)
+      console.log(res);
+      if (res?.status === 200 && res?.data.outcome) {
+        setButtons(res?.data.data)
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
 
   const [formData, setFormData] = useState({
@@ -294,6 +316,7 @@ const UCsubmission = () => {
     setRefDocList([{ id: Date.now(), file: null }]);
   };
   useEffect(() => {
+    getWorkFlow()
     getAllFinOpts();
   }, []);
   useEffect(() => {
@@ -685,6 +708,19 @@ const UCsubmission = () => {
           {userSelect?.menu.userDetails.roleCode === "ROLE_AGENCY" && (
             <SubmitBtn type="submit" />
           )}
+          {/* {
+            button?.map((i, index) => {
+              return (
+                <button
+                  type={'submit'}
+                  key={index}
+                  className={i?.actionType.color}
+                >
+                  <GrSave /> {i?.actionType.actionNameEn}
+                </button>
+              )
+            })
+          } */}
         </div>
       </div>
       <ReusableDialog

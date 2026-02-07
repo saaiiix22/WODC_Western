@@ -7,7 +7,6 @@ import ReusableDataTable from "../../components/common/ReusableDataTable";
 import ReusableDialog from "../../components/common/ReusableDialog";
 import { encryptPayload } from "../../crypto.js/encryption";
 import { toast } from "react-toastify";
-import { useSelector } from "react-redux";
 
 import { getFinancialYearService } from "../../services/budgetService";
 import {
@@ -23,11 +22,10 @@ import {
   getInspectionByIdService,
 } from "../../services/inspectionService";
 import Box from '@mui/material/Box';
-import Tab from '@mui/material/Tab';
 import TabContext from '@mui/lab/TabContext';
-import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
 import { useLocation } from "react-router-dom";
+import PillTabs from "../../components/common/Styletab";
 
 const Inspection = () => {
 
@@ -107,7 +105,7 @@ const Inspection = () => {
   const location = useLocation();
   const { inspectionId, isViewMode } = location.state || {};
   // console.log(inspectionId);
-  
+
 
 
 
@@ -129,7 +127,7 @@ const Inspection = () => {
 
         setIsEditMode(true);
 
-        setFormData({ ...d, finYear:d?.finyearId, startDate: d.startDate.split("/").reverse().join("-"), endDate: d.endDate.split("/").reverse().join("-") });
+        setFormData({ ...d, milestoneId: d.milestoneId, finYear: d?.finyearId, startDate: d.startDate.split("/").reverse().join("-"), endDate: d.endDate.split("/").reverse().join("-") });
 
       }
     } catch (err) {
@@ -139,7 +137,7 @@ const Inspection = () => {
   };
 
   console.log(formData);
-  
+
 
 
   const getAllMilestoneOpts = async () => {
@@ -203,7 +201,6 @@ const Inspection = () => {
     getAllAgencyList();
     getInspectionListSch();
     getInspectionListComp();
-
   }, []);
 
   useEffect(() => {
@@ -235,11 +232,16 @@ const Inspection = () => {
   }, [finYear]);
 
   useEffect(() => {
-    setMilestoneOpts([]);
-    setFormData((prev) => ({ ...prev, milestoneId: "" }));
+    if (!projectId) return;
 
-    if (projectId) getAllMilestoneOpts();
-  }, [projectId]);
+    if (!isEditMode) {
+      setMilestoneOpts([]);
+      setFormData(prev => ({ ...prev, milestoneId: "" }));
+    }
+
+    getAllMilestoneOpts();
+  }, [projectId, isEditMode]);
+
 
   const handleChangeInput = (e) => {
     const { name, value } = e.target;
@@ -265,6 +267,7 @@ const Inspection = () => {
   const handleSubmit = async () => {
     try {
       const payload = {
+        inspectionId,
         projectId,
         milestoneId,
         agencyId,
@@ -323,6 +326,12 @@ const Inspection = () => {
     { name: "Start Date", selector: (row) => row.startDate },
     { name: "End Date", selector: (row) => row.endDate },
   ];
+
+  const inspectionTabs = [
+    { label: "Scheduled", value: "1" },
+    { label: "Completed", value: "2" },
+  ];
+
 
   return (
     <>
@@ -443,7 +452,7 @@ const Inspection = () => {
 
           <div className="flex justify-center gap-2 text-[13px] bg-[#42001d0f] border-t border-[#ebbea6] px-4 py-3 rounded-b-md">
             <ResetBackBtn />
-            {!isViewMode && <SubmitBtn type="submit" />}
+            {!isViewMode && <SubmitBtn type="submit" btnText={inspectionId}/>}
           </div>
         </div>
       </form>
@@ -466,18 +475,16 @@ const Inspection = () => {
         </h3>
         <div className="min-h-[120px] py-5 px-4 text-[#444]">
           <Box sx={{ width: '100%', typography: 'body1', padding: '0', margin: "0" }}>
+
             <TabContext value={value}>
-              <Box sx={{ borderBottom: 1, borderColor: 'divider', padding: '0', margin: "0" }}>
-                <TabList onChange={handleChange} aria-label="lab API tabs example"
-                  sx={{
-                    display: "flex",
-                    justifyContent: "end"
-                  }}>
-                  <Tab label="Scheduled" value="1" />
-                  <Tab label="Completed" value="2" />
-                </TabList>
-              </Box>
-              <TabPanel value="1" sx={{ padding: '0', margin: "0", mt: '10px' }}>
+
+              <PillTabs
+                value={value}
+                onChange={handleChange}
+                tabs={inspectionTabs}
+              />
+
+              <TabPanel value="1" sx={{ p: 0, mt: 1 }}>
                 <ReusableDataTable
                   columns={columns}
                   data={inspectionList}
@@ -487,7 +494,8 @@ const Inspection = () => {
                   striped
                 />
               </TabPanel>
-              <TabPanel value="2" sx={{ padding: '0', margin: "0", mt: '10px' }}>
+
+              <TabPanel value="2" sx={{ p: 0, mt: 1 }}>
                 <ReusableDataTable
                   columns={columnsComp}
                   data={inspectionListComp}
@@ -497,6 +505,7 @@ const Inspection = () => {
                   striped
                 />
               </TabPanel>
+
             </TabContext>
           </Box>
 

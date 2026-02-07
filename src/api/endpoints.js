@@ -82,10 +82,13 @@ const endpoints = {
         getVillageThroughGp: '/cmn/get-village-list-by-gpid',
         getWardByMunicipality: '/cmn/get-ward-list-by-municipalityid',
         getConsThroughDist: '/cmn/get-constituency-list-by-districtid',
+        getConsByBlock: '/mst/get-jurisdiction-by-block-id',
         getProposalByDist: '/cmn/get-proposal-list-by-districtid',
         getSector: '/mst/list-sector-subsector',
         getSubsector: '/cmn/get-sub-sector-by-sector-id',
         // getFavourANDmodeOfTransfer:'/cmn/get-lookup-mode-and-favourof',
+        getConsByDist: '/mst/get-constituency-list-by-district',
+        getJuridiction: '/mst/get-jurisdictionby-constituency-id',
         saveProject: '/project/save-or-update-project',
         getAllProject: '/project/get-project-list',
         takeAction: '/project/take-action-against-project',
@@ -120,7 +123,9 @@ const endpoints = {
 
 
         getTemplateFile: "/excel/download-beneficiary-template",
-        getEntireProjectDetails: '/project/get-all-details-by-projectid'
+        getEntireProjectDetails: '/project/get-all-details-by-projectid',
+
+        getProjectByTabCode: '/project/get-project-list-by-tab-code'
 
     },
     milesStone: {
@@ -212,7 +217,11 @@ const endpoints = {
         updateInspection: "/inspection-scheduling/get-inspection-scheduling-by-id",
         getAllInspection: "/inspection-scheduling/get-inspection-scheduling-list",
         getAllInspectionByCategory: "/inspection-scheduling/get-inspection-scheduling-list-by-iscomplete",
+        getInspectionCalendarData: "/inspection-scheduling/get-inspection-calendar-information",
+        getInspectionByDate: "/inspection-scheduling/get-inspection-calendar-by-date",
+        getInspectionById: "/inspection-scheduling/get-inspection-scheduling-by-id"
     },
+
 
     workflow: {
         moduleList: "/workflow/workflow-module-list",
@@ -220,6 +229,10 @@ const endpoints = {
         statusList: "/workflow/workflow-status-list",
         stageForwardedRuleListByModule: "/workflow/stage-forwarded-rule-list-by-module",
         saveOrUpdateWorkflow: "/workflow/save-or-update-workflow",
+        forwardListByMenu: '/workflow/stage-forwarded-list-by-menu',
+        tabList: "/workflow/workflow-tab-list",
+        getTabs: "/workflow/workflow-tab-list-by-module"
+
     },
 
     gisdata: {
@@ -235,8 +248,71 @@ const endpoints = {
         saveDistConsMap: '/mst/save-or-update-constituency-district-mapping',
 
         saveJurisdictionConfig: "/mst/save-or-update-judiction-configuration",
-        getJurisdictionConfigByConsId:'/mst/get-jurisdiction-configuration-by-constituency-id'
+        getJurisdictionConfigByConsId: '/mst/get-jurisdiction-configuration-by-constituency-id'
 
+    },
+
+    assetsTypeMaster: {
+        saveUpdateAssetsType: '/assets/save-update-assets-type',
+        getAssetsTypeList: '/assets/get-assets-type-list',
+        getAssetsTypeById: '/assets/get-assets-type-by-id'
+    },
+    assetsCategoryMaster: {
+        saveUpdateAssetsCategory: '/assets/save-update-assets-category',
+        getAssetsCategoryList: '/assets/get-assets-category-list',
+        getAssetsCategoryById: '/assets/get-assets-category-by-id'
+    },
+    assetsMaster: {
+        saveUpdateAssetsMaster: '/assets/save-update-assets',
+        getAssetsMasterList: '/assets/get-assets-list',
+        getAssetsMasterById: '/assets/get-assets-by-id',
+        getAssetsLookupValues: '/assets/lookup-values'
+    },
+    grievanceSubCategory: {
+        saveSubCategory: "/griv/config/save-update-grievance-sub-category",
+        editSubCategory: "/griv/config/get-grievance-sub-category-by-id",
+        getAllSubCategory: "/griv/config/get-grievance-sub-category-list",
+        getRoleTypeList: "/griv/config/get-all-active-role"
+
+
+    },
+    grievanceConfigSlot: {
+        saveGrievanceSlotConfig: "/griv/config/save-update-virtual-grievance-slot",
+        editGrievanceSlotConfig: "/griv/config/get-virtual-grievance-slot-by-id",
+        getAllGrievanceSlotConfig: "/griv/config/get-grievance-category-list-boolean",
+        getallConfigSlot: "/griv/config/get-all-active-virtual-grievance-slot-dtls-list",
+        checkSlotExist: "/griv/config/check-virtual-grievance-slot-exist-ornot-for-the-given-slot-dtls",
+
+
+    },
+    grievanceHearing: {
+        saveGrievanceHearing: "/griv/config/save-update-virtual-grievance-hearing"
+    },
+
+    fbms: {
+        fbmsCommon: {
+            fetchFeedbackType: "/fbms/common/feedback-type-list",
+            fetchProjectDetails: "/fbms/common/project-list"
+        },
+        feedbackType: {
+            feedbackLevel: "/feedback-type/feedback-level",
+            validateFeedbackTypeName: "/feedback-type/validate-type-name",
+            saveFeedbackType: "/feedback-type/save",
+            updateFeedbackType: "/feedback-type/edit",
+            feedbackTypeList: "/feedback-type/list"
+        },
+        feedbackQuestions: {
+            saveFeedbackQuestions: "/feedback-questions/save",
+            updateFeedbackQuestions: "/feedback-questions/edit",
+            feedbackQuestionsList: "/feedback-questions/list"
+        },
+        feedback: {
+            saveFeedback: "/feedback/save",
+            getFeedbackById: "/feedback/get-feedback",
+            feedbackStatusList: "/feedback/feedback-status",
+            feedbackQuestionsByProjectAndFeedbackType: "/feedback/feedback-questions-list-by-project-and-type"
+        }
     }
+
 }
 export default endpoints 

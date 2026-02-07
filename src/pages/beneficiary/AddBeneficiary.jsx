@@ -14,7 +14,7 @@ import {
   saveBeneficaryByExcelService,
   saveTempBenListService,
 } from "../../services/projectService";
-import { GrDocumentExcel } from "react-icons/gr";
+import { GrDocumentExcel, GrSave } from "react-icons/gr";
 import { GrDocumentUpload } from "react-icons/gr";
 import { toast } from "react-toastify";
 import { getBlockThroughDistrictService } from "../../services/gpService";
@@ -30,6 +30,8 @@ import CloseIcon from "@mui/icons-material/Close";
 import { MdOutlineAddCircle } from "react-icons/md";
 import InputField from "../../components/common/InputField";
 import { getUpdatedBankListService } from "../../services/budgetService";
+import { useLocation } from "react-router-dom";
+import { forwardListByMenuService } from "../../services/workflowService";
 
 
 const modalStyle = {
@@ -51,7 +53,24 @@ const AddBeneficiary = () => {
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
+  const [button, setButtons] = useState([])
 
+
+  const location = useLocation()
+  console.log(button);
+
+  const getWorkFlow = async () => {
+    try {
+      const payload = encryptPayload({ appModuleUrl: location.pathname })
+      const res = await forwardListByMenuService(payload)
+      console.log(res);
+      if (res?.status === 200 && res?.data.outcome) {
+        setButtons(res?.data.data)
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
 
   const [formData, setFormData] = useState({
@@ -122,6 +141,7 @@ const AddBeneficiary = () => {
     );
 
   useEffect(() => {
+    getWorkFlow();
     getAllDistOpts();
   }, []);
 
@@ -596,53 +616,53 @@ const AddBeneficiary = () => {
               )}
 
               {
-               <div className="col-span-12">
-  <label className="block text-[13px] font-medium text-gray-700 mb-2">
-    Select Upload Type <span className="text-red-500">*</span>
-  </label>
+                <div className="col-span-12">
+                  <label className="block text-[13px] font-medium text-gray-700 mb-2">
+                    Select Upload Type <span className="text-red-500">*</span>
+                  </label>
 
-  <div className="flex gap-4">
-    <label
-      htmlFor="radio1"
-      className={`flex items-center gap-2 px-4 py-2 border rounded-lg text-sm
+                  <div className="flex gap-4">
+                    <label
+                      htmlFor="radio1"
+                      className={`flex items-center gap-2 px-4 py-2 border rounded-lg text-sm
         ${!formData.milestoneId || !formData.projectId
-          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-          : "border-gray-300 hover:border-blue-500 cursor-pointer"
-        }`}
-    >
-      <input
-        type="radio"
-        id="radio1"
-        name="uploadType"
-        value="EXCEL"
-        onChange={handleInp}
-        disabled={!formData.milestoneId || !formData.projectId}
-        className="accent-blue-600"
-      />
-      By Excel
-    </label>
+                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                          : "border-gray-300 hover:border-blue-500 cursor-pointer"
+                        }`}
+                    >
+                      <input
+                        type="radio"
+                        id="radio1"
+                        name="uploadType"
+                        value="EXCEL"
+                        onChange={handleInp}
+                        disabled={!formData.milestoneId || !formData.projectId}
+                        className="accent-blue-600"
+                      />
+                      By Excel
+                    </label>
 
-    <label
-      htmlFor="radio3"
-      className={`flex items-center gap-2 px-4 py-2 border rounded-lg text-sm
+                    <label
+                      htmlFor="radio3"
+                      className={`flex items-center gap-2 px-4 py-2 border rounded-lg text-sm
         ${!formData.milestoneId || !formData.projectId
-          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-          : "border-gray-300 hover:border-blue-500 cursor-pointer"
-        }`}
-    >
-      <input
-        type="radio"
-        id="radio3"
-        name="uploadType"
-        value="ADD_BENEFICIARY"
-        onChange={handleInp}
-        disabled={!formData.milestoneId || !formData.projectId}
-        className="accent-blue-600"
-      />
-      Manually
-    </label>
-  </div>
-</div>
+                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                          : "border-gray-300 hover:border-blue-500 cursor-pointer"
+                        }`}
+                    >
+                      <input
+                        type="radio"
+                        id="radio3"
+                        name="uploadType"
+                        value="ADD_BENEFICIARY"
+                        onChange={handleInp}
+                        disabled={!formData.milestoneId || !formData.projectId}
+                        className="accent-blue-600"
+                      />
+                      Manually
+                    </label>
+                  </div>
+                </div>
 
 
               }
@@ -663,7 +683,7 @@ const AddBeneficiary = () => {
 
                   </div> */}
 
-                  
+
                   <div className="col-span-2">
                     <SelectField
                       label="District"
@@ -843,9 +863,9 @@ const AddBeneficiary = () => {
                     </>
                   )}
 
- <div className="col-span-2 pt-7">
-                        <div className="flex items-center">
-                          <button
+                  <div className="col-span-2 pt-7">
+                    <div className="flex items-center">
+                      <button
                         className="me-3 text-sm flex items-center gap-1 px-3 py-1 rounded-sm bg-green-600/25 text-green-700"
                         onClick={getTemplateFile}
                         type="button"
@@ -853,24 +873,24 @@ const AddBeneficiary = () => {
                         <GrDocumentExcel />
                         Excel
                       </button>
-                          <button
-                            type="button"
-                            className="me-3 text-sm flex items-center gap-1 px-3 py-1 rounded-sm bg-blue-600/25 text-blue-700"
-                            onClick={() =>
-                              document.getElementById("fileUpload").click()
-                            }
-                          >
-                            <GrDocumentUpload /> Upload
-                          </button>
-                        </div>
-                        <input
-                          type="file"
-                          id="fileUpload"
-                          className="hidden"
-                          name="beneficiaryDoc"
-                          onChange={handleInput}
-                        />
-                      </div>
+                      <button
+                        type="button"
+                        className="me-3 text-sm flex items-center gap-1 px-3 py-1 rounded-sm bg-blue-600/25 text-blue-700"
+                        onClick={() =>
+                          document.getElementById("fileUpload").click()
+                        }
+                      >
+                        <GrDocumentUpload /> Upload
+                      </button>
+                    </div>
+                    <input
+                      type="file"
+                      id="fileUpload"
+                      className="hidden"
+                      name="beneficiaryDoc"
+                      onChange={handleInput}
+                    />
+                  </div>
                 </>
               )}
               {uploadType === "ADD_BENEFICIARY" && (
@@ -955,7 +975,20 @@ const AddBeneficiary = () => {
           {/* Footer (Optional) */}
           <div className="flex justify-center gap-2 text-[13px] bg-[#42001d0f] border-t border-[#ebbea6] px-4 py-3 rounded-b-md">
             <ResetBackBtn />
-            <SubmitBtn type={"submit"} />
+            {/* <SubmitBtn type={"submit"} /> */}
+            {
+              button?.map((i, index) => {
+                return (
+                  <button
+                    type={'submit'}
+                    key={index}
+                    className={i?.actionType.color}
+                  >
+                    <GrSave /> {i?.actionType.actionNameEn}
+                  </button>
+                )
+              })
+            }
           </div>
         </div>
       </form>
@@ -1125,6 +1158,7 @@ const AddBeneficiary = () => {
                 <div className="flex justify-center gap-2 text-[13px]  px-4 pt-3 rounded-b-md">
                   <ResetBackBtn />
                   <SubmitBtn type={"submit"} />
+
                 </div>
               </form>
 

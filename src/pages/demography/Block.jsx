@@ -9,25 +9,20 @@ import { GoPencil } from "react-icons/go";
 import { MdLockOutline } from "react-icons/md";
 import { MdLockOpen } from "react-icons/md";
 import SelectField from "../../components/common/SelectField";
-import {
-  saveUpdateBlockService,
-  getAllDists,
-  getAllBlockListService,
-  editBlockDataService,
-  toggleBlockStatusService,
-} from "../../services/blockService";
+import { saveUpdateBlockService, getAllDists, getAllBlockListService, editBlockDataService, toggleBlockStatusService} from "../../services/blockService";
 import ReusableDialog from "../../components/common/ReusableDialog";
-import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
-} from "../../components/common/CommonAccordion";
+import { Accordion, AccordionDetails, AccordionSummary } from "../../components/common/CommonAccordion";
 import { ResetBackBtn, SubmitBtn } from "../../components/common/CommonButtons";
 import { avoidSpecialCharUtil, LGDutil } from "../../utils/validationUtils";
 import Loader from "../../components/common/Loader";
 import { Tooltip } from "@mui/material";
+import { useTranslation } from "react-i18next";
+import { sanitizeInputUtil } from "../../utils/sanitizeInputUtil";
 
 const Block = () => {
+
+  const {t} = useTranslation("block")
+
   const [expanded, setExpanded] = useState("panel2");
 
   const handleChange = (panel) => (event, newExpanded) => {
@@ -67,13 +62,13 @@ const Block = () => {
   const handleChangeInput = (e) => {
     const { name, value } = e.target;
     let updatedVal = value
-    if(name === "blockNameEN"){
+    if (name === "blockNameEN") {
       updatedVal = avoidSpecialCharUtil(value)
     }
-    if(name === "blocklgdCode"){
+    if (name === "blocklgdCode") {
       updatedVal = LGDutil(value)
     }
-    setFormData({ ...formData, [name]: updatedVal });
+    setFormData({ ...formData, [name]: sanitizeInputUtil(updatedVal) });
     setErrors((prev) => ({
       ...prev,
       [name]: "",
@@ -249,13 +244,13 @@ const Block = () => {
 
     {
       name: "District Name",
-      width:"200px",
+      width: "200px",
       selector: (row) => row.district.districtName || "N/A",
       sortable: true,
     },
     {
       name: "Block Name",
-      width:"200px",
+      width: "200px",
       selector: (row) =>
         (
           <div className="flex gap-1">
@@ -272,7 +267,7 @@ const Block = () => {
     {
       name: "Status",
       // selector: (row) => (row.isActive ? "Active" : "Inactive"),
-      width:"100px",
+      width: "100px",
       cell: (row) => (
         <span className={`px-2 py-1 rounded-sm text-xs ${row.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
           {row.isActive ? "Active" : "Inactive"}
@@ -305,14 +300,13 @@ const Block = () => {
           </Tooltip>
 
           {/* ACTIVE / INACTIVE BUTTON */}
-          <Tooltip title={row.isActive?"Active" : "Inactive"} arrow>
+          <Tooltip title={row.isActive ? "Active" : "Inactive"} arrow>
             <button
               className={`flex items-center justify-center h-8 w-8 rounded-full 
-            ${
-              row.isActive
-                ? "bg-green-600/25 hover:bg-green-700/25 text-green-600"
-                : "bg-red-500/25 hover:bg-red-600/25 text-red-500 "
-            }`}
+            ${row.isActive
+                  ? "bg-green-600/25 hover:bg-green-700/25 text-green-600"
+                  : "bg-red-500/25 hover:bg-red-600/25 text-red-500 "
+                }`}
               // onClick={() => toggleStatus(row?.blockId)}
               onClick={() => {
                 setBlockStatusId(row?.blockId);
@@ -371,7 +365,8 @@ const Block = () => {
             >
               <div className="col-span-2">
                 <SelectField
-                  label="District Name"
+                  // label="District Name"
+                  label={t("districtName")}
                   required={true}
                   name="districtId"
                   value={districtId}
@@ -387,7 +382,8 @@ const Block = () => {
 
               <div className="col-span-2">
                 <InputField
-                  label="Block Name"
+                  // label="Block Name"
+                  label={t("blockName")}
                   required={true}
                   name="blockNameEN"
                   placeholder="Enter block name"
@@ -400,7 +396,8 @@ const Block = () => {
 
               <div className="col-span-2">
                 <InputField
-                  label="LGD Code"
+                  // label="LGD Code"
+                  label={t("lgdCode")}
                   required={true}
                   name="blocklgdCode"
                   placeholder="Enter LGD code"
@@ -413,7 +410,8 @@ const Block = () => {
 
               <div className="col-span-3">
                 <InputField
-                  label="Description"
+                  // label="Description"
+                  label={t("description")}
                   textarea={true}
                   name="remark"
                   placeholder="Write remarks..."

@@ -8,6 +8,25 @@ import Loader from "../components/common/Loader";
 import ChangePassword from "../pages/UMT/ChangePassword";
 import AddWorkFlowConfig from "../pages/grievance/AddWorkFlowConfig";
 import PublicRoute from "../components/PublicRoute";
+import MenuProtectedRoutes from "../components/MenuProtectedRoutes";
+
+
+import ViewAsset from "../pages/assets/ViewAsset";
+import AssetCategoryMaster from "../pages/assets/AssetsCategoryMaster";
+import AssetTypeMaster from "../pages/assets/AssetsTypeMaster";
+import CreateAsset from "../pages/assets/CreateAsset";
+import ImportExportAsset from "../pages/assets/ImportExportAsset";
+
+
+import AddCategory from "../pages/grievance/AddCategory";
+import AddSubCategory from "../pages/grievance/AddSubCategory";
+import AddGrievanceSlotConfiguration from "../pages/grievance/AddGrievanceSlotConfiguration";
+import AddGrievance from "../pages/grievance/AddGrievance";
+import AddWorkFlowConfiguration from "../pages/grievance/AddWorkFlowConfiguration";
+import GrievanceRequestList from "../pages/grievance/GrievanceRequestList";
+import GrievanceList from "../pages/grievance/GrievanceList";
+import MondayVirtualGrievanceHearing from "../pages/grievance/MondayVirtualGrievanceHearing";
+
 
 /* AUTH */
 const Login = lazy(() => import("../pages/auth/Login"));
@@ -71,7 +90,7 @@ const BankAccountConfig = lazy(() =>
   import("../pages/master/BankAccountConfig")
 );
 const JudictionMapConfiguration = lazy(() =>
-import("../pages/master/JudictionMapConfiguration")
+  import("../pages/master/JudictionMapConfiguration")
 )
 /* BUDGET */
 const BudgetDetails = lazy(() =>
@@ -121,6 +140,11 @@ const ErrorPage = lazy(() =>
   import("../pages/ErrorPage")
 );
 
+const AddFeedbackType = lazy(() => import("../pages/fbms/FeedbackType/AddFeedbackType"));
+const AddFeedbackQuestions = lazy(() => import("../pages/fbms/feedbackQuestions/AddFeedbackQuestions"));
+const AddFeedback = lazy(() => import("../pages/fbms/feedback/Feedback"));
+
+
 const AppRouter = () => {
   return (
     <Suspense fallback={<Loader />}>
@@ -130,68 +154,102 @@ const AppRouter = () => {
             <Route path={routes.login.path} element={<Login />} />
           </Route>
         </Route>
+        <Route path="*" element={<ErrorPage />} />
+        <Route path="/error" element={<ErrorPage />} />
 
         <Route element={<ProtectedRoutes />}>
+
           <Route element={<MainLayout />}>
-            <Route path="*" element={<ErrorPage />} />
-            <Route path={routes.dashboard.path} element={<Dashboard />} />
+            {/* <Route element={<MenuProtectedRoutes />}> */}
+              <Route path="*" element={<ErrorPage />} />
 
-            <Route path={routes.getDistrict.path} element={<GetDistrict />} />
-            <Route path={routes.block.path} element={<Block />} />
-            <Route path={routes.gramPanchayat.path} element={<GramPanchayatPage />} />
-            <Route path={routes.municipality.path} element={<Municipality />} />
-            <Route path={routes.ward.path} element={<Ward />} />
-            <Route path={routes.village.path} element={<VillagePage />} />
-            <Route path={routes.constituencyPage.path} element={<ConstituencyPage />} />
+              <Route path={routes.dashboard.path} element={<Dashboard />} />
 
-            <Route path={routes.projectList.path} element={<ProjectList />} />
-            <Route path={routes.projectManagementPage.path} element={<Project />} />
-            <Route path={routes.projectAgencyMilestone.path} element={<ProjectAgencyMilestone />} />
-            <Route path={routes.workOrderGeneration.path} element={<WorkOrderGeneration />} />
-            <Route path={routes.fundReleaseInfo.path} element={<FundReleaseInfo />} />
-            <Route path={routes.beneficiaryList.path} element={<BeneficiaryList />} />
-            <Route path={routes.ucSubmission.path} element={<UCsubmission />} />
-            <Route path={routes.EntireProjectDetails.path} element={<EntireProjectDetails />} />
+              <Route path={routes.getDistrict.path} element={<GetDistrict />} />
+              <Route path={routes.block.path} element={<Block />} />
+              <Route path={routes.gramPanchayat.path} element={<GramPanchayatPage />} />
+              <Route path={routes.municipality.path} element={<Municipality />} />
+              <Route path={routes.ward.path} element={<Ward />} />
+              <Route path={routes.village.path} element={<VillagePage />} />
+              <Route path={routes.constituencyPage.path} element={<ConstituencyPage />} />
 
-            <Route path={routes.proposalPage.path} element={<Proposal />} />
-            <Route path={routes.giaPage.path} element={<GIApage />} />
+              <Route path={routes.projectList.path} element={<ProjectList />} />
+              <Route path={routes.projectManagementPage.path} element={<Project />} />
+              <Route path={routes.projectAgencyMilestone.path} element={<ProjectAgencyMilestone />} />
+              <Route path={routes.workOrderGeneration.path} element={<WorkOrderGeneration />} />
+              <Route path={routes.fundReleaseInfo.path} element={<FundReleaseInfo />} />
+              <Route path={routes.beneficiaryList.path} element={<BeneficiaryList />} />
+              <Route path={routes.ucSubmission.path} element={<UCsubmission />} />
+              <Route path={routes.EntireProjectDetails.path} element={<EntireProjectDetails />} />
 
-            <Route path={routes.milestone.path} element={<Milestone />} />
-            <Route path={routes.agency.path} element={<Agency />} />
-            <Route path={routes.sectorPage.path} element={<SectorPage />} />
-            <Route path={routes.vendorPage.path} element={<VendorPage />} />
-            <Route path={routes.beneficiary.path} element={<Beneficiary />} />
-            <Route path={routes.sectorMilestoneMapping.path} element={<SectorMilestoneMapping />} />
-            <Route path={routes.bankAccoutConfig.path} element={<BankAccountConfig />} />
-            <Route path={routes.judictionMapConfiguration.path} element={<JudictionMapConfiguration  />} />
-            <Route path={routes.districtConstituencyMap.path} element={<DistrictConstituencyMap  />} />
+              <Route path={routes.proposalPage.path} element={<Proposal />} />
+              <Route path={routes.giaPage.path} element={<GIApage />} />
 
-
-            <Route path={routes.budgetPage.path} element={<BudgetDetails />} />
-            <Route path={routes.editBudgetPage.path} element={<EditBudget />} />
-
-            <Route path={routes.manageRole.path} element={<ManageRole />} />
-            <Route path={routes.roleMenuMapping.path} element={<RoleMenuMap />} />
-            <Route path={routes.roleAccess.path} element={<AccessRole />} />
-            <Route path={routes.addUser.path} element={<AddUser />} />
-            <Route path={routes.userProfile.path} element={<UserProfilePage />} />
-            <Route path={routes.configureAccess.path} element={<ConfigureAccess />} />
-            <Route path={routes.userList.path} element={<UserList />} />
-            <Route path={routes.changePassword.path} element={<ChangePassword />} />
+              <Route path={routes.milestone.path} element={<Milestone />} />
+              <Route path={routes.agency.path} element={<Agency />} />
+              <Route path={routes.sectorPage.path} element={<SectorPage />} />
+              <Route path={routes.vendorPage.path} element={<VendorPage />} />
+              <Route path={routes.beneficiary.path} element={<Beneficiary />} />
+              <Route path={routes.sectorMilestoneMapping.path} element={<SectorMilestoneMapping />} />
+              <Route path={routes.bankAccoutConfig.path} element={<BankAccountConfig />} />
+              <Route path={routes.judictionMapConfiguration.path} element={<JudictionMapConfiguration />} />
+              <Route path={routes.districtConstituencyMap.path} element={<DistrictConstituencyMap />} />
 
 
+              <Route path={routes.budgetPage.path} element={<BudgetDetails />} />
+              <Route path={routes.editBudgetPage.path} element={<EditBudget />} />
 
-            <Route path={routes.addBeneficiary.path} element={<AddBeneficiary />} />
-            <Route path={routes.inspection.path} element={<Inspection />} />
-            <Route path={routes.inspectionCalender.path} element={<InspectionCalender />} />
-            {/* GRIEVANCE */}
-            <Route path={routes.addWorkConfig.path} element={<AddWorkFlowConfig />} />
-            <Route path={routes.gisMap.path} element={<GisMain />} />
+              <Route path={routes.manageRole.path} element={<ManageRole />} />
+              <Route path={routes.roleMenuMapping.path} element={<RoleMenuMap />} />
+              <Route path={routes.roleAccess.path} element={<AccessRole />} />
+              <Route path={routes.addUser.path} element={<AddUser />} />
+              <Route path={routes.userProfile.path} element={<UserProfilePage />} />
+              <Route path={routes.configureAccess.path} element={<ConfigureAccess />} />
+              <Route path={routes.userList.path} element={<UserList />} />
+              <Route path={routes.changePassword.path} element={<ChangePassword />} />
 
-            <Route path={routes.workflowConfig.path} element={<WorkflowConfig />} />
 
 
-            
+              <Route path={routes.addBeneficiary.path} element={<AddBeneficiary />} />
+              <Route path={routes.inspection.path} element={<Inspection />} />
+              <Route path={routes.inspectionCalender.path} element={<InspectionCalender />} />
+              {/* GRIEVANCE */}
+              <Route path={routes.addWorkConfig.path} element={<AddWorkFlowConfig />} />
+              <Route path={routes.gisMap.path} element={<GisMain />} />
+
+              <Route path={routes.workflowConfig.path} element={<WorkflowConfig />} />
+
+
+
+              <Route path={routes.grievanceCategory.path} element={<AddCategory />} />
+              <Route path={routes.grievanceSubCategory.path} element={<AddSubCategory />} />
+              <Route path={routes.grievanceSlotConfiguration.path} element={<AddGrievanceSlotConfiguration />} />
+              <Route path={routes.addGrievance.path} element={<AddGrievance />} />
+              <Route path={routes.grievanceList.path} element={<GrievanceList />} />
+              <Route path={routes.grievanceRequestList.path} element={<GrievanceRequestList />} />
+              <Route path={routes.addWorkFlowConfiguration.path} element={<AddWorkFlowConfiguration />} />
+              <Route path={routes.virtualGrievanceHearing.path} element={<MondayVirtualGrievanceHearing />} />
+
+
+
+
+
+
+
+              <Route path={routes.assetTypeMaster.path} element={<AssetTypeMaster />} />
+              <Route path={routes.assetCategoryMaster.path} element={<AssetCategoryMaster />} />
+              <Route path={routes.createAsset.path} element={<CreateAsset />} />
+              <Route path={routes.viewAsset.path} element={<ViewAsset />} />
+              <Route path={routes.importExportAsset.path} element={<ImportExportAsset />} />
+
+
+
+              <Route path={routes.addFeedbackType.path} element={<AddFeedbackType />} />
+              <Route path={routes.addFeedbackQuestions.path} element={<AddFeedbackQuestions />} />
+              <Route path={routes.addFeedback.path} element={<AddFeedback />} />
+
+
+            {/* </Route> */}
           </Route>
         </Route>
 

@@ -5,6 +5,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import { getFinancialYearService } from "../services/budgetService";
 import SelectField from "../components/common/SelectField";
 import { encryptPayload } from "../crypto.js/encryption";
+import { useSelector } from "react-redux";
 
 const Dashboard = () => {
   // Mobile detection hook
@@ -16,6 +17,7 @@ const Dashboard = () => {
   const [selectedDistrict, setSelectedDistrict] = useState("all");
   const [finyearId, setFinyearId] = useState("");
 
+  
 
   useEffect(() => {
     const handleResize = () => {
@@ -385,12 +387,12 @@ const [finyearOption, setFinyearOptions] = useState([]);
     </div>
 
     {/* District */}
-    <div className="flex flex-col min-w-[180px]">
+    {/* <div className="flex flex-col min-w-[180px]">
       <label className="text-xs font-medium text-gray-700 mb-1">
         District
       </label>
      
-    </div>
+    </div> */}
 
   </div>
 </div>

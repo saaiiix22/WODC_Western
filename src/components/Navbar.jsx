@@ -3,15 +3,17 @@ import { encryptPayload } from "../crypto.js/encryption";
 import { Link, useNavigate } from "react-router-dom";
 import { logoutUser } from "../redux/slices/authThunks";
 import { useDispatch, useSelector } from "react-redux";
-
+import { FiBell } from "react-icons/fi";
 import { FiUser, FiLogOut, FiKey, FiChevronDown } from "react-icons/fi";
 import { images } from "../assets/images";
 import i18n from "../i18n/i18n";
 import { useTranslation } from "react-i18next";
+import ReusableDialog from "./common/ReusableDialog";
 
 const Navbar = () => {
-
-  const {t} = useTranslation("common")
+  const [openNotif, setOpenNotif] = useState(false);
+  const notifRef = useRef(null);
+  const { t } = useTranslation("common")
 
   const token = localStorage.getItem("token");
   const dispatch = useDispatch();
@@ -19,8 +21,33 @@ const Navbar = () => {
   const selectState = useSelector((state) => state?.menu.userDetails);
 
   const [open, setOpen] = useState(false);
-  const dropdownRef = useRef(null);
 
+  const [openLogoutModal,setOpenLogoutModal] = useState(false)
+
+  const dropdownRef = useRef(null);
+  const notifications = [
+    {
+      id: 1,
+      title: "New Application Submitted",
+      message: "A new application has been submitted for review.",
+      time: "2 min ago",
+      unread: true,
+    },
+    {
+      id: 2,
+      title: "Password Changed",
+      message: "Your password was changed successfully.",
+      time: "1 hr ago",
+      unread: false,
+    },
+    {
+      id: 3,
+      title: "System Update",
+      message: "System maintenance scheduled at 10 PM.",
+      time: "Yesterday",
+      unread: false,
+    },
+  ];
   const logout = async () => {
     try {
       const payload = encryptPayload(token);
@@ -52,6 +79,17 @@ const Navbar = () => {
     document.addEventListener("mousedown", close);
     return () => document.removeEventListener("mousedown", close);
   }, []);
+
+  useEffect(() => {
+    const closeNotif = (e) => {
+      if (notifRef.current && !notifRef.current.contains(e.target)) {
+        setOpenNotif(false);
+      }
+    };
+    document.addEventListener("mousedown", closeNotif);
+    return () => document.removeEventListener("mousedown", closeNotif);
+  }, []);
+
 
 
 
@@ -94,11 +132,102 @@ const Navbar = () => {
         <div className="flex items-center gap-4">
 
           {/* ===== LANGUAGE TOGGLE SWITCH ===== */}
+          <div className="relative" ref={notifRef}>
+            <button
+              onClick={() => setOpenNotif(!openNotif)}
+              className="
+                relative p-2 bg-[#ccc] rounded-full
+                transition-all
+              "
+            >
+              <FiBell size={20} className="text-slate-800" />
+
+              {/* UNREAD COUNT */}
+              {notifications.some(n => n.unread) && (
+                <span
+                  className="
+          absolute -top-1 -right-1
+          min-w-[18px] h-[18px]
+          px-1 text-[10px] font-semibold
+          bg-orange-400 text-black
+          rounded-full flex items-center justify-center
+        "
+                >
+                  {notifications.filter(n => n.unread).length}
+                </span>
+              )}
+            </button>
+
+            {openNotif && (
+              <div
+                className="
+        absolute right-0 mt-2 w-80 z-50
+        rounded-xl border border-white/10
+        bg-[#f5f5f5] shadow-2xl
+        animate-slideFade overflow-hidden
+      "
+              >
+                {/* HEADER */}
+                <div className="px-4 py-3 border-b border-white/10 flex justify-between items-center">
+                  <p className="text-sm font-semibold text-slate-600">Notifications</p>
+                  <button className="text-xs text-orange-400 hover:underline">
+                    Mark all as read
+                  </button>
+                </div>
+
+                {/* LIST */}
+                <div className="max-h-80 overflow-y-auto">
+                  {notifications.length === 0 ? (
+                    <p className="text-sm text-center py-6 opacity-70">
+                      No notifications
+                    </p>
+                  ) : (
+                    notifications.map((item) => (
+                      <div
+                        key={item.id}
+                        className={`
+                px-4 py-3 cursor-pointer
+                border-b border-white/5
+                hover:bg-white/5
+                ${item.unread ? "bg-white/5" : ""}
+              `}
+                      >
+                        <div className="flex justify-between items-start gap-2">
+                          <p className="text-sm font-medium text-slate-600">
+                            {item.title}
+                          </p>
+                          {item.unread && (
+                            <span className="w-2 h-2 bg-orange-400 rounded-full mt-1" />
+                          )}
+                        </div>
+                        <p className="text-xs opacity-80 mt-1 text-slate-600">
+                          {item.message}
+                        </p>
+                        <p className="text-[11px] opacity-60 mt-1 text-slate-600">
+                          {item.time}
+                        </p>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                {/* FOOTER */}
+                <div className="px-4 py-2 text-center border-t border-white/10">
+                  <Link
+                    to="/dashboard"
+                    className="text-sm text-orange-400 hover:underline"
+                  >
+                    View all notifications
+                  </Link>
+                </div>
+              </div>
+            )}
+          </div>
           <button
             onClick={toggleLang}
             className="
               relative w-24 h-9 flex items-center cursor-pointer
-              bg-[#2a2e34] border border-white/10
+              bg-[#ccc] border border-white/10
               rounded-sm transition-all
             "
           >
@@ -116,7 +245,7 @@ const Navbar = () => {
             <span
               className={`
                 relative z-10 w-1/2 text-xs text-center
-                ${lang === "en" ? "text-light-dark font-semibold" : "text-white/70"}
+                ${lang === "en" ? "text-light-dark font-semibold" : "text-slate-800"}
               `}
             >
               EN
@@ -125,7 +254,7 @@ const Navbar = () => {
             <span
               className={`
                 relative z-10 w-1/2 text-xs text-center
-                ${lang === "od" ? "text-light-dark font-semibold" : "text-white/70"}
+                ${lang === "od" ? "text-light-dark font-semibold" : "text-slate-800"}
               `}
             >
               ଓଡ଼ିଆ
@@ -198,7 +327,7 @@ const Navbar = () => {
 
                   <li>
                     <button
-                      onClick={logout}
+                      onClick={()=>setOpenLogoutModal(true)}
                       className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/10 text-sm text-red-400 font-medium"
                     >
                       <FiLogOut size={18} />
@@ -211,6 +340,13 @@ const Navbar = () => {
           </div>
         </div>
       </header>
+
+      <ReusableDialog
+        open={openLogoutModal}
+        onClose={()=>setOpenLogoutModal(false)}
+        onConfirm={logout}
+        description={"Do you want to logout ?"}        
+      />
 
       {/* ================= ANIMATION ================= */}
       <style>

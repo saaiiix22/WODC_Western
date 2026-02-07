@@ -5,6 +5,7 @@ import { encryptPayload } from "../../crypto.js/encryption";
 import { toast } from "react-toastify";
 import { useEffect } from "react";
 import SelectField from "../../components/common/SelectField";
+import { GiSevenPointedStar } from "react-icons/gi";
 import {
   Accordion,
   AccordionDetails,
@@ -22,7 +23,10 @@ import { getGpByBlockService } from "../../services/villageService";
 import {
   generateProjectCodeService,
   getBankConfigProjectService,
+  getConsByBlockService,
+  getConsByDistService,
   getConsThroughDistService,
+  getJuridictionService,
   // getFavourANDmodeOfTransferService,
   getProjectDetailsByProjectIdService,
   getProposalByDistService,
@@ -44,8 +48,13 @@ import { RiAiGenerate } from "react-icons/ri";
 import { ResetBackBtn, SubmitBtn } from "../../components/common/CommonButtons";
 import ReusableDialog from "../../components/common/ReusableDialog";
 import { avoidSpecialCharUtil, formatWithCommas, removeCommas } from "../../utils/validationUtils";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { load } from "../../hooks/load";
+import { forwardListByMenuService } from "../../services/workflowService";
+import { GrSave } from "react-icons/gr";
+import { constituencyTypeListService } from "../../services/constituencyService";
+import { judictionMapConfigService } from "../../services/judictionMapConfigService";
+import { sanitizeInputUtil } from "../../utils/sanitizeInputUtil";
 
 const Project = () => {
   const [expanded, setExpanded] = useState("panel1");
@@ -76,11 +85,14 @@ const Project = () => {
     districtProposed: "",
 
     proposeByDist: "",
+    proposeByBlock: "",
     proposedBy: "",
     proposedByName: "",
     sectorId: "",
     sector: "",
     subSector: "",
+    judictionType: "",
+    constituencyTypeCode: "",
     startDate: "",
     endDate: "",
     fundAllocDate: null,
@@ -113,13 +125,17 @@ const Project = () => {
     sectorId,
     sector,
     subSector,
+    judictionType,
+    constituencyTypeCode,
     startDate,
     endDate,
     actualStartDate,
     actualEndDate,
     fundAllocDate,
 
+    proposeByBlock,
     proposeByDist,
+
     objectId,
     fundReleaseTo,
     estimatedBudget,
@@ -135,6 +151,9 @@ const Project = () => {
   const [municipalityOpts, setMunicipalityOpts] = useState([]);
   const [wardOpts, setWardOpts] = useState([]);
   const [constituencyOpts, setConstituencyOpts] = useState([]);
+  const [propsByBlock, setPropsByBlock] = useState([]);
+  const [juridictionOpts, setJuridictionOpts] = useState([]);
+  const [selectedVal, setSelectedVal] = useState({})
   const [proposedByDesignationOpts, setProposedByDesignationOpts] = useState(
     []
   );
@@ -142,10 +161,39 @@ const Project = () => {
   const [subSectorOptions, setSubSectorOpts] = useState([]);
   // const [bankListOpts, setbankListOpts] = useState([]);
   const [giaOpts, setGIAoptions] = useState([]);
+  const [actualFinDuartion, setActualFinDuartion] = useState({})
 
   // --------------------------------------------------------------------------
+  const [forwardedId, setForwardedId] = useState(null)
+  const [button, setButtons] = useState([])
+  const [stageForwardedRuleStatus,setStageForwardedRuleStatus] = useState('')
 
-  
+  const location = useLocation()
+
+  const getWorkFlow = async () => {
+    try {
+      const payload = encryptPayload({ appModuleUrl: location.pathname, forwardedId: (forwardedId ? Number(forwardedId) : null) })
+      const res = await forwardListByMenuService(payload)
+      // console.log(res);
+      if (res?.status === 200 && res?.data.outcome) {
+        setButtons(res?.data.data)
+      }
+      else {
+        setButtons([])
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  const getMLAMP = () =>
+    load(getConsByBlockService, { blockId: proposeByBlock }, setJuridictionOpts)
+
+  const getProposedByBlock = () =>
+    load(getBlockThroughDistrictService, { isActive: true, districtId: proposeByDist }, setPropsByBlock);
+
+  const getConsOpts = () =>
+    load(getConsByBlockService, { blockId: blockId }, setConstituencyOpts)
 
   const getFinancialYearOptions = () =>
     load(getFinancialYearService, { isActive: true }, setFinYearOpts);
@@ -180,39 +228,26 @@ const Project = () => {
       setWardOpts
     );
 
-  const getConstOpts = () =>
-    load(
-      getConsThroughDistService,
-      { isActive: true, districtId },
-      setConstituencyOpts
-    );
-
-  const getProposedByOptions = () =>
-    load(
-      getProposalByDistService,
-      { isActive: true, districtId: proposeByDist },
-      setProposedByDesignationOpts
-    );
+  // const getProposedByOptions = () =>
+  //   load(
+  //     getProposalByDistService,
+  //     { isActive: true, districtId: proposeByDist },
+  //     setProposedByDesignationOpts
+  //   );
   const getAllSectors = () =>
     load(getSectorService, { isActive: true }, setSectorOpts);
 
   const getSubSectorOpts = () =>
     load(getSubsectorService, { isActive: true, sectorId }, setSubSectorOpts);
 
-  // const getBankList = () =>
-  //   load(getBankNamesService, { isActive: true }, setbankListOpts);
-
   const getGIATypeOpts = () =>
     load(getGIAtypeList, { isActive: true }, setGIAoptions);
 
-  // const [favourList, setFavourList] = useState([]);
   const [modeOfTransferList, setModeOfTransferList] = useState([]);
   const getFavourandModeOpts = async () => {
     try {
       const payload = encryptPayload({ isActive: true });
       const res = await projectAlllookUpValueService(payload);
-      // console.log(res?.data.data);
-      // setFavourList(res?.data.data.favourUpList);
       setModeOfTransferList(res?.data.data.modeOfTransfer);
     } catch (error) {
       throw error;
@@ -229,10 +264,6 @@ const Project = () => {
       giaYear: "",
       giaTypeId: "",
       bankAccConfigId: "",
-      // sanctionOrderNo: "",
-      // sanctionOrderDate: "",
-      // releaseLetterNo: "",
-      // releaseLetterDate: "",
       remarks: "",
       fundAllocDate: "",
     },
@@ -243,15 +274,11 @@ const Project = () => {
       (item) =>
         item.bankId &&
         item.modeOfTransfer &&
-        // item.favourOf &&
         item.releaseAmount &&
         item.giaYear &&
         item.giaTypeId &&
         item.bankAccConfigId
-      // item.sanctionOrderNo &&
-      // item.sanctionOrderDate &&
-      // item.releaseLetterNo &&
-      // item.releaseLetterDate
+
     );
 
     if (!allFilled) {
@@ -271,10 +298,6 @@ const Project = () => {
           giaYear: "",
           giaTypeId: "",
           bankAccConfigId: "",
-          // sanctionOrderNo: "",
-          // sanctionOrderDate: "",
-          // releaseLetterNo: "",
-          // releaseLetterDate: "",
           remarks: "",
           fundAllocDate: "",
         },
@@ -290,23 +313,8 @@ const Project = () => {
     });
   };
 
-  const [rowBudgets, setRowBudgets] = useState({});
-
   const handleRemoveRow = (index) => {
     setFundReleaseRows((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const getUsedAmount = (year, type, excludeIndex) => {
-    return fundReleaseRows.reduce((sum, row, idx) => {
-      if (
-        idx !== excludeIndex &&
-        row.giaYear == year &&
-        row.giaTypeId == type
-      ) {
-        return sum + (Number(row.releaseAmount) || 0);
-      }
-      return sum;
-    }, 0);
   };
 
   const [bankListOpts, setBankListOpts] = useState({});
@@ -328,77 +336,94 @@ const Project = () => {
       return res;
     } catch (err) {
       console.error(err);
-      return null; // optional but good practice
+      return null;
     }
   };
 
-  // const [configOpts, setConfigOpts] = useState([]);
   const [configOpts, setConfigOpts] = useState({});
+
+  const recalcSequentialForCombination = (rows, combo) => {
+    const indices = rows
+      .map((r, i) => ({ r, i }))
+      .filter(
+        x =>
+          x.r.giaYear === combo.giaYear &&
+          x.r.giaTypeId === combo.giaTypeId &&
+          x.r.bankId === combo.bankId &&
+          x.r.bankAccConfigId === combo.bankAccConfigId
+      )
+      .map(x => x.i);
+
+    if (!indices.length) return rows;
+
+    const updated = [...rows];
+    const totalBudget = Number(updated[indices[0]].maxamount || 0);
+
+    let runningUsed = 0;
+
+    indices.forEach(i => {
+      let used = Number(updated[i].releaseAmount || 0);
+
+      // if (used > totalBudget - runningUsed) {
+      //   used = totalBudget - runningUsed;
+      //   updated[i].releaseAmount = String(used);
+      // }
+
+      updated[i] = {
+        ...updated[i],
+        maxamount: totalBudget,
+        remainingAmount: Math.max(totalBudget - runningUsed - used, 0),
+      };
+
+      runningUsed += used;
+    });
+
+    return updated;
+  };
+
+
 
   const handleRowChange = async (e, index) => {
     const { name, value } = e.target;
 
-    setFundReleaseRows((prev) => {
+    // ================= STATE UPDATE =================
+    setFundReleaseRows(prev => {
       const rows = [...prev];
-      let row = { ...rows[index], [name]: value };
+      const row = { ...rows[index], [name]: value };
 
-      const updatedYear = name === "giaYear" ? value : row.giaYear;
-      const updatedType = name === "giaTypeId" ? value : row.giaTypeId;
-      const updatedBank = name === "bankId" ? value : row.bankId;
-      const updatedBankConfig =
-        name === "bankAccConfigId" ? value : row.bankAccConfigId;
-
-      // -------- Duplicate Combination Check --------
-      if (updatedYear && updatedType && updatedBank && updatedBankConfig) {
-        if (
-          isDuplicateCombination(
-            updatedYear,
-            updatedType,
-            updatedBank,
-            updatedBankConfig,
-            index
-          )
-        ) {
-          toast.error("This combination already selected!");
-          row[name] = "";
-          rows[index] = row;
-          return rows;
-        }
-      }
-
-      // -------- GIA Change Reset --------
+      // Reset dependent fields (DO NOT touch maxamount)
       if (name === "giaYear" || name === "giaTypeId") {
         row.bankId = "";
         row.bankAccConfigId = "";
         row.releaseAmount = "";
-        row.maxamount = "";
+        row.remainingAmount = 0;
         row.fundAllocDate = "";
       }
 
-      // -------- Bank Change Reset --------
       if (name === "bankId") {
         row.bankAccConfigId = "";
         row.releaseAmount = "";
-        row.maxamount = "";
+        row.remainingAmount = 0;
       }
 
-      // -------- Release Amount Validation --------
       if (name === "releaseAmount") {
         const raw = removeCommas(value);
 
         if (!/^\d*$/.test(raw)) return rows;
 
-        const max = Number(row.maxamount);
-        const entered = Number(raw);
+        rows[index] = {
+          ...rows[index],
+          releaseAmount: raw, // keep as string for input
+        };
 
-        if (entered < 0) return rows;
+        const combo = {
+          giaYear: rows[index].giaYear,
+          giaTypeId: rows[index].giaTypeId,
+          bankId: rows[index].bankId,
+          bankAccConfigId: rows[index].bankAccConfigId,
+        };
 
-        if (row.maxamount && entered > max) {
-          toast.error("Release amount cannot exceed the maximum amount!");
-          return rows;
-        }
-
-        row.releaseAmount = raw;
+        return recalcSequentialForCombination(rows, combo);
       }
 
 
@@ -406,18 +431,25 @@ const Project = () => {
       return rows;
     });
 
+    // Stop side effects for releaseAmount
     if (name === "releaseAmount") return;
 
+
     // ================= SIDE EFFECTS =================
-    const row = fundReleaseRows[index];
+    const currentRow = fundReleaseRows[index];
 
-    const updatedYear = name === "giaYear" ? value : row.giaYear;
-    const updatedType = name === "giaTypeId" ? value : row.giaTypeId;
-    const updatedBank = name === "bankId" ? value : row.bankId;
+    const updatedYear =
+      name === "giaYear" ? value : currentRow.giaYear;
+    const updatedType =
+      name === "giaTypeId" ? value : currentRow.giaTypeId;
+    const updatedBank =
+      name === "bankId" ? value : currentRow.bankId;
     const updatedBankConfig =
-      name === "bankAccConfigId" ? value : row.bankAccConfigId;
+      name === "bankAccConfigId"
+        ? value
+        : currentRow.bankAccConfigId;
 
-    // -------- Load Banks on GIA Change --------
+    // -------- Load Banks --------
     if (
       (name === "giaYear" || name === "giaTypeId") &&
       updatedYear &&
@@ -438,7 +470,7 @@ const Project = () => {
       const res = await getBankConfigProjectService(payload);
 
       if (res?.status === 200 && res?.data?.outcome) {
-        setConfigOpts((prev) => ({
+        setConfigOpts(prev => ({
           ...prev,
           [index]: res.data.data,
         }));
@@ -446,7 +478,7 @@ const Project = () => {
       return;
     }
 
-    // -------- Load Max Budget --------
+    // -------- Load Budget --------
     if (
       name === "bankAccConfigId" &&
       updatedYear &&
@@ -454,6 +486,56 @@ const Project = () => {
       updatedBank &&
       updatedBankConfig
     ) {
+      // Check existing row
+      const existingRow = fundReleaseRows.find(
+        (r, i) =>
+          i !== index &&
+          r.giaYear === updatedYear &&
+          r.giaTypeId === updatedType &&
+          r.bankId == updatedBank &&
+          r.bankAccConfigId == updatedBankConfig &&
+          r.maxamount !== undefined
+      );
+
+      if (existingRow) {
+        const total = Number(existingRow.maxamount || 0);
+
+        const used = fundReleaseRows.reduce((sum, r, i) => {
+          if (i === index) return sum;
+          if (
+            r.giaYear === updatedYear &&
+            r.giaTypeId === updatedType &&
+            r.bankId == updatedBank &&
+            r.bankAccConfigId == updatedBankConfig
+          ) {
+            return sum + (Number(r.releaseAmount) || 0);
+          }
+          return sum;
+        }, 0);
+
+        const remaining = Math.max(total - used, 0);
+
+        setFundReleaseRows(prev => {
+          const rows = [...prev];
+
+          rows[index] = {
+            ...rows[index],
+            maxamount: total,       // All rows get the SAME total
+            releaseAmount: "",
+            fundAllocDate,
+          };
+
+          return recalcSequentialForCombination(rows, {
+            giaYear: updatedYear,
+            giaTypeId: updatedType,
+            bankId: updatedBank,
+            bankAccConfigId: updatedBankConfig,
+          });
+        });
+
+        return;
+      }
+      // Fetch from API
       const payload = encryptPayload({
         finyearId: updatedYear,
         giaTypeId: updatedType,
@@ -464,18 +546,96 @@ const Project = () => {
       const res = await maxBudgetService(payload);
 
       if (res?.status === 200 && res?.data?.outcome) {
-        setFundReleaseRows((prev) => {
+        const total = Number(res.data.data.totalBudget || 0);
+
+        setFundReleaseRows(prev => {
           const rows = [...prev];
           rows[index] = {
             ...rows[index],
-            maxamount: res.data.data.totalBudget || 0,
+            maxamount: total, // All rows will show this same total
+            remainingAmount: total, // Initially, remaining is total (no release yet)
             fundAllocDate: res.data.data.fundAllocDate || "",
+            releaseAmount: "",
           };
-          return rows;
+
+          // Recalculate for this combination if there are other rows
+          return recalcSequentialForCombination(rows, {
+            giaYear: updatedYear,
+            giaTypeId: updatedType,
+            bankId: updatedBank,
+            bankAccConfigId: updatedBankConfig,
+          });
         });
       }
     }
   };
+
+
+  const validateField = (fieldName, fieldValue, data) => {
+    let error = "";
+
+    const selected = fieldValue ? new Date(fieldValue) : null;
+    const aaDate = data.aaOrderDate ? new Date(data.aaOrderDate) : null;
+    const startDateObj = data.startDate ? new Date(data.startDate) : null;
+    const endDateObj = data.endDate ? new Date(data.endDate) : null;
+    const actualStartObj = data.actualStartDate
+      ? new Date(data.actualStartDate)
+      : null;
+    const actualEndObj = data.actualEndDate
+      ? new Date(data.actualEndDate)
+      : null;
+
+    const fyStart = actualFinDuartion?.startDate
+      ? new Date(actualFinDuartion.startDate.split("/").reverse().join("-"))
+      : null;
+
+    if (!selected) return "";
+
+    switch (fieldName) {
+      case "aaOrderDate":
+        if (finYear && fyStart && selected < fyStart)
+          error = "AA order date can't be before the financial year selected";
+        else if (actualStartObj && selected > actualStartObj)
+          error = "AA order date can't be after the Actual Start Date";
+        else if (startDateObj && selected > startDateObj)
+          error = "AA order date can't be after the Start Date";
+        break;
+
+      case "startDate":
+        if (aaDate && selected < aaDate)
+          error = "Start Date cannot be before AA Order Date";
+        else if (actualStartObj && selected > actualStartObj)
+          error = "Start Date cannot be after Actual Start Date";
+        else if (endDateObj && selected > endDateObj)
+          error = "Start Date cannot be after End Date";
+        break;
+
+      case "endDate":
+        if (startDateObj && selected < startDateObj)
+          error = "End Date cannot be before Start Date";
+        else if (actualEndObj && selected > actualEndObj)
+          error = "End Date cannot be after Actual End Date";
+        break;
+
+      case "actualStartDate":
+        if (startDateObj && selected < startDateObj)
+          error = "Actual Start Date cannot be before Start Date";
+        break;
+
+      case "actualEndDate":
+        if (actualStartObj && selected < actualStartObj)
+          error = "Actual End Date cannot be before Actual Start Date";
+        else if (endDateObj && selected < endDateObj)
+          error = "Actual End Date cannot be before End Date";
+        break;
+
+      default:
+        break;
+    }
+
+    return error;
+  };
+
 
   const handleChangeInput = (e) => {
     const { name, value } = e.target;
@@ -485,46 +645,37 @@ const Project = () => {
       updatedVal = avoidSpecialCharUtil(value);
     }
 
-    if (name === "endDate" && formData.startDate) {
-      if (new Date(value) < new Date(formData.startDate)) {
-        setErrors((prev) => ({
-          ...prev,
-          endDate: "End Date cannot be before Start Date",
-        }));
-        return;
-      }
-    }
-    if (name === "actualStartDate" && formData.startDate) {
-      if (new Date(value) < new Date(formData.startDate)) {
-        setErrors((prev) => ({
-          ...prev,
-          actualStartDate: "Actual Start Date cannot be before Start Date",
-        }));
-        return;
-      }
-    }
-    if (name === "actualEndDate" && formData.actualStartDate) {
-      if (new Date(value) < new Date(formData.actualStartDate)) {
-        setErrors((prev) => ({
-          ...prev,
-          actualEndDate: "Actual End Date cannot be before Actual Start Date",
-        }));
-        return;
-      }
-    }
     if (name === "estimatedBudget") {
       updatedVal = removeCommas(value).replace(/\D/g, "");
     }
 
+    const updatedFormData = {
+      ...formData,
+      [name]: sanitizeInputUtil(updatedVal),
+    };
 
-    // normal update
-    setFormData((prev) => ({ ...prev, [name]: updatedVal }));
+    // validate current field
+    const currentError = validateField(name, updatedVal, updatedFormData);
 
-    setErrors((prev) => ({
-      ...prev,
-      [name]: "",
-    }));
+    const dependencies = {
+      aaOrderDate: ["startDate"],
+      startDate: ["aaOrderDate", "endDate", "actualStartDate"],
+      endDate: ["startDate", "actualEndDate"],
+      actualStartDate: ["startDate", "actualEndDate"],
+      actualEndDate: ["endDate"],
+    };
+
+    const newErrors = { ...errors, [name]: currentError };
+
+    (dependencies[name] || []).forEach((dep) => {
+      newErrors[dep] = validateField(dep, updatedFormData[dep], updatedFormData);
+    });
+
+    setFormData(updatedFormData);
+    setErrors(newErrors);
   };
+
+
 
   const generateCode = async () => {
     try {
@@ -541,10 +692,10 @@ const Project = () => {
     }
   };
   useEffect(() => {
-    if (projectName.length >= 4) {
+    if (projectName.length === 4) {
       generateCode();
     }
-    if (projectName < 4) {
+    if (projectName < 4 || projectName > 4) {
       setFormData((prev) => ({
         ...prev,
         projectCode: "",
@@ -558,11 +709,7 @@ const Project = () => {
     return `${dd}/${mm}/${yyyy}`;
   };
 
-  const finalFundReleaseRows = fundReleaseRows.map((row) => ({
-    ...row,
-    sanctionOrderDate: formatDateToDDMMYYYY(row.sanctionOrderDate),
-    releaseLetterDate: formatDateToDDMMYYYY(row.releaseLetterDate),
-  }));
+
   const [errors, setErrors] = useState({});
 
   const [openSubmit, setOpenSubmit] = useState(false);
@@ -613,12 +760,7 @@ const Project = () => {
         return;
       }
     }
-    if (!constituencyId) {
-      newErrors.constituencyId = "Kindly select constituency";
-      setExpanded("panel1");
-      setErrors(newErrors);
-      return;
-    }
+
     if (!sectorId) {
       newErrors.sectorId = "Kindly select Sector";
       setExpanded("panel1");
@@ -644,26 +786,7 @@ const Project = () => {
       return;
     }
 
-    if (!proposeByDist) {
-      newErrors.proposeByDist = "Kindly select proposed by district";
-      setExpanded("panel1");
-      setErrors(newErrors);
-      return;
-    }
 
-    if (!proposedBy) {
-      newErrors.proposedBy = "Proposed by designation is required";
-      setExpanded("panel1");
-      setErrors(newErrors);
-      return;
-    }
-
-    if (!proposedByName || !proposedByName.trim()) {
-      newErrors.proposedByName = "Proposed by name is required";
-      setExpanded("panel1");
-      setErrors(newErrors);
-      return;
-    }
 
     if (!sectorId) {
       newErrors.sectorId = "Sector is required";
@@ -695,6 +818,7 @@ const Project = () => {
   const navigate = useNavigate();
   const handleSubmit = async (e) => {
     const sendData = {
+      forwardedId,
       projectId,
       finYear,
       projectName,
@@ -703,7 +827,7 @@ const Project = () => {
       aaOrderDate: formatDateToDDMMYYYY(aaOrderDate),
       areaType,
       constituencyId,
-      proposedBy,
+      proposedBy: proposedBy ? proposedBy : null,
       proposedByName,
       objectType: areaType === "BLOCK" ? "VILLAGE" : "WARD",
       objectId: objectId,
@@ -744,7 +868,7 @@ const Project = () => {
           aaOrderNo: "",
           aaOrderDate: "",
           areaType: "",
-          constituencyId: "",
+          // constituencyId: "", 
           districtProposed: "",
 
           proposeByDist: "",
@@ -798,8 +922,11 @@ const Project = () => {
     const [dd, mm, yyyy] = d.split("/");
     return `${yyyy}-${mm}-${dd}`;
   };
+  // console.log(forwardedId);
 
   const mapProjectResponseToForm = (data) => {
+    setForwardedId(data?.forwardedId)
+    setStageForwardedRuleStatus(data?.stageForwardedRuleStatus)
     return {
       // LOCATION
       districtId: data?.districtId || "",
@@ -811,13 +938,15 @@ const Project = () => {
       projectId: data?.projectId || "",
       finYear: data?.finYear || "",
       projectName: data?.projectName || "",
+      projectCode: data?.projectCode || "",
       aaOrderNo: data?.aaOrderNo || "",
       aaOrderDate: toYMD(data?.aaOrderDate),
       areaType: data?.areaType || "",
       constituencyId: data?.constituencyId || "",
 
       // PROPOSED
-      proposeByDist: data?.proposed?.district?.districtId || "",
+      proposeByDist: data?.proposed?.districtId || "",
+      proposeByBlock: data?.proposed?.blockId || "",
       proposedBy: data?.proposed?.proposalId || "",
       proposedByName: data?.proposedByName || "",
 
@@ -843,9 +972,15 @@ const Project = () => {
     };
   };
 
+  // console.log(forwardedId);
+
+
   const mapFundReleaseRows = (rows) => {
     return rows.map((row) => ({
       ...row,
+      maxamount: 0, // Initialize with 0
+      remainingAmount: 0, // Initialize with 0
+      releaseAmount: row.releaseAmount || "", // Ensure string format
     }));
   };
 
@@ -860,6 +995,9 @@ const Project = () => {
     }
   };
 
+
+  // SIDE EFFECTS HANDLING
+
   useEffect(() => {
     getFinancialYearOptions();
     getAllDistOpts();
@@ -869,20 +1007,31 @@ const Project = () => {
     getTotalBudget();
     getFavourandModeOpts();
   }, []);
-  useEffect(() => {
-    if (stateSelect) {
-      setFormData(mapProjectResponseToForm(stateSelect));
-      setFundReleaseRows(mapFundReleaseRows(stateSelect.fundReleaseInfo || []));
-    }
-  }, [stateSelect]);
+
+  // console.log(actualFinDuartion);
 
   useEffect(() => {
-    const total = fundReleaseRows.reduce(
-      (sum, row) => sum + (parseFloat(row.releaseAmount) || 0),
-      0
-    );
-    setTotalAmount(total);
-  }, [fundReleaseRows]);
+    if (proposeByDist) {
+      getProposedByBlock()
+    }
+  }, [proposeByDist])
+
+  useEffect(() => {
+    if (proposeByBlock) {
+      getMLAMP()
+    }
+  }, [proposeByBlock])
+
+  useEffect(() => {
+    if (finYear) {
+      finYearOpts?.map((i) => {
+        if (i.finyearId == finYear) {
+          setActualFinDuartion(i)
+        }
+      })
+    }
+  }, [finYear])
+
 
   const dispatch = useDispatch();
   useEffect(() => {
@@ -894,49 +1043,56 @@ const Project = () => {
   useEffect(() => {
     if (districtId) {
       getAllBlockOpts();
-      getAllMunicipalityList();
-      getConstOpts();
     }
-
     if (blockId) {
       getAllGPoptions();
+      getConsOpts();
     }
-
-    if (gpId) {
-      getVillageList();
-    }
-
     if (municipalityId) {
       getAllWardOptions();
     }
-    if (proposeByDist) {
-      getProposedByOptions();
-    }
+    // if (proposeByDist) {
+    //   getProposedByOptions();
+    // }
     if (sectorId) {
       getSubSectorOpts();
     }
-  }, [districtId, blockId, gpId, municipalityId, proposeByDist, sectorId]);
-
-  const isDuplicateCombination = (
-    year,
-    type,
-    bank,
-    bankConfig,
-    excludeIndex
-  ) => {
-    return fundReleaseRows.some((row, idx) => {
-      if (idx === excludeIndex) return false;
-      return (
-        row.giaYear === year &&
-        row.giaTypeId === type &&
-        row.bankId == bank &&
-        row.bankAccConfigId == bankConfig
-      );
-    });
-  };
+  }, [districtId, blockId, municipalityId, proposeByDist, sectorId]);
 
   useEffect(() => {
+    if (districtId) {
+      getAllMunicipalityList();
+    }
+  }, [districtId, areaType])
+
+  useEffect(() => {
+    if (gpId) {
+      getVillageList();
+    }
+  }, [gpId])
+
+  useEffect(() => {
+    if (stateSelect) {
+      setFormData(mapProjectResponseToForm(stateSelect));
+
+      setFundReleaseRows(mapFundReleaseRows(stateSelect?.fundReleaseInfo || []));
+    }
+  }, [stateSelect]);
+
+  useEffect(() => {
+    const total = fundReleaseRows.reduce(
+      (sum, row) => sum + (parseFloat(row.releaseAmount) || 0),
+      0
+    );
+    setTotalAmount(total);
+  }, [fundReleaseRows]);
+
+
+  // In the useEffect that fetches maxBudget
+  useEffect(() => {
     if (!stateSelect?.fundReleaseInfo?.length) return;
+
+    setFundReleaseRows(mapFundReleaseRows(stateSelect?.fundReleaseInfo || []));
 
     stateSelect.fundReleaseInfo.forEach(async (row, index) => {
       if (row.giaYear && row.giaTypeId) {
@@ -972,11 +1128,15 @@ const Project = () => {
         const res = await maxBudgetService(payload);
 
         if (res?.status === 200 && res?.data?.outcome) {
+          const maxamount = res.data.data.totalBudget || 0;
+          const currentRelease = Number(row.releaseAmount || 0); // Use row.releaseAmount from the API response
+
           setFundReleaseRows((prev) => {
             const rows = [...prev];
             rows[index] = {
               ...rows[index],
-              maxamount: res.data.data.totalBudget || 0,
+              maxamount: maxamount,
+              remainingAmount: Math.max(maxamount - currentRelease, 0), // Calculate here
               fundAllocDate: res.data.data.fundAllocDate || "",
             };
             return rows;
@@ -985,6 +1145,15 @@ const Project = () => {
       }
     });
   }, [stateSelect]);
+
+  // console.log(forwardedId);
+
+
+  useEffect(() => {
+    getWorkFlow()
+  }, [forwardedId])
+
+  // console.log(errors);
 
   return (
     <div className="mt-3">
@@ -1014,6 +1183,19 @@ const Project = () => {
           <AccordionDetails>
             <div className="p-3">
               <div className="grid grid-cols-12 gap-6">
+                <div className="col-span-12 flex flex-wrap gap-6">
+                  {constituencyOpts?.map((i, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center gap-1 text-[12px] w-fit text-amber-600 rounded-sm cursor-pointer"
+                    >
+                      <span className=" text-white bg-amber-600 rounded-full p-1"><GiSevenPointedStar /></span>
+
+                      <span>{`${i.judictionRoleCode} - ${i.constituencyName}`}</span>
+                    </div>
+                  ))}
+                </div>
+
                 <div className="col-span-2">
                   <SelectField
                     label="Financial Year"
@@ -1027,6 +1209,7 @@ const Project = () => {
                     }))}
                     error={errors.finYear}
                     placeholder="Select "
+                    readOnly={stageForwardedRuleStatus != "DRAFT" ? false:true}
                   />
                 </div>
                 <div className="col-span-2">
@@ -1039,6 +1222,8 @@ const Project = () => {
                     value={projectName}
                     maxLength={50}
                     minLength={4}
+                    readOnly={stageForwardedRuleStatus != "DRAFT" ? false:true}
+
                     error={errors.projectName}
                   />
                 </div>
@@ -1230,21 +1415,7 @@ const Project = () => {
                   </>
                 )}
 
-                <div className="col-span-2">
-                  <SelectField
-                    label="Constituency Name"
-                    required={true}
-                    name="constituencyId"
-                    value={constituencyId}
-                    onChange={handleChangeInput}
-                    options={constituencyOpts?.map((d) => ({
-                      value: d.consId,
-                      label: d.consName,
-                    }))}
-                    error={errors.constituencyId}
-                    placeholder="Select "
-                  />
-                </div>
+
                 <div className="col-span-2">
                   <SelectField
                     label="Sector"
@@ -1275,6 +1446,23 @@ const Project = () => {
                     placeholder="Select "
                   />
                 </div>
+                {/* <div className="col-span-2">
+                    <SelectField
+                      label="Constituency Name"
+                      required={true}
+                      name="constituencyId"
+                      value={constituencyId}
+                      onChange={handleChangeInput}
+                      options={constituencyOpts?.map((d) => ({
+                        value: d.consId,
+                        label: `${d.judictionRoleCode} - ${d.constituencyName}`,
+                      }))}
+                      error={errors.constituencyId}
+                      placeholder="Select "
+                    />
+                  </div> */}
+
+
                 <div className="col-span-2">
                   <InputField
                     label="Start Date"
@@ -1344,7 +1532,7 @@ const Project = () => {
                 <div className="col-span-2">
                   <SelectField
                     label="District"
-                    required={true}
+                    // required={true}
                     name="proposeByDist"
                     value={proposeByDist}
                     onChange={handleChangeInput}
@@ -1352,35 +1540,52 @@ const Project = () => {
                       value: d.districtId,
                       label: d.districtName,
                     }))}
-                    error={errors.proposeByDist}
+                    // error={errors.proposeByDist}
                     placeholder="Select "
                   />
                 </div>
                 <div className="col-span-2">
                   <SelectField
+                    label="Block Name"
+                    // required={true}
+                    name="proposeByBlock"
+                    value={proposeByBlock}
+                    onChange={handleChangeInput}
+                    options={propsByBlock?.map((d) => ({
+                      value: d.blockId,
+                      label: d.blockNameEN,
+                    }))}
+                    disabled={proposeByDist ? false : true}
+                    //   error={errors.districtId}
+                    placeholder="Select "
+                  />
+                </div>
+
+                <div className="col-span-2">
+                  <SelectField
                     label="Proposed by"
-                    required={true}
+                    // required={true}
                     name="proposedBy"
                     value={proposedBy}
-                    disabled={proposeByDist ? false : true}
+                    disabled={proposeByBlock ? false : true}
                     onChange={handleChangeInput}
-                    options={proposedByDesignationOpts?.map((d) => ({
-                      value: d.proposalId,
-                      label: d.proposalName,
+                    options={juridictionOpts?.map((d) => ({
+                      value: d.judictionConfigMapId,
+                      label: `${d.judictionRoleCode} - ${d.constituencyName}`,
                     }))}
-                    error={errors.proposedBy}
+                    // error={errors.proposedBy}
                     placeholder="Select "
                   />
                 </div>
                 <div className="col-span-2">
                   <InputField
                     label="Proposed by Name"
-                    required={true}
+                    // required={true}
                     name="proposedByName"
                     placeholder="Enter propose by name"
                     value={proposedByName}
                     onChange={handleChangeInput}
-                    error={errors.proposedByName}
+                    // error={errors.proposedByName}
                     maxLength={50}
                   />
                 </div>
@@ -1439,7 +1644,6 @@ const Project = () => {
                   </h1>
                 </div>
               </div>
-
               {fundReleaseRows.map((i, index) => {
                 return (
                   <div
@@ -1543,9 +1747,9 @@ const Project = () => {
                         value={formatWithCommas(i.releaseAmount)}
                         // disabled={i.maxamount ? false : true}
                         onChange={(e) => handleRowChange(e, index)}
-                      //   error={errors.blockNameEN}
+                        error={i.releaseAmount > i.maxamount ? errors.releaseAmount = `Release Amount cant be more than ₹ ${i.maxamount.toLocaleString("en-IN")}`:''}
                       />
-                      <div className="flex justify-between">
+                      {/* <div className="flex justify-between">
                         {i.maxamount !== undefined && i.maxamount !== null && (
                           <div className="text-[11px] text-blue-700">
                             Total :{" "}
@@ -1558,15 +1762,12 @@ const Project = () => {
                           <div className="text-[11px] text-blue-700">
                             Remaining :{" "}
                             <span className="font-semibold">
-                              ₹{" "}
-                              {(
-                                Number(i.maxamount) -
-                                (Number(i.releaseAmount) || 0)
-                              ).toLocaleString("en-IN")}
+                              ₹ {Number(i.remainingAmount || 0).toLocaleString("en-IN")}
+
                             </span>
                           </div>
                         )}
-                      </div>
+                      </div> */}
                     </div>
                     <div className="col-span-4">
                       <InputField
@@ -1596,7 +1797,23 @@ const Project = () => {
             <div className=" mt-3">
               <div className="flex justify-center gap-2 text-[13px] bg-[#42001d0f] border-t border-[#ebbea6] px-4 py-3 rounded-b-md">
                 <ResetBackBtn />
-                <SubmitBtn type={"submit"} btnText={projectId} />
+                {/* <SubmitBtn type={"submit"} btnText={projectId} /> */}
+
+                {
+                  button?.map((i, index) => {
+                    return (
+                      <button
+                        type={'submit'}
+                        key={index}
+                        className={i?.actionType.color}
+                        onClick={() => setForwardedId(i.forwardedId)}
+                      >
+
+                        <GrSave /> {i?.actionType.actionNameEn}
+                      </button>
+                    )
+                  })
+                }
               </div>
             </div>
           </AccordionDetails>

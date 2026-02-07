@@ -12,4 +12,7 @@ export const getActionTypeService = () => Api.get(endpoints.workflow.actionTypeL
 
 export const getWorkflowStatusService = () => Api.get(endpoints.workflow.statusList);
 
+export const forwardListByMenuService =(data)=>Api.get(endpoints.workflow.forwardListByMenu,{params:{cipherText:data}})
 
+
+export const getWorkflowTabService = (data) => Api.get(endpoints.workflow.getTabs,{params:{cipherText:data}});

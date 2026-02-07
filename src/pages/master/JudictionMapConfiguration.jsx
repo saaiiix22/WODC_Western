@@ -20,6 +20,7 @@ import { encryptPayload } from '../../crypto.js/encryption';
 import MultiSelectDropdown from '../../components/common/MultiSelectDropdown';
 import { getBlockThroughDistrictService } from '../../services/gpService';
 import { toast } from 'react-toastify';
+import { getAllDists } from '../../services/blockService';
 
 
 const JudictionMapConfiguration = () => {
@@ -52,6 +53,8 @@ const JudictionMapConfiguration = () => {
   const getJudictionMapConfigurations = async () => {
     try {
       const res = await judictionMapConfigService();
+      console.log(res);
+      
       setJudictionMapConfigurations(res?.data.data);
     } catch (error) {
       throw error;
@@ -73,8 +76,8 @@ const JudictionMapConfiguration = () => {
   const [districtListByType, setDistrictListByType] = useState([]);
   const getDistrictListByType = async () => {
     try {
-      const payload = encryptPayload({ consId: constituencyName });
-      const res = await districtListByConstituencyTypeService(payload);
+      const payload = encryptPayload({ isActive:true });
+      const res = await getAllDists(payload);
       console.log(res);
       if (res?.status === 200 && res?.data.outcome) {
         setDistrictListByType(res?.data.data);
@@ -83,6 +86,8 @@ const JudictionMapConfiguration = () => {
       console.log(error);
     }
   };
+  console.log(districtListByType);
+  
 
   const [consName, setConsName] = useState([])
   const getconstituencyNameOptions = async () => {
@@ -156,6 +161,7 @@ const JudictionMapConfiguration = () => {
       });
 
       const payload = {
+        consId:constituencyName,
         judictionConfigId: judictionConfigId,
         judictionRoleCode: judictionType,
         constituencyTypeCode: constituencyTypeCode,
@@ -184,7 +190,8 @@ const JudictionMapConfiguration = () => {
   const getSelectedData = async () => {
     try {
       const payload = encryptPayload({
-        consId: constituencyName
+        consId: constituencyName,
+        judictionRoleCode:judictionType
       })
       const res = await getJurisdictionConfigByConsIdService(payload)
 
@@ -203,14 +210,10 @@ const JudictionMapConfiguration = () => {
     }
   }
 
-  console.log(formData);
-
-
-
-
   useEffect(() => {
     getconstituencyOptions();
     getJudictionMapConfigurations();
+    getDistrictListByType()
   }, []);
 
   useEffect(() => {
@@ -231,7 +234,7 @@ const JudictionMapConfiguration = () => {
   useEffect(() => {
     if (!constituencyName) return;
 
-    getDistrictListByType();
+    // getDistrictListByType();
     setBlockOptions([]);
     getSelectedData();
 
@@ -248,7 +251,7 @@ const JudictionMapConfiguration = () => {
       return;
     }
 
-
+    
     setBlockOptions((prev) =>
       prev.filter((block) =>
         districtIds.includes(block.district?.districtId)

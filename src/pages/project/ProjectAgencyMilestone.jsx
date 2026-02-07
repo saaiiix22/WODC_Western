@@ -22,6 +22,8 @@ import InputField from "../../components/common/InputField";
 import { IoMdAddCircle } from "react-icons/io";
 import { getFinancialYearService } from "../../services/budgetService";
 import { formatWithCommas, removeCommas } from "../../utils/validationUtils";
+import { forwardListByMenuService } from "../../services/workflowService";
+import { useLocation } from "react-router-dom";
 
 const ProjectAgencyMilestone = () => {
   const userSelection = useSelector((state) => state?.menu.userDetails);
@@ -31,6 +33,25 @@ const ProjectAgencyMilestone = () => {
     projectId: "",
     finYear: "",
   });
+
+  const [button, setButtons] = useState([])
+
+
+  const location = useLocation()
+  // console.log(location.pathname);
+
+  const getWorkFlow = async () => {
+    try {
+      const payload = encryptPayload({ appModuleUrl: location.pathname })
+      const res = await forwardListByMenuService(payload)
+      console.log(res);
+      if (res?.status === 200 && res?.data.outcome) {
+        setButtons(res?.data.data)
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
   const formatToYYYYMMDD = (dateStr) => {
     if (!dateStr) return "";
@@ -451,6 +472,7 @@ const ProjectAgencyMilestone = () => {
     }
   };
   useEffect(() => {
+    getWorkFlow();
     getAllFinYearOpts();
     getAllAgencyList();
     getAllVendorList();
@@ -916,6 +938,19 @@ const ProjectAgencyMilestone = () => {
         <div className="flex justify-center gap-2 text-[13px] bg-[#42001d0f] border-t border-[#ebbea6] px-4 py-3 rounded-b-md">
           <ResetBackBtn />
           <SubmitBtn />
+          {/* {
+            button?.map((i, index) => {
+              return (
+                <button
+                  type={'submit'}
+                  key={index}
+                  className={i?.actionType.color}
+                >
+                  <GrSave /> {i?.actionType.actionNameEn}
+                </button>
+              )
+            })
+          } */}
         </div>
       </div>
     </form>

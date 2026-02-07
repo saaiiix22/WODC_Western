@@ -4,10 +4,11 @@ import { encryptPayload } from "../crypto.js/encryption";
 export const load = async (serviceFn, payload, setter) => {
     try {
         const res = await serviceFn(encryptPayload(payload));
-        if(res?.data.outcome && res?.status === 200){
+        if (res?.data.outcome && res?.status === 200) {
             setter(res?.data.data || []);
         }
-        else{
+        else {
+            setter([]);
             toast.error(res?.data.message)
         }
     } catch (err) {

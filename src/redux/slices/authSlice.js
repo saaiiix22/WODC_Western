@@ -7,7 +7,6 @@ const authSlice = createSlice({
     initialState: {
         token: localStorage.getItem("token") || null,
         user: null,
-        menu: [],
         captchaId: null,
         captchaImage: null,
         loading: false,
@@ -19,12 +18,12 @@ const authSlice = createSlice({
             state.token = action.payload.token;
             state.user = action.payload.user;
             state.isAuthenticated = true;
+            
             localStorage.setItem("token", action.payload.token);
         },
         logout: (state) => {
             state.token = null;
             state.user = null;
-            state.menu = [];
             state.isAuthenticated = false;
             state.error = null;
             localStorage.removeItem("token");
@@ -51,7 +50,6 @@ const authSlice = createSlice({
                 if (action.payload && action.payload.outcome === true && action.payload.data) {
                     state.token = action.payload.data.token || action.payload.data;
                     state.user = action.payload.data.user;
-                    state.menu = action.payload.data.menu || [];
                     state.isAuthenticated = true;
 
                     if (state.token) {
@@ -61,14 +59,12 @@ const authSlice = createSlice({
 
                     state.token = action.payload.token;
                     state.user = action.payload.user;
-                    state.menu = action.payload.menu || [];
                     state.isAuthenticated = true;
                     localStorage.setItem("token", action.payload.token);
                 } else if (action.payload && action.payload.outcome === false) {
 
                     state.token = null;
                     state.user = null;
-                    state.menu = [];
                     state.isAuthenticated = false;
                     localStorage.removeItem("token");
                     state.error = action.payload.message || "Login failed";
@@ -79,7 +75,6 @@ const authSlice = createSlice({
                 state.error = action.payload;
                 state.token = null;
                 state.user = null;
-                state.menu = [];
                 state.isAuthenticated = false;
                 localStorage.removeItem("token");
             })
@@ -90,7 +85,6 @@ const authSlice = createSlice({
                 state.loading = false;
                 state.token = null;
                 state.user = null;
-                state.menu = [];
                 state.captchaId = null;
                 state.captchaImage = null;
                 state.isAuthenticated = false;
@@ -101,7 +95,6 @@ const authSlice = createSlice({
                 state.error = action.payload;
                 state.token = null;
                 state.user = null;
-                state.menu = [];
                 state.isAuthenticated = false;
                 localStorage.removeItem("token");
             });

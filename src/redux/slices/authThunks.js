@@ -21,12 +21,11 @@ export const loginUser = createAsyncThunk( "auth/loginUser", withMinimumLoadingT
     try {
       const res = await loginService(encryptedPayload);
       console.log(res);
-      
       if(res?.status === 200 && res?.data.outcome){
         toast.success("Login Successful")
       }
       else{
-        toast.error(res?.data.message)
+        toast.error("Login Failed")
       }
       return res.data;
     } catch (err) {

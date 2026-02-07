@@ -35,11 +35,17 @@ const GisFilter = ({ onFilter, isVertical = false }) => {
     villages: [],
     municipalities: [],
     wards: [],
+    // statuses: [
+    //   { value: "APPROVED", label: "Approved" },
+    //   { value: "IN PROGRESS", label: "In Progress" },
+    //   { value: "COMPLETED", label: "Completed" },
+    // ],
     statuses: [
-      { value: "APPROVED", label: "Approved" },
-      { value: "IN PROGRESS", label: "In Progress" },
-      { value: "COMPLETED", label: "Completed" },
-    ],
+         { value: "Created", label: "Planned" },
+         { value: "InProgress", label: "In Progress" },
+         { value: "Completed", label: "Completed" },
+         { value: "Cancel", label: "Cancel" },
+    ]
   });
 
   const loadOptions = async (service, payload, key, labelKey, valueKey) => {

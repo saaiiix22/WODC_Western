@@ -43,6 +43,10 @@ const WorkOrderGeneration = () => {
 
   const [orderDocument, setOrderDocument] = useState(null);
 
+
+  
+
+
   const getAllFinOpts = async () => {
     try {
       const payload = encryptPayload({ isActive: true });
@@ -629,10 +633,11 @@ const WorkOrderGeneration = () => {
         {/* Footer (Optional) */}
         <div className="flex justify-center gap-2 text-[13px] bg-[#42001d0f] border-t border-[#ebbea6] px-4 py-3 rounded-b-md">
           <ResetBackBtn />
-          {userSelect?.menu.userDetails.roleCode !== "ROLE_WODC_ADMIN" &&
+          <SubmitBtn type={'submit'}/>
+          {/* {userSelect?.menu.userDetails.roleCode !== "ROLE_WODC_ADMIN" &&
             !wordOrderDetails?.workOrderDate && (
               <SubmitBtn type="submit" />
-            )}
+            )} */}
 
         </div>
       </div>

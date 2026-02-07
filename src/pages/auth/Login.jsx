@@ -37,12 +37,14 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      
       const payload = encryptPayload(formData);
       const res = await dispatch(loginUser(payload)).unwrap();
-
+      console.log(res)
       if (res?.outcome) {
         localStorage.setItem("token", res.data);
         await dispatch(fetchUserDetails());
+        
         navigate("/dashboard");
       }
     } catch (err) {
