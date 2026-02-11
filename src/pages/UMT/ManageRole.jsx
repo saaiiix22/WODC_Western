@@ -13,8 +13,11 @@ import { FaLink } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import ReusableDialog from "../../components/common/ReusableDialog";
 import { useTranslation } from "react-i18next";
+import { useDispatch } from "react-redux";
+import { addAllowedPath } from "../../redux/slices/menuSlice";
 
 const ManageRole = () => {
+  const dispatch = useDispatch()
   const { t , i18n} = useTranslation("manageRole");
   const [formData, setFormData] = useState({
     roleId: null,
@@ -312,6 +315,7 @@ const ManageRole = () => {
       const res = await getRoleInfoService(payload)
       console.log(res);
       if (res?.status === 200 && res?.data.outcome) {
+        dispatch(addAllowedPath("/get-role-access"))
         navigate('/get-role-access', { state: res?.data.data })
       }
     } catch (error) {

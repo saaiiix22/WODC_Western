@@ -180,38 +180,47 @@ const FundReleaseInfo = () => {
   const handleChangeInput = (e) => {
     const { name, value } = e.target;
 
-    let updatedForm = { ...formData, [name]: value };
-
-    if (name === "penaltyPercentage") {
-      const percent = Number(value) || 0;
-      const milestoneAmount = Number(milestoneDetails?.amount) || 0;
-
-      updatedForm.penaltyAmount = ((milestoneAmount * percent) / 100).toFixed(
-        2
-      );
-    }
+    let updatedForm = { ...formData };
+    const milestoneAmount = Number(milestoneDetails?.amount) || 0;
 
     if (name === "penaltyPercentage") {
       let percent = Number(value);
 
+      if (isNaN(percent) || percent < 0) percent = 0;
       if (percent > 100) percent = 100;
-      if (percent < 0 || isNaN(percent)) percent = 0;
 
-      const milestoneAmount = Number(milestoneDetails?.amount) || 0;
+      const amount =
+        milestoneAmount > 0
+          ? (milestoneAmount * percent) / 100
+          : 0;
 
       updatedForm.penaltyPercentage = percent;
-      updatedForm.penaltyAmount = ((milestoneAmount * percent) / 100).toFixed(
-        2
-      );
-    } else {
+      updatedForm.penaltyAmount = amount;
+    }
+
+    else if (name === "penaltyAmount") {
+      let amount = Number(value);
+
+      if (isNaN(amount) || amount < 0) amount = 0;
+      if (amount > milestoneAmount) amount = milestoneAmount;
+
+      const percent =
+        milestoneAmount > 0
+          ? (amount / milestoneAmount) * 100
+          : 0;
+
+      updatedForm.penaltyAmount = amount;
+      updatedForm.penaltyPercentage = Math.min(percent, 100);
+    }
+
+    else {
       updatedForm[name] = value;
     }
-    setErrors((prev) => ({
-      ...prev,
-      [name]: "",
-    }));
+
+    setErrors((prev) => ({ ...prev, [name]: "" }));
     setFormData(updatedForm);
   };
+
   const [open, setOpen] = useState(false)
   const confirmSubmit = (e) => {
     e.preventDefault()
@@ -593,7 +602,7 @@ const FundReleaseInfo = () => {
             px-2.5 py-1.5 text-sm text-slate-900 font-semibold
             outline-none transition-all duration-200"
                               name="penaltyAmount"
-                              disabled={true}
+                              // disabled={true}
                               value={penaltyAmount}
                               onChange={handleChangeInput}
                             />

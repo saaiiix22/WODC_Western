@@ -47,3 +47,24 @@ export const saveAndUpdateMondatyGrievanceHearing = (formData) =>
       }
     );
     export const getHearingListService=()=>Api.get(endpoints.grievanceHearing.getAllHearingList)
+    export const getGrievanceHearingByIdService = (payload) =>
+      Api.get(endpoints.grievanceHearing.getGrievanceHearingById, {
+          params: { cipherText: payload } 
+      });
+
+    export const saveGrievanceService = (formData) =>
+      Api.post(
+        endpoints.addGrievance.saveGrievance,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      export const getAllGrievanceService=()=>Api.get(endpoints.addGrievance.getAllGrievance)
+// In grievanceService.js
+export const getGrievanceByIdService = (payload) =>
+  Api.get(endpoints.addGrievance.getGrievanceByid, {
+      params: { cipherText: payload } 
+  });

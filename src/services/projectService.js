@@ -20,6 +20,7 @@ export const totalBudgetService = () => Api.get(endpoints.project.totalBudget)
 
 export const maxBudgetService = (data) => Api.get(endpoints.project.maxBudget, { params: { cipherText: data } })
 export const getProjectListService = (data) => Api.get(endpoints.project.getProjectList, { params: { cipherText: data } })
+export const getProjectListByAgencyService = (data) => Api.get(endpoints.project.getProjectListByAgency, { params: { cipherText: data } })
 export const getMilestoneService = (data) => Api.get(endpoints.project.getMilestone, { params: { cipherText: data } })
 export const getBudgetByProjectService = (data) => Api.get(endpoints.project.getBudgetByProject, { params: { cipherText: data } })
 export const saveProjectAgencyMilestoneService = (data) => Api.post(endpoints.project.saveProjectAgencyMilestone, { obj: data })

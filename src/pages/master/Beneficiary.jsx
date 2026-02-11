@@ -20,7 +20,9 @@ import { FaMinusCircle } from "react-icons/fa";
 import { getBankNamesService } from "../../services/budgetService";
 import {
   editBeneficiarySerice,
+  empTypeService,
   getBeneficiaryDetailsService,
+  getGenderService,
   saveBeneficiarySerice,
   toggleBeneficiaryStatus,
 } from "../../services/beneficiaryService";
@@ -69,6 +71,8 @@ const Beneficiary = () => {
     address: "",
     aadhaarNo: "",
     dob: "",
+    gender: "",
+    employeeType: ""
   });
   const {
     districtId,
@@ -84,6 +88,8 @@ const Beneficiary = () => {
     address,
     aadhaarNo,
     dob,
+    gender,
+    employeeType
   } = formData;
   const formatDateToDDMMYYYY = (dateStr) => {
     if (!dateStr) return "";
@@ -122,6 +128,9 @@ const Beneficiary = () => {
   const [villageOpts, setVillageOpts] = useState([]);
   const [municipalityOpts, setMunicipalityOpts] = useState([]);
   const [wardOpts, setWardOpts] = useState([]);
+  const [genderOpts, setGenderOPts] = useState([]);
+  const [empTypeOpts, setEmpTypeOpts] = useState([]);
+
 
   const load = async (serviceFn, payload, setter) => {
     try {
@@ -142,6 +151,11 @@ const Beneficiary = () => {
       setBlockOpts
     );
 
+  const loadEmpType = () =>
+    load(empTypeService, null, setEmpTypeOpts)
+  console.log(empTypeOpts);
+
+
   const getAllGPoptions = () =>
     load(getGpByBlockService, { isActive: true, blockId }, setGpOptions);
 
@@ -160,6 +174,11 @@ const Beneficiary = () => {
       { isActive: true, municipalityId },
       setWardOpts
     );
+
+  const getAllGender = () =>
+    load(getGenderService, null, setGenderOPts)
+  console.log(genderOpts);
+
 
   const [bankNameOptions, setBankNameOptions] = useState([]);
   const getAllBankOptions = async () => {
@@ -261,6 +280,12 @@ const Beneficiary = () => {
       return;
     }
 
+    if (!gender) {
+      newErrors.gender = "Gender is required";
+      setErrors(newErrors);
+      return;
+    }
+
     if (!aadhaarNo || !aadhaarNo.trim()) {
       newErrors.aadhaarNo = "Aadhar number is required";
       setErrors(newErrors);
@@ -280,7 +305,6 @@ const Beneficiary = () => {
       return;
     }
 
-    // ✅ Contact validation (from second function)
     const contactError = validateContactNoUtil(contactNo);
     if (contactError) {
       newErrors.contactNo = contactError;
@@ -288,15 +312,7 @@ const Beneficiary = () => {
       return;
     }
 
-    // ✅ Email validation (from second function)
-    // const emailError = validateEmailUtil(email);
-    // if (emailError) {
-    //   newErrors.email = emailError;
-    //   setErrors(newErrors);
-    //   return;
-    // }
 
-    // Bank rows validation
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
 
@@ -341,6 +357,7 @@ const Beneficiary = () => {
       objectId: objectId,
       beneficiaryId,
       beneficiaryName,
+      gender,
       contactNo,
       email,
       address,
@@ -348,8 +365,9 @@ const Beneficiary = () => {
       dob: formatDateToDDMMYYYY(dob),
       beneficiaryCode: null,
       bankDetails: rows,
+      employeeType
     };
-    // console.log(sendData);
+    console.log(sendData);
 
     try {
       const payload = encryptPayload(sendData);
@@ -357,7 +375,7 @@ const Beneficiary = () => {
       // console.log(res);
       if (res?.data.outcome && res?.status === 200) {
         setOpenSubmit(false);
-
+        getBeneficiaryTable()
         toast.success(res?.data.message);
         setFormData({
           beneficiaryId: null,
@@ -367,6 +385,8 @@ const Beneficiary = () => {
           address: "",
           aadhaarNo: "",
           dob: "",
+          gender: "",
+          employeeType: ""
         });
         setRows([
           {
@@ -390,6 +410,8 @@ const Beneficiary = () => {
           address: "",
           aadhaarNo: "",
           dob: "",
+          gender: "",
+          employeeType: ""
         });
         setRows([
           {
@@ -424,6 +446,8 @@ const Beneficiary = () => {
     getBeneficiaryTable();
     getAllBankOptions();
     getAllDistOpts();
+    getAllGender();
+    loadEmpType();
   }, []);
 
   useEffect(() => {
@@ -746,6 +770,20 @@ const Beneficiary = () => {
                   error={errors.beneficiaryName}
                 />
               </div>
+              <div className="col-span-2">
+                <SelectField
+                  label="Gender"
+                  required={true}
+                  name="gender"
+                  value={gender}
+                  onChange={handleChangeInput}
+                  options={genderOpts?.map(g => ({
+                    label: g.lookupValueEn,
+                    value: g.lookupValueCode
+                  }))}
+                  error={errors.gender}
+                />
+              </div>
 
               <div className="col-span-2">
                 <InputField
@@ -795,6 +833,22 @@ const Beneficiary = () => {
                 // error={errors.email}
                 />
               </div>
+
+              <div className="col-span-2">
+                <SelectField
+                  label="Employee Type"
+                  required={true}
+                  name="employeeType"
+                  value={employeeType}
+                  onChange={handleChangeInput}
+                  options={empTypeOpts?.map(g => ({
+                    label: g.lookupValueEn,
+                    value: g.lookupValueCode
+                  }))}
+                  error={errors.gender}
+                />
+              </div>
+
 
               <div className="col-span-4">
                 <InputField

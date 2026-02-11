@@ -68,7 +68,7 @@ const GrievanceRequestList = () => {
       <>
         <div className="mt-3 p-2 bg-white rounded-sm border border-[#f1f1f1] shadow-[0_4px_12px_rgba(0,0,0,0.08)]">
           <h3 className="flex items-center gap-2 text-white text-[18px] px-3 py-2 bg-light-dark rounded-t-md">
-            Grievance List
+            Grievance Requested List
           </h3>
 
           <div className="min-h-[120px] py-5 px-4">

@@ -166,6 +166,7 @@ const Project = () => {
   // --------------------------------------------------------------------------
   const [forwardedId, setForwardedId] = useState(null)
   const [button, setButtons] = useState([])
+  const [stageForwardedRuleStatus,setStageForwardedRuleStatus] = useState('')
 
   const location = useLocation()
 
@@ -363,10 +364,10 @@ const Project = () => {
     indices.forEach(i => {
       let used = Number(updated[i].releaseAmount || 0);
 
-      if (used > totalBudget - runningUsed) {
-        used = totalBudget - runningUsed;
-        updated[i].releaseAmount = String(used);
-      }
+      // if (used > totalBudget - runningUsed) {
+      //   used = totalBudget - runningUsed;
+      //   updated[i].releaseAmount = String(used);
+      // }
 
       updated[i] = {
         ...updated[i],
@@ -925,6 +926,7 @@ const Project = () => {
 
   const mapProjectResponseToForm = (data) => {
     setForwardedId(data?.forwardedId)
+    setStageForwardedRuleStatus(data?.stageForwardedRuleStatus)
     return {
       // LOCATION
       districtId: data?.districtId || "",
@@ -1085,7 +1087,6 @@ const Project = () => {
     setTotalAmount(total);
   }, [fundReleaseRows]);
 
-  const [loadingFundRelease, setLoadingFundRelease] = useState(false);
 
   // In the useEffect that fetches maxBudget
   useEffect(() => {
@@ -1208,6 +1209,7 @@ const Project = () => {
                     }))}
                     error={errors.finYear}
                     placeholder="Select "
+                    readOnly={stageForwardedRuleStatus != "DRAFT" ? false:true}
                   />
                 </div>
                 <div className="col-span-2">
@@ -1220,6 +1222,8 @@ const Project = () => {
                     value={projectName}
                     maxLength={50}
                     minLength={4}
+                    readOnly={stageForwardedRuleStatus != "DRAFT" ? false:true}
+
                     error={errors.projectName}
                   />
                 </div>
@@ -1743,9 +1747,9 @@ const Project = () => {
                         value={formatWithCommas(i.releaseAmount)}
                         // disabled={i.maxamount ? false : true}
                         onChange={(e) => handleRowChange(e, index)}
-                      //   error={errors.blockNameEN}
+                        error={i.releaseAmount > i.maxamount ? errors.releaseAmount = `Release Amount cant be more than ₹ ${i.maxamount.toLocaleString("en-IN")}`:''}
                       />
-                      <div className="flex justify-between">
+                      {/* <div className="flex justify-between">
                         {i.maxamount !== undefined && i.maxamount !== null && (
                           <div className="text-[11px] text-blue-700">
                             Total :{" "}
@@ -1763,7 +1767,7 @@ const Project = () => {
                             </span>
                           </div>
                         )}
-                      </div>
+                      </div> */}
                     </div>
                     <div className="col-span-4">
                       <InputField

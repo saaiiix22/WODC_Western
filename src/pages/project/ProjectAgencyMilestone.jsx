@@ -24,6 +24,7 @@ import { getFinancialYearService } from "../../services/budgetService";
 import { formatWithCommas, removeCommas } from "../../utils/validationUtils";
 import { forwardListByMenuService } from "../../services/workflowService";
 import { useLocation } from "react-router-dom";
+import Magnifier from "../../components/common/Magnifier";
 
 const ProjectAgencyMilestone = () => {
   const userSelection = useSelector((state) => state?.menu.userDetails);
@@ -44,7 +45,7 @@ const ProjectAgencyMilestone = () => {
     try {
       const payload = encryptPayload({ appModuleUrl: location.pathname })
       const res = await forwardListByMenuService(payload)
-      console.log(res);
+      // console.log(res);
       if (res?.status === 200 && res?.data.outcome) {
         setButtons(res?.data.data)
       }
@@ -78,12 +79,24 @@ const ProjectAgencyMilestone = () => {
   const [milestoneOpts, setMilestoneOpts] = useState([]);
   const [budgetAmount, setBudgetAmount] = useState("");
 
+  const [projectStartDate, setProjectStartDate] = useState("");
+
+
+
   const handleInputChange = async (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
 
     if (name === "projectId") {
       try {
+        const selectedProject = projectOpts.find(
+          (p) => String(p.projectId) === String(value)
+        );
+
+        if (selectedProject?.startDate) {
+          const formattedDate = formatToYYYYMMDD(selectedProject.startDate);
+          setProjectStartDate(formattedDate);
+        }
         const payload = encryptPayload({
           projectId: value,
           isActive: true,
@@ -99,7 +112,7 @@ const ProjectAgencyMilestone = () => {
         const res = await getMilestoneService(payload);
         const res2 = await getBudgetByProjectService(payload2);
         const res3 = await getProjectMapByProjectIdService(payload3);
-        console.log(res3);
+        // console.log(res3);
         setMilestoneOpts(res?.data.data);
         setBudgetAmount(res2?.data.data);
 
@@ -115,6 +128,7 @@ const ProjectAgencyMilestone = () => {
             endDate: formatToYYYYMMDD(row.endDate),
             actualStartDate: formatToYYYYMMDD(row.actualStartDate),
             actualEndDate: formatToYYYYMMDD(row.actualEndDate),
+            allGeoTagDocument: row?.allGeoTagDocument || []
           }))
           : [
             {
@@ -130,6 +144,7 @@ const ProjectAgencyMilestone = () => {
               endDate: "",
               actualStartDate: "",
               actualEndDate: "",
+              allGeoTagDocument: []
             },
           ];
 
@@ -139,6 +154,7 @@ const ProjectAgencyMilestone = () => {
       }
     }
   };
+
   const formatToDDMMYYYY = (dateStr) => {
     if (!dateStr) return "";
     const [year, month, day] = dateStr.split("-");
@@ -159,10 +175,24 @@ const ProjectAgencyMilestone = () => {
       endDate: "",
       actualStartDate: "",
       actualEndDate: "",
+      allGeoTagDocument: []
     },
   ]);
+
+  const getNextOrder = () => {
+    if (!rows.length) return 1;
+
+    const maxOrder = Math.max(
+      ...rows.map((row) => Number(row.order) || 0)
+    );
+
+    return maxOrder + 1;
+  };
+
+
   const handleInput = (index, name, value) => {
     const updated = [...rows];
+    const currentRow = updated[index];
 
     if (name === "order") {
 
@@ -307,7 +337,33 @@ const ProjectAgencyMilestone = () => {
       setRows(updated);
       return;
     }
+    if (name === "startDate") {
+      if (projectStartDate && value < projectStartDate) {
+        toast.error("Start Date must be equal to or after Project Start Date");
+        return;
+      }
+    }
 
+    if (name === "endDate") {
+      if (currentRow.startDate && value < currentRow.startDate) {
+        toast.error("End Date must be equal to or after Start Date");
+        return;
+      }
+    }
+
+    if (name === "actualStartDate") {
+      if (currentRow.startDate && value < currentRow.startDate) {
+        toast.error("Actual Start Date must be equal to or after Start Date");
+        return;
+      }
+    }
+
+    if (name === "actualEndDate") {
+      if (currentRow.actualStartDate && value < currentRow.actualStartDate) {
+        toast.error("Actual End Date must be equal to or after Actual Start Date");
+        return;
+      }
+    }
 
     updated[index][name] = value;
     setRows(updated);
@@ -346,7 +402,7 @@ const ProjectAgencyMilestone = () => {
         agencyId: "",
         milestoneId: "",
         vendorId: "",
-        order: "",
+        order: getNextOrder(),
         budgetPercentage: "",
         amount: "",
         milestoneStatus: "",
@@ -366,6 +422,47 @@ const ProjectAgencyMilestone = () => {
   const [flag, setFlag] = useState(false)
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+
+      const isCompletelyEmpty =
+        !row.agencyId &&
+        !row.milestoneId &&
+        !row.order &&
+        !row.budgetPercentage &&
+        !row.amount;
+
+      if (isCompletelyEmpty) {
+        toast.error(`Row ${i + 1} is empty. Please fill or remove it.`);
+        return;
+      }
+
+      if (!row.agencyId) {
+        toast.error(`Please select Agency in row ${i + 1}`);
+        return;
+      }
+
+      if (!row.milestoneId) {
+        toast.error(`Please select Milestone in row ${i + 1}`);
+        return;
+      }
+
+      if (!row.order) {
+        toast.error(`Order is required in row ${i + 1}`);
+        return;
+      }
+
+      if (!row.budgetPercentage || !row.amount) {
+        toast.error(`Budget % and Amount are required in row ${i + 1}`);
+        return;
+      }
+
+      if (!row.startDate || !row.endDate) {
+        toast.error(`Start Date and End Date are required in row ${i + 1}`);
+        return;
+      }
+    }
 
     const isAdmin = userSelection.roleCode === "ROLE_WODC_ADMIN";
 
@@ -465,7 +562,6 @@ const ProjectAgencyMilestone = () => {
     try {
       const payload = encryptPayload({ isActive: true });
       const res = await projectAlllookUpValueService(payload);
-      // console.log(res?.data.data.milestioneStatusList);
       setStatusOpts(res?.data.data.milestioneStatusList);
     } catch (error) {
       throw error;
@@ -509,6 +605,8 @@ const ProjectAgencyMilestone = () => {
       })
     );
   }, [budgetAmount]);
+
+ 
   return (
     <form onSubmit={handleSubmit}>
       <div
@@ -570,6 +668,67 @@ const ProjectAgencyMilestone = () => {
             </div>
             {formData.projectId && flag && (
               <>
+                <div className="col-span-12 mt-6">
+                  <div className="bg-white border border-slate-200 rounded-md shadow-sm overflow-hidden">
+                    {/* Header */}
+                    <div className="px-6 py-4 bg-[#fffcfc]  border-b border-[#ebbea6] ">
+                      <h3 className="text-md font-semibold text-slate-700 tracking-wide">
+                        Budget Overview
+                      </h3>
+                    </div>
+
+                    {/* Stats */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-slate-200">
+
+                      {/* Max Budget */}
+                      <div className="flex items-center gap-4 px-6 py-6">
+                        <div className="h-10 w-10 flex items-center justify-center rounded-full bg-red-100 text-red-600">
+                          ₹
+                        </div>
+                        <div>
+                          <p className="text-xs uppercase tracking-wide text-slate-500 font-semibold">
+                            Max Budget
+                          </p>
+                          <p className="text-2xl font-bold text-slate-800">
+                            ₹{budgetAmount.toLocaleString("en-IN")}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Allocated */}
+                      <div className="flex items-center gap-4 px-6 py-6">
+                        <div className="h-10 w-10 flex items-center justify-center rounded-full bg-blue-100 text-blue-700">
+                          ₹
+                        </div>
+                        <div>
+                          <p className="text-xs uppercase tracking-wide text-slate-500 font-semibold">
+                            Allocated
+                          </p>
+                          <p className="text-2xl font-bold text-slate-800">
+                            ₹{totalActualAmount.toLocaleString("en-IN")}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Remaining */}
+                      <div className="flex items-center gap-4 px-6 py-6">
+                        <div className="h-10 w-10 flex items-center justify-center rounded-full bg-green-100 text-green-700">
+                          ₹
+                        </div>
+                        <div>
+                          <p className="text-xs uppercase tracking-wide text-slate-500 font-semibold">
+                            Remaining
+                          </p>
+                          <p className="text-2xl font-bold text-slate-800">
+                            ₹{Number(remainingBudget).toLocaleString("en-IN")}
+                          </p>
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+                </div>
+
                 <div className="col-span-12">
                   {rows.map((i, index) => {
                     return (
@@ -651,11 +810,12 @@ const ProjectAgencyMilestone = () => {
                             onChange={(e) =>
                               handleInput(index, "order", e.target.value)
                             }
-                            disabled={
-                              userSelection.roleCode === "ROLE_AGENCY" || i.milestoneStatus === "CMPL"
-                                ? true
-                                : false
-                            }
+                            // disabled={
+                            //   userSelection.roleCode === "ROLE_AGENCY" || i.milestoneStatus === "CMPL"
+                            //     ? true
+                            //     : false
+                            // }
+                            disabled={true}
                           // type="number"
                           />
                         </div>
@@ -745,7 +905,7 @@ const ProjectAgencyMilestone = () => {
                           <input
                             name="actualEndDate"
                             value={i.actualEndDate}
-                            min={i.actualStartDate}
+                            min={i.actualStartDate && projectStartDate}
                             disabled={userSelection.roleCode === "ROLE_WODC_ADMIN" || i.milestoneStatus === "CMPL" ? true : false}
 
                             onChange={(e) =>
@@ -858,10 +1018,20 @@ const ProjectAgencyMilestone = () => {
                                 e.target.value
                               )
                             }
-                            options={statusOpts?.map((d) => ({
-                              value: d.lookupValueCode,
-                              label: d.lookupValueEn,
-                            }))}
+                            options={statusOpts
+                              ?.filter((status) => {
+                                if (
+                                  (!i.allGeoTagDocument || i.allGeoTagDocument.length === 0) &&
+                                  status.lookupValueCode === "CMPL"
+                                ) {
+                                  return false;
+                                }
+                                return true;
+                              })
+                              .map((d) => ({
+                                value: d.lookupValueCode,
+                                label: d.lookupValueEn,
+                              }))}
                             required={
                               // userSelection.roleCode === "ROLE_WODC_ADMIN" || i.milestoneStatus === "CMPL"
                               userSelection.roleCode === "ROLE_WODC_ADMIN"
@@ -878,6 +1048,19 @@ const ProjectAgencyMilestone = () => {
                             }
                             placeholder="Select"
                           />
+                        </div>
+                        <div className="col-span-12">
+                          <div className="grid grid-cols-12 gap-6">
+                            {
+                              i.allGeoTagDocument.map((image, imgIdx) => {
+                                return (
+                                  <div className="col-span-2 max-h-40" key={imgIdx + 1}>
+                                    <Magnifier src={`data:image/${image.documentName};base64,${image.documentBase64}`} />
+                                  </div>
+                                )
+                              })
+                            }
+                          </div>
                         </div>
                       </div>
                     );
@@ -896,39 +1079,7 @@ const ProjectAgencyMilestone = () => {
                   )}
                 </div>
 
-                <div className="col-span-12 bg-white border border-slate-200 rounded-xl p-6 mt-6 shadow-sm">
-                  <div className="grid grid-cols-12 divide-x divide-slate-200">
-                    {/* Max Budget */}
-                    <div className="col-span-4 flex flex-col items-center px-4">
-                      <p className="text-xs uppercase tracking-wide text-gray-500 font-semibold">
-                        Max Budget
-                      </p>
-                      <p className="text-2xl font-bold text-red-600 mt-1">
-                        ₹{budgetAmount.toLocaleString("en-IN")}
-                      </p>
-                    </div>
 
-                    {/* Allocated */}
-                    <div className="col-span-4 flex flex-col items-center px-4">
-                      <p className="text-xs uppercase tracking-wide text-gray-500 font-semibold">
-                        Allocated
-                      </p>
-                      <p className="text-2xl font-bold text-blue-700 mt-1">
-                        ₹{totalActualAmount.toLocaleString("en-IN")}
-                      </p>
-                    </div>
-
-                    {/* Remaining */}
-                    <div className="col-span-4 flex flex-col items-center px-4">
-                      <p className="text-xs uppercase tracking-wide text-gray-500 font-semibold">
-                        Remaining
-                      </p>
-                      <p className="text-2xl font-bold text-green-700 mt-1">
-                        ₹{Number(remainingBudget).toLocaleString("en-IN")}
-                      </p>
-                    </div>
-                  </div>
-                </div>
               </>
             )}
           </div>

@@ -14,13 +14,15 @@ import {
   saveWorOrderGenerationService,
 } from "../../services/workOrderGenerationService";
 import { toast } from "react-toastify";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import ReusableDialog from "../../components/common/ReusableDialog";
+import { addAllowedPath } from "../../redux/slices/menuSlice";
 
 const WorkOrderGeneration = () => {
   const userSelect = useSelector((state) => state);
-  console.log(userSelect?.menu.userDetails);
+  // console.log(userSelect?.menu.userDetails);
+  const dispatch = useDispatch()
 
   const [formData, setFormData] = useState({
     finYear: "",
@@ -44,7 +46,7 @@ const WorkOrderGeneration = () => {
   const [orderDocument, setOrderDocument] = useState(null);
 
 
-  
+
 
 
   const getAllFinOpts = async () => {
@@ -139,9 +141,17 @@ const WorkOrderGeneration = () => {
 
   const handleChangeInput = async (e) => {
     const { name, files, value } = e.target;
-
+    let newErrors = {}
     if (name === "orderDocument") {
       setOrderDocument(files[0]);
+    }
+
+    if (name === "workOrderDate") {
+      if (value < milestoneDetails?.startDate.split("/").reverse().join("-")) {
+        newErrors.workOrderDate = "Work order shall be after the start date";
+        setErrors(newErrors);
+        return;
+      }
     }
 
     setFormData({ ...formData, [name]: value });
@@ -442,10 +452,13 @@ const WorkOrderGeneration = () => {
                       </div>
                       <div
                         className="col-span-3 flex gap-1 cursor-pointer"
-                        onClick={() =>
+                        onClick={() => {
+                          dispatch(addAllowedPath("/beneficiaryList"));
+
                           navigate("/beneficiaryList", {
                             state: { projectId, milestoneId },
                           })
+                        }
                         }
                       >
                         <span className="font-normal text-gray-700">
@@ -633,7 +646,7 @@ const WorkOrderGeneration = () => {
         {/* Footer (Optional) */}
         <div className="flex justify-center gap-2 text-[13px] bg-[#42001d0f] border-t border-[#ebbea6] px-4 py-3 rounded-b-md">
           <ResetBackBtn />
-          <SubmitBtn type={'submit'}/>
+          <SubmitBtn type={'submit'} />
           {/* {userSelect?.menu.userDetails.roleCode !== "ROLE_WODC_ADMIN" &&
             !wordOrderDetails?.workOrderDate && (
               <SubmitBtn type="submit" />
@@ -648,7 +661,7 @@ const WorkOrderGeneration = () => {
         onClose={() => setOpen(false)}
         onConfirm={handleSubmit}
       />
-    </form>
+    </form >
   );
 };
 

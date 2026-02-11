@@ -25,7 +25,6 @@ const SelectField = ({
         value={value}
         onChange={onChange}
         disabled={disabled}
-
         className={`
           w-full rounded-md border border-gray-300 
           px-2.5 py-1.5 text-sm
@@ -33,10 +32,7 @@ const SelectField = ({
           placeholder:text-gray-400
           ${disabled ? "bg-gray-200 cursor-not-allowed" : "bg-white"}
           focus:border-blue-500 focus:ring-2 focus:ring-blue-200
-           ${readOnly
-            ? "bg-gray-100 cursor-not-allowed"
-            : "bg-white"
-          }
+          
           ${error ? "border-red-500" : ""
           }
         `}

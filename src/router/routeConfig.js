@@ -62,12 +62,14 @@ export const routes = {
    grievanceCategory: { path: "/grievanceCategory", label: "Grievance Category", protected: true },
    grievanceSubCategory: { path: "/grievanceSubCategory", label: "Grievance Sub-Category", protected: true },
    grievanceSlotConfiguration: { path: "/grievanceSlotConfiguration", label: "Grievance Slot Configuration", protected: true },
-   addGrievance: { path: "/addGrievance", lebel: "Add-Grievance", protected: true },
+   addGrievance: { path: "/addGrievance/:id?", lebel: "Add-Grievance", protected: true },
    grievanceList: { path: "/grievanceList", lebel: "Grievance List", protected: true },
+
    grievanceRequestList: { path: "/grievanceRequestList", lebel: "Grievance Requested List", protected: true },
    addWorkFlowConfiguration: { path: "/addWorkFlowConfiguration", lebel: "Add WorkFlow ", protected: true },
    virtualGrievanceHearing: { path: "/virtualGrievanceHearing", lebel: "Virtual Grievance Hearing ", protected: true },
 
+   virtualGrievanceHearingList:{path:"/grievanceHearingList",lebel:"Virtual Grievance Hearing  List",protected:true},
 
    assetTypeMaster: { path: "/assetTypeMaster", label: "Asset Type Master", protected: true },
    assetCategoryMaster: { path: "/assetCategoryMaster", label: "Asset Category Master", protected: true },
@@ -79,6 +81,7 @@ export const routes = {
    addFeedbackType: { path: "/addFeedbackType", label: "Add Feedback Type", protected: true },
    addFeedbackQuestions: { path: "/addFeedbackQuestions", label: "Add Feedback Questions", protected: true },
    addFeedback: { path: "/addFeedback", label: "Add Feedback", protected: true },
+   feedbackListByStatus: { path: "/feedbackListByStatus", label: "Feedback List By Status", protected: true },
 
 
 }

@@ -975,8 +975,8 @@ const AddBeneficiary = () => {
           {/* Footer (Optional) */}
           <div className="flex justify-center gap-2 text-[13px] bg-[#42001d0f] border-t border-[#ebbea6] px-4 py-3 rounded-b-md">
             <ResetBackBtn />
-            {/* <SubmitBtn type={"submit"} /> */}
-            {
+            <SubmitBtn type={"submit"} />
+            {/* {
               button?.map((i, index) => {
                 return (
                   <button
@@ -988,7 +988,7 @@ const AddBeneficiary = () => {
                   </button>
                 )
               })
-            }
+            } */}
           </div>
         </div>
       </form>

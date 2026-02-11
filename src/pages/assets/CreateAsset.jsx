@@ -9,11 +9,13 @@ import {
 } from "../../services/assetsService";
 import {
   getProjectAgencyMilestoneMapDetailsService,
+  getProjectListByAgencyService,
   getProjectListService,
   getProjectMapByProjectIdService,
   getSectorService,
 } from "../../services/projectService";
 import { encryptPayload } from "../../crypto.js/encryption";
+import { getAgencyDetailsService } from "../../services/agencyService";
 
 const tabs = ["Basic Asset Details", "Asset Condition & Utilization"];
 
@@ -26,6 +28,7 @@ const CreateAsset = () => {
   const [subSectorList, setSubSectorList] = useState([]);
   const [agencyList, setAgencyList] = useState([]);
   const [projectList, setProjectList] = useState([]);
+ 
   const [agencyProjectMap, setAgencyProjectMap] = useState([]);
   const [lifeCycleOptions, setLifeCycleOptions] = useState([]);
   const [conditionOptions, setConditionOptions] = useState([]);
@@ -40,6 +43,7 @@ const CreateAsset = () => {
     subSectorId: null,
     agencyId: null,
     projectId: null,
+    actualStartDate: "",
     assetCreationDate: "",
     assetAmount: null,
     assetLifeCycleStageCode: "",
@@ -81,16 +85,15 @@ const CreateAsset = () => {
   // ----------------------------------------------------------------------//
 
   const loadAssetsCategories = async () => {
-    const payload = encryptPayload({ isActive: true });
-    const res = await getAssetsCategoryListService(payload);
+    // const payload = encryptPayload({ isActive: true });
+    const res = await getAssetsCategoryListService();
 
     const result = res?.data?.data || [];
-
+    console.log("Assets Categories:", result);
     const mappedOptions = result.map((item) => ({
       value: item.assetsCtgId, // key
       label: item.assetsCtgName, // display name
     }));
-
     setAssetsCategoryList(mappedOptions);
   };
 
@@ -151,52 +154,88 @@ const CreateAsset = () => {
     setSubSectorList(subSectorOptions);
   };
 
-  const loadProjects = async () => {
-    const payload = encryptPayload({ isActive: true });
-    const res = await getProjectListService(payload);
+  const loadAgencies = async () => {
+    try {
+      const payload = encryptPayload({ isActive: true });
+      const res = await getAgencyDetailsService(payload);
 
-    const result = res?.data?.data || [];
+      const result = res?.data?.data || [];
 
-    const options = result.map((p) => ({
-      value: p.projectId,
-      label: p.projectName,
-    }));
+      const agencyOptions = [
+        ...new Map(
+          result.map((item) => [
+            item.agencyId,
+            {
+              value: item.agencyId,
+              label: item.agencyName,
+            },
+          ])
+        ).values(),
+      ];
 
-    setProjectList(options);
+      setAgencyList(agencyOptions);
+    } catch (err) {
+      console.error("Error fetching agencies:", err);
+      setAgencyList([]);
+    }
   };
-  const handleProjectChange = async (projectIdValue) => {
-    if (!projectIdValue) return; // 🛑 IMPORTANT
 
-    const projectId = Number(projectIdValue);
+  const handleAgencyChange = async (agencyIdValue) => {
+    if (!agencyIdValue) return;
+
+    const agencyId = Number(agencyIdValue);
 
     setFormData((prev) => ({
       ...prev,
-      projectId,
-      agencyId: null,
+      agencyId,
+      projectId: null, // reset project
     }));
 
     const payload = encryptPayload({
-      projectId,
+      agencyId,
       isActive: true,
     });
+    try {
+      const res = await getProjectListByAgencyService(payload);
+      const result = res?.data?.data || [];
+      setAgencyProjectMap(result);
+      const projectOptions = [
+        ...new Map(
+          result.map((item) => [
+            item.projectId,
+            {
+              value: item.projectId,
+              label: item.projectName,
+            },
+          ])
+        ).values(),
+      ];
 
-    const res = await getProjectAgencyMilestoneMapDetailsService(payload);
-    const result = res?.data?.data || [];
-
-    const agencyOptions = [
-      ...new Map(
-        result.map((item) => [
-          item.agencyId,
-          {
-            value: item.agencyId,
-            label: item.agencyName,
-          },
-        ]),
-      ).values(),
-    ];
-
-    setAgencyList(agencyOptions);
+      setProjectList(projectOptions);
+    } catch (err) {
+      console.error("Error fetching projects:", err);
+      setProjectList([]);
+    }
   };
+
+  const handleProjectChange = (projectIdValue) => {
+    const projectId = Number(projectIdValue);
+    const selectedProject = agencyProjectMap.find(
+      (p) => p.projectId === projectId
+    );
+    // convert DD/MM/YYYY → YYYY-MM-DD for input[type="date"]
+    let formattedDate = "";
+    if (selectedProject?.endDate) {
+      const [day, month, year] = selectedProject.endDate.split("/");
+      formattedDate = `${year}-${month}-${day}`;
+    }
+    setFormData((prev) => ({
+      ...prev,
+      projectId,
+      actualStartDate: formattedDate,
+    }));
+  };
+
 
   const loadAssetLookups = async () => {
     try {
@@ -230,6 +269,7 @@ const CreateAsset = () => {
   const BasicDetails = useMemo(
     () => (
       <div className="grid grid-cols-12 gap-6">
+
         <div className="col-span-3">
           <InputField
             label="Asset Name"
@@ -276,24 +316,25 @@ const CreateAsset = () => {
 
         <div className="col-span-3">
           <SelectField
-            label="Project Name"
-            name="projectId"
-            value={formData.projectId || ""}
-            options={projectList}
-            placeholder="Select Project"
-            onChange={(e) => handleProjectChange(e.target.value)}
-          />
-        </div>
-
-        <div className="col-span-3">
-          <SelectField
             label="Implementing Agency"
             name="agencyId"
             value={formData.agencyId || ""}
             options={agencyList}
             placeholder="Select Agency"
-            disabled={!formData.projectId}
-            onChange={(e) => handleSelectChange("agencyId", e.target.value)}
+            // disabled={!formData.projectId}
+            onChange={(e) => handleAgencyChange(e.target.value)}
+          />
+        </div>
+
+        <div className="col-span-3">
+          <SelectField
+            label="Project Name"
+            name="projectId"
+            value={formData.projectId || ""}
+            options={projectList}
+            placeholder="Select Project"
+            disabled={!formData.agencyId}
+            onChange={(e) => handleProjectChange(e.target.value)}
           />
         </div>
 
@@ -302,8 +343,9 @@ const CreateAsset = () => {
             type="date"
             label="Project Completion Date"
             name="projectCompletionDate"
-            value={!formData.projectId}
+            value={formData.actualStartDate || ""}
             onChange={handleInputChange}
+            readOnly
           />
         </div>
 
@@ -433,7 +475,7 @@ const CreateAsset = () => {
     loadAssetsCategories();
     loadAssetsTypes();
     loadSector();
-    loadProjects();
+    loadAgencies();
     loadAssetLookups();
   }, []);
 
@@ -452,10 +494,9 @@ const CreateAsset = () => {
               key={tab}
               onClick={() => setActiveTab(index)}
               className={`px-3 py-1 rounded text-sm border
-                ${
-                  activeTab === index
-                    ? "bg-[#ff9800] text-white border-[#ff9800]"
-                    : "bg-white text-[#444] border-[#ddd] hover:bg-[#fff3e0]"
+                ${activeTab === index
+                  ? "bg-[#ff9800] text-white border-[#ff9800]"
+                  : "bg-white text-[#444] border-[#ddd] hover:bg-[#fff3e0]"
                 }`}
             >
               {tab}
@@ -465,8 +506,8 @@ const CreateAsset = () => {
 
         {/* body  */}
         <div className="py-6 px-5 text-[#444]">
-          {activeTab === 0 && BasicDetails }
-          {activeTab === 1 && ConditionUtilization }
+          {activeTab === 0 && BasicDetails}
+          {activeTab === 1 && ConditionUtilization}
         </div>
 
         {/* footer  */}

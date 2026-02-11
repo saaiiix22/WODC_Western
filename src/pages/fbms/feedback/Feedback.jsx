@@ -94,6 +94,7 @@ const Feedback = () => {
     try {
       const response = await feedbackStatusListService();
       if (response?.data?.outcome === true) {
+        console.log(response.data?.data );
         setFeedbackStatus(response.data?.data || []);
       } else {
         toast.error(response?.data?.message || "Failed to load feedback status");

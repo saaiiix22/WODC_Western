@@ -2,439 +2,331 @@ import React, { useEffect, useState } from "react";
 import SelectField from "../../components/common/SelectField";
 import InputField from "../../components/common/InputField";
 import { ResetBackBtn, SubmitBtn } from "../../components/common/CommonButtons";
-import { getCategoryListService, getSubCategoryListService } from "../../services/grievanceService";
+import {
+  getCategoryListService,
+  getSubCategoryListService,
+  saveGrievanceService,
+} from "../../services/grievanceService";
 import ReusableDialog from "../../components/common/ReusableDialog";
+import { toast } from "react-toastify";
+import { encryptPayload } from "../../crypto.js/encryption";
+import { cleanContactNoUtil, cleanEmailUtil } from "../../utils/validationUtils";
+import { useLocation } from "react-router-dom";
+
+/* ================= INITIAL STATE ================= */
+const initialFormState = {
+  addGrievanceId: null,
+  grvCtgId: "",
+  grvSubCtgId: "",
+  contactNo: "",
+  email: "",
+  idProofPath: "",
+  purpose: "",
+  grvRelatedDocPath: "",
+};
 
 const AddGrievance = () => {
-  const [formData, setFormData] = useState({
-    virtualGrvSlotId: null,
-    grvCtgId: null,
-    grvSubCtgId: null,
-    grvMode:"",
-    forwardTo:"",
-    complainantName:"",
-    compAdd:"",
-    contactNo:"",
-    emailId:"",
-    idenProf:"",
-    purpose:"",
-    grvRltDoc:"",
-
-  });
+  const location = useLocation()
+  console.log(location?.state);
+  const [formData, setFormData] = useState(initialFormState);
   const {
-    virtualGrvSlotId,
+    addGrievanceId,
     grvCtgId,
     grvSubCtgId,
-    grvMode,
-    forwardTo,
-    complainantName,
-    compAdd,
     contactNo,
-    emailId,
-    idenProf,
+    email,
+    idProofPath,
     purpose,
-    grvRltDoc,
-
+    grvRelatedDocPath,
   } = formData;
 
-  const [documents, setDocuments] = useState([{ file: null }]);
   const [categoryList, setCategoryList] = useState([]);
   const [subCategoryList, setSubCategoryList] = useState([]);
   const [allSubCategories, setAllSubCategories] = useState([]);
   const [errors, setErrors] = useState({});
   const [openSubmit, setOpenSubmit] = useState(false);
+  const [fileKey, setFileKey] = useState(Date.now()); // 👈 FILE RESET KEY
 
+  /* ================= API CALLS ================= */
+  useEffect(() => {
+    getCategoryListService().then((res) =>
+      setCategoryList(res?.data?.data || [])
+    );
+    getSubCategoryListService().then((res) =>
+      setAllSubCategories(res?.data?.data || [])
+    );
+  }, []);
 
-  const getGrievanceCategoryName = async () => {
-    try {
-      const res = await getCategoryListService();
-      setCategoryList(res?.data?.data || []);
-    } catch (error) {
-      console.error(error);
+  const handleChangeInput = (e) => {
+    if (isViewMode) return; 
+    const { name, value } = e.target;
+    let updatedValue = value;
+    
+   
+    if (name === "contactNo") {
+      updatedValue = cleanContactNoUtil(updatedValue);
     }
-  };
-
-  const getGrievanceSubCategoryName = async () => {
-    try {
-      const res = await getSubCategoryListService();
-      setAllSubCategories(res?.data?.data || []);
-    } catch (error) {
-      console.error(error);
+    if (name === "email") {
+      updatedValue = cleanEmailUtil(updatedValue);
     }
+    setErrors((prev) => ({ ...prev, [name]: "" }));
+    setFormData({ ...formData, [name]: updatedValue });
   };
-
   const handleCategoryChange = (e) => {
+    if (isViewMode) return; 
     const selectedCategoryId = e.target.value;
--    setFormData((prev) => ({
+
+    setFormData((prev) => ({
       ...prev,
       grvCtgId: selectedCategoryId,
-      grvSubCtgId: "", 
+      grvSubCtgId: "",
     }));
+
     setErrors((prev) => ({ ...prev, grvCtgId: "", grvSubCtgId: "" }));
+
     const filteredSubs = allSubCategories.filter(
       (sub) => String(sub.grvCtgId) === String(selectedCategoryId)
     );
     setSubCategoryList(filteredSubs);
   };
-  
 
-
-
-  const addDocument = () => {
-    setDocuments((prev) =>
-      Array.isArray(prev) ? [...prev, { file: null }] : [{ file: null }]
-    );
+  /* ================= RESET (KEY PART) ================= */
+  const resetForm = () => {
+    setFormData(initialFormState);
+    setErrors({});
+    setSubCategoryList([]);
+    setFileKey(Date.now()); // 👈 clears file inputs
   };
 
-  const removeDocument = (index) => {
-    setDocuments((prev) =>
-      Array.isArray(prev)
-        ? prev.filter((_, i) => i !== index)
-        : [{ file: null }]
-    );
-  };
-
-
-  useEffect(() => {
-    getGrievanceCategoryName();
-    getGrievanceSubCategoryName();
-  }, []);
-
-  const handleChangeInput = (e) => {
-    const { name, value } = e.target;
-    setErrors((prev) => ({ ...prev, [name]: "" }));
-    setFormData({ ...formData, [name]: value });
-  };
-
-  const handleFileChange = (index, file) => {
-    setDocuments((prev) => {
-      if (!Array.isArray(prev)) return [{ file }];
-      const updated = [...prev];
-      updated[index] = { file };
-      return updated;
-    });
-  };
-
-
+  /* ================= VALIDATION ================= */
   const handleSubmitConfirmModal = (e) => {
     e.preventDefault();
-    let newErrors = {};
   
     if (!grvCtgId) {
-      newErrors.grvCtgId = "Grievance Category is required";
-      setErrors(newErrors);
-      return; 
+      setErrors({ grvCtgId: "Grievance Category is required" });
+      return;
     }
   
     if (!grvSubCtgId) {
-      newErrors.grvSubCtgId = "Grievance Sub Category is required";
-      setErrors(newErrors);
+      setErrors({ grvSubCtgId: "Grievance Sub Category is required" });
       return;
     }
-  
-
   
     if (!contactNo) {
-      newErrors.contactNo = "Contact No is required";
-      setErrors(newErrors);
+      setErrors({ contactNo: "Contact No is required" });
       return;
     }
   
-    if (!emailId) {
-      newErrors.emailId = "Email id is required";
-      setErrors(newErrors);
+    if (!email) {
+      setErrors({ email: "Email is required" });
       return;
     }
-      
-    if (!idenProf) {
-      newErrors.idenProf = "Identityis required";
-      setErrors(newErrors);
+  
+    if (!idProofPath) {
+      setErrors({ idProofPath: "Identity Proof is required" });
       return;
     }
-   
-   
-   if (!purpose) {
-      newErrors.purpose = "purpose is required";
-      setErrors(newErrors);
+    if (!grvRelatedDocPath) {
+      setErrors({ grvRelatedDocPath: "Grv Rlt Doc is required" });
       return;
     }
-
-
-    
-    
+  
+    if (!purpose) {
+      setErrors({ purpose: "Purpose is required" });
+      return;
+    }
+  
     setErrors({});
     setOpenSubmit(true);
   };
   
+  const isViewMode = !!addGrievanceId;
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    const sendData = {
-      virtualGrvSlotId: null,
-      grvCtgId: null,
-      grvSubCtgId: null,
-      grvMode:"",
-      forwardTo:"",
-      complainantName:"",
-      compAdd:"",
-      contactNo:"",
-      emailId:"",
-      idenProf:"",
-      purpose:"",
-      grvRltDoc:"",
- 
-    };
+  /* ================= SUBMIT ================= */
+  const handleSubmit = async () => {
     try {
       setOpenSubmit(false);
-      setExpanded("panel2");
-      const payload = encryptPayload(sendData);
-      const res = await saveMilesStoneService(payload);
-      console.log(res);
-      if (res?.status === 200 && res?.data.outcome) {
-        toast.success(res?.data.message);
-        setFormData({
-          virtualGrvSlotId: null,
-          grvCtgId: null,
-          grvSubCtgId: null,
-          grvMode:"",
-          forwardTo:"",
-          complainantName:"",
-          compAdd:"",
-          contactNo:"",
-          emailId:"",
-          idenProf:"",
-          purpose:"",
-          grvRltDoc:"",
-        });
-        setExpanded("panel2");
-        getMilesStoneTable();
+
+      const payload = {
+        addGrievanceId,
+        grievanceCategory: grvCtgId,
+        grievanceSubCategory: grvSubCtgId,
+        contactNo,
+        email: email,
+        purpose,
+      };
+
+      const formDataObj = new FormData();
+      formDataObj.append("cipherText", encryptPayload(payload));
+      formDataObj.append("idProofDoc", idProofPath);
+      formDataObj.append("grvRelatedDoc", grvRelatedDocPath);
+
+      const res = await saveGrievanceService(formDataObj);
+
+      if (res?.status === 200 && res?.data?.outcome) {
+        toast.success(res.data.message);
+        resetForm(); 
       } else {
-        toast.error(res?.data.message);
-        setFormData({
-          virtualGrvSlotId: null,
-          grvCtgId: null,
-          grvSubCtgId: null,
-          grvMode:"",
-          forwardTo:"",
-          complainantName:"",
-          compAdd:"",
-          contactNo:"",
-          emailId:"",
-          idenProf:"",
-          purpose:"",
-          grvRltDoc:"",
-        });
+        toast.error(res?.data?.message);
       }
-    } catch (error) {
-      throw error;
+    } catch (err) {
+      console.error(err);
+      toast.error("Submission failed");
     }
   };
 
-
+  //------for View Purpose
+  useEffect(() => {
+    if (location.state) {
+      setFormData({
+        addGrievanceId: location.state.addGrievanceId,
+        grvCtgId: location.state.grievanceCategory,     
+        grvSubCtgId: location.state.grievanceSubCategory, 
+        contactNo: location.state.contactNo,
+        email: location.state.email,
+        purpose: location.state.purpose || "",
+        idProofPath: "",
+        grvRelatedDocPath: "",
+      });
+    }
+  }, [location.state]);
+  useEffect(() => {
+    if (grvCtgId && allSubCategories.length > 0) {
+      const filteredSubs = allSubCategories.filter(
+        (sub) => String(sub.grvCtgId) === String(grvCtgId)
+      );
+      setSubCategoryList(filteredSubs);
+    }
+  }, [grvCtgId, allSubCategories]);
+    
+  
+  /* ================= JSX ================= */
   return (
     <div>
       <form onSubmit={handleSubmitConfirmModal}>
-        <div className="mt-3 bg-white rounded-md border border-[#f1f1f1] shadow-md">
-          {/* Header */}
-          <h3 className="text-white text-[18px] px-4 py-2 bg-light-dark border-b-2 border-[#ff9800] rounded-t-md">
+        <div className="mt-3 bg-white rounded-md border shadow-md">
+          <h3 className="text-white px-4 py-2 bg-light-dark rounded-t-md">
             Add Grievance
           </h3>
 
-          {/* Body */}
-          <div className="py-6 px-5 text-[#444]">
-            <div className="grid grid-cols-12 gap-6">
+          <div className="py-6 px-5 grid grid-cols-12 gap-6">
             <div className="col-span-2">
-                <SelectField
-                  label="Grievance Category"
-                  required
-                  name="grvCtgId"
-                  value={grvCtgId}
-                  onChange={handleCategoryChange}
-                  options={categoryList.map((d) => ({
-                    value: d.grievanceCategoryId,
-                    label: d.grievanceCategoryName,
-                  }))}
-                    error={errors.grvCtgId}
-                  placeholder="Select"
-                />
-              </div>
-              <div className="col-span-2">
+              <SelectField
+                label="Grievance Category"
+                required
+                value={grvCtgId}
+              
+                onChange={handleCategoryChange}
+                options={categoryList.map((d) => ({
+                  value: d.grievanceCategoryId,
+                  label: d.grievanceCategoryName,
+                }))}
+                error={errors.grvCtgId}
+              />
+            </div>
+
+            <div className="col-span-2">
               <SelectField
                 label="Grievance Sub Category"
                 required
                 name="grvSubCtgId"
-                value={grvSubCtgId || ""}
+                
+                value={grvSubCtgId}
                 onChange={handleChangeInput}
                 options={subCategoryList.map((d) => ({
                   value: d.grvSubCtgId,
                   label: d.grvSubCtgName,
                 }))}
-                 error={errors.grvSubCtgId}
-                placeholder={grvCtgId ? "Select Sub Category" : "Select"}
-                disabled={!grvCtgId}  
+                disabled={!grvCtgId}
+                error={errors.grvSubCtgId}
               />
-              </div>
-              {/* <div className="col-span-3">
-                <InputField
-                  label="Grievance Category Code"
-                  required
-                  name="categoryCode"
-                  placeholder="TEST_CODE"
-                  maxLength={100}
-                />
-              </div> */}
+            </div>
 
-              {/* <div className="col-span-2">
-                <SelectField
-                  label="Grievance Mode"
-                  required
-                
-                  name="grvMode"
-                  placeholder="Select"
-                  error={errors.grvMode}
-                />
-              </div>
-
-              <div className="col-span-2">
-                <SelectField
-                  label="Forward To"
-                  required
-                  name="forwardTo"
-                  placeholder="Select"
-                  error={errors.forwardTo}
-                />
-              </div>
-
-              <div className="col-span-4">
+            <div className="col-span-2">
               <InputField
-                  label="Complainant Name"
-                  required={true}
-                  textarea={true}
-                  name="complainantName"
-                  maxLength={255}
-                   value={complainantName}
-                   error={errors.complainantName}
-                  onChange={handleChangeInput}
-                />
-              </div>
+                label="Contact No"
+                required
+                name="contactNo"
+                value={contactNo}
+                onChange={handleChangeInput}
+                error={errors.contactNo}
+               
+              />
+            </div>
 
-              <div className="col-span-3">
+            <div className="col-span-2">
               <InputField
-                  label="Complainant Address"
-                  required={true}
-                  textarea={true}
-                  name="compAdd"
-                  maxLength={255}
-                   value={compAdd}
-                   error={errors.compAdd}
-                  onChange={handleChangeInput}
-                />
-              </div> */}
+                label="Email"
+                type='email'
+                required
+                name="email"
+                value={email}
+                onChange={handleChangeInput}
+                error={errors.email}
+               
+              />
+            </div>
 
-              <div className="col-span-2">
+            {!isViewMode && (
+            <div className="col-span-3">
               <InputField
-                  label="Contact No"
-                  required={true}
-                  textarea={true}
-                  name="contactNo"
-                  maxLength={255}
-                   value={contactNo}
-                   error={errors.contactNo}
-                  onChange={handleChangeInput}
-                />
-              </div>
+                key={fileKey}
+                type="file"
+                required={true}
+                label="Identity Proof"
+                onChange={(e) =>
+                  setFormData((p) => ({
+                    ...p,
+                    idProofPath: e.target.files[0],
+                  }))
+                }
+                error={errors.idProofPath}
+              />
+            </div>)}
 
-              <div className="col-span-2">
+            {!isViewMode && (
+            <div className="col-span-3">
               <InputField
-                  label="Email "
-                  required={true}
-                  textarea={true}
-                  name="emailId"
-                  maxLength={255}
-                   value={emailId}
-                   error={errors.emailId}
-                  onChange={handleChangeInput}
-                />
-              </div>
+                key={fileKey + 1}
+                required={true}
+                type="file"
+                label="Grievance Related Document"
+                onChange={(e) =>
+                  setFormData((p) => ({
+                    ...p,
+                    grvRelatedDocPath: e.target.files[0],
+                  }))
+                }
+                error={errors.grvRelatedDocPath}
 
-              <div className="col-span-3">
-                <InputField
-                  type="file"
-                  label="Identity Proof"
-                  required
-                  error={errors.idenProf}
-                />
-              </div>
+              />
+            </div>)}
 
-
-              {/* Textarea */}
-              <div className="col-span-4">
-                <label className="block text-sm font-medium mb-1">
-               Remarks
+            <div className="col-span-4">
+                <label className="block text-sm font-small mb-1">
+                  Purpose <span className="text-red-500">*</span>
                 </label>
-                {/* required={true}
-                  textarea={true}
-                  name="purpose"
-                  maxLength={255}
-                   value={purpose}
-                   error={errors.purpose}
-                  onChange={handleChangeInput} */}
+
                 <textarea
                   className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400"
                   rows={3}
+                  name="purpose"
+                  value={purpose}
+                  onChange={handleChangeInput}
                   placeholder="Describe the grievance purpose..."
                 />
 
+                {errors?.purpose && (
+                  <p className="text-red-500 text-xs mt-1">{errors.purpose}</p>
+                )}
               </div>
 
-              {/* appending grievance related document  */}
-
-              <div className="col-span-3">
-                <label className="block text-sm font-medium mb-2">
-                  Grievance Related Document:
-                </label>
-
-                <div className="flex flex-col gap-2">
-                  {Array.isArray(documents) &&
-                    documents.map((doc, index) => (
-                      <div key={index} className="flex items-center gap-2">
-                        <InputField
-                          type="file"
-                          className="flex-1 border border-gray-300 rounded px-2 py-1 text-sm"
-                          onChange={(e) =>
-                            handleFileChange(index, e.target.files[0])
-                          }
-                        />
-
-                        {/* {index === 0 ? (
-                          <button
-                            type="button"
-                            onClick={addDocument}
-                            className="h-8 w-8 bg-green-600 text-white rounded"
-                          >
-                            +
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => removeDocument(index)}
-                            className="h-8 w-8 bg-red-600 text-white rounded"
-                          > 
-                            -
-                          </button>
-                        )} */}
-                      </div>
-                    ))}
-                </div>
-              </div>
-            </div>
+          
           </div>
 
-          {/* Footer */}
-          <div className="flex justify-center gap-3 bg-[#42001d0f] border-t px-4 py-3 rounded-b-md">
-            <ResetBackBtn />
-            <SubmitBtn type="submit" />
+          <div className="flex justify-center gap-3 border-t px-4 py-3">
+            <ResetBackBtn onClick={resetForm} />
+            {!isViewMode && <SubmitBtn type="submit" />}
           </div>
         </div>
       </form>

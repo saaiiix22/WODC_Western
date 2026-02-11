@@ -42,13 +42,18 @@ button{
 ::-webkit-scrollbar-thumb:hover {
   background-color: #ff9f2e;
 }
-
-
-#sidebar {
-  scrollbar-width: none; 
-  -ms-overflow-style: none; 
+/* Highlight upcoming Mondays */
+.highlight-monday {
+  background-color: #2563eb !important; /* blue */
+  color: #fff !important;
+  border-radius: 50%;
+  font-weight: 600;
 }
 
+/* Hover effect */
+.highlight-monday:hover {
+  background-color: #1e40af !important;
+}
 
 
 @keyframes scaleIn {
@@ -64,4 +69,13 @@ button{
 
 .animate-scaleIn {
   animation: scaleIn 0.25s ease-out;
+}
+
+#sidebar {
+  -ms-overflow-style: none; 
+  scrollbar-width: none;   
+}
+
+#sidebar::-webkit-scrollbar {
+  display: none;            
 }

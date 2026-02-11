@@ -1,0 +1,29 @@
+{
+    "districtId": "District Name",
+    "blockId": "Block Name",
+    "gpId": "Gram Panchanyat Name ",
+    "municipalityId": "Municipality Name",
+    "finYear": "Financial Year",
+    "projectName": "Project Name",
+    "projectCode": "Project Code",
+    "aaOrderNo": "AA Order Number",
+    "aaOrderDate": "AA Order Date ",
+    "areaType": "BSelect Area Type",
+    "proposedBy": "Proposed by",
+    "proposedByName": "Proposed by Name",
+    "sector": "Sector ",
+    "subSector": "Sub-Sector",
+    "judictionType": "",
+    "constituencyTypeCode": "",
+    "startDate": "",
+    "endDate": "",
+    "fundAllocDate": null,
+
+    "projectStatus": "",
+    "estimatedBudget": "",
+
+    "objectType": "",
+    "objectId": "",
+
+    "approvedAmount": ""
+}

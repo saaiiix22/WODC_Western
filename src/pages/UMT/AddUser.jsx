@@ -20,6 +20,7 @@ import { useTranslation } from "react-i18next";
 const AddUser = () => {
 
   const { t } = useTranslation("addUser")
+  
 
   const [formData, setFormData] = useState({
     userId: null,

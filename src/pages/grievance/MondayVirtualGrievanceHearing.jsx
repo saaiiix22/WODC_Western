@@ -7,12 +7,15 @@ import { getCategoryListService, getSlotListService, saveAndUpdateMondatyGrievan
 import { encryptPayload } from '../../crypto.js/encryption';
 import { toast } from 'react-toastify';
 import { cleanContactNoUtil, cleanEmailUtil } from '../../utils/validationUtils';
+import { useLocation } from 'react-router-dom';
 
 const MondayVirtualGrievanceHearing = () => {
+  const location = useLocation()
+  console.log(location?.state);
     const [formData, setFormData] = useState({
       grvHearigId: null,
       grvCtgId: "",
-      grvSlotDate: null,
+      grvSlotDateId: null,
       grievanceSlot: null, 
       subjectLine:"",
       petitionerName:"",
@@ -20,7 +23,6 @@ const MondayVirtualGrievanceHearing = () => {
       email:"",
       identityProofPath:"",
       grievanceDocumentPath:"",
-     
       address:"",
       grievanceInBrief:"",
   
@@ -28,7 +30,7 @@ const MondayVirtualGrievanceHearing = () => {
     const {
         grvHearigId,
         grvCtgId,
-        grvSlotDate,
+        grvSlotDateId,
         grievanceSlot   ,
         subjectLine,
         petitionerName,
@@ -69,157 +71,68 @@ const MondayVirtualGrievanceHearing = () => {
         }
       };
       
+      const isViewMode = !!grvHearigId;
 
-
-      const handleCategoryChange = (e) => {
+       const handleCategoryChange = (e) => {
+        if (isViewMode) return; 
         const selectedCategoryId = e.target.value;
       
         setFormData((prev) => ({
           ...prev,
           grvCtgId: selectedCategoryId,
-          grvSlotDate: "",
-          // grievanceSlot   : "",
+          grvSlotDateId: null,
+          grievanceSlot: null,
         }));
       
-        setErrors((prev) => ({
-          ...prev,
-          grvCtgId: "",
-          grvSlotDate: "",
-        }));
+        setSlotDateList([]);
+        setSlotTimeList([]);
       
-        if (!selectedCategoryId || allSlotConfigs.length === 0) {
-          setSlotDateList([]);
-          setSlotTimeList([]);
-          return;
-        }
+        if (!selectedCategoryId || allSlotConfigs.length === 0) return;
       
-        // Filter only for the dropdown, do NOT overwrite allSlotConfigs
         const filteredSlots = allSlotConfigs.filter(
           (slot) => String(slot.grvCtgId) === String(selectedCategoryId)
         );
       
-        const uniqueDates = [...new Set(filteredSlots.map((slot) => slot.grvConfigDate))];
+        const uniqueDateMap = new Map();     
+        filteredSlots.forEach((slot) => {
+          if (!uniqueDateMap.has(slot.grvConfigDate)) {
+            uniqueDateMap.set(slot.grvConfigDate, {
+              value: slot.virtualGrvSlotId, // representative ID
+              label: slot.grvConfigDate,
+            });
+          }
+        });
       
-        const uniqueDateObjects = uniqueDates.map((date) => ({
-          value: date,
-          label: date,
-        }));
-      
-        setSlotDateList(uniqueDateObjects);
-        setSlotTimeList([]);
+        setSlotDateList(Array.from(uniqueDateMap.values()));
       };
       
-      
-      // const handleCategoryChange = (e) => {
-      //   debugger
-      //   const selectedCategoryId = e.target.value;
-      
-      //   setFormData((prev) => ({
-      //     ...prev,
-      //     grvCtgId: selectedCategoryId,
-      //     grvConfigDate: "",
-      //   }));
-      
-      //   setErrors((prev) => ({
-      //     ...prev,
-      //     grvCtgId: "",
-      //     grvSlotDate: "",
-      //   }));
-      
-      //   if (!selectedCategoryId || allSlotConfigs.length === 0) {
-      //     setSlotDateList([]);
-      //     return;
-      //   }
-      
-      //   const filteredSlots = allSlotConfigs.filter(
-      //     (slot) =>
-      //       String(slot.grvCtgId) === String(selectedCategoryId)
-      //   );
-        
-      
-      //   console.log("Filtered Slots 👉", filteredSlots);
-      //   setSlotDateList(filteredSlots);
-      // };
-      
-    
 
       const handleSlotDateChange = (e) => {
-        const selectedDate = e.target.value;
-      
-        // Only filter the original full data
+        debugger
+        const selectedSlotDateId = e.target.value;
+
         const matchedSlots = allSlotConfigs.filter(
-          (slot) => String(slot.grvCtgId) === String(grvCtgId) && slot.grvConfigDate === selectedDate
+          (slot) =>
+            String(slot.grvCtgId) === String(grvCtgId) &&
+            String(slot.virtualGrvSlotId) === String(selectedSlotDateId)
         );
-      
-        const mergedTimes = matchedSlots.flatMap((slot) => slot.slotTimes || []);
-        const uniqueTimes = [...new Set(mergedTimes)];
-      
-        setSlotTimeList(uniqueTimes);
-      
-        setFormData((prev) => ({
+        
+        setSlotTimeList(
+          matchedSlots.flatMap(slot => slot.slotTimes || [])
+        );
+        
+        setFormData(prev => ({
           ...prev,
-          grvSlotDate: selectedDate,
-          // grievanceSlot   : "",
+          grvSlotDateId: selectedSlotDateId, 
+          grievanceSlot: null
         }));
+        
       };
       
-
-      // const handleSlotDateChange = (e) => {
-      //   const selectedDate = e.target.value;
-      
-      //   const selectedSlot = slotDateList.find(
-      //     (d) => d.grvConfigDate === selectedDate
-      //   );
-      
-      //   setSlotTimeList(selectedSlot?.slotTimes || []);
-      
-      //   setFormData((prev) => ({
-      //     ...prev,
-      //     grvSlotDate: selectedDate,
-      //     grievanceSlot   : ""
-      //   }));
-      // };
-      
-
-
       useEffect(() => {
         getGrievanceCategoryName();
         getAllSlotConfigs();
       }, []);
-      
-
-
-      // const handleCategoryChange = (e) => {
-      //   const selectedCategoryId = e.target.value;
-      
-      //   setFormData((prev) => ({
-      //     ...prev,
-      //     grvCtgId: selectedCategoryId,
-      //     grvSlotDate: ""
-      //   }));
-      
-      //   setErrors((prev) => ({
-      //     ...prev,
-      //     grvCtgId: "",
-      //     grvSlotDate: ""
-      //   }));
-      
-      //   if (!selectedCategoryId || allSlotConfigs.length === 0) {
-      //     setSlotDateList([]);
-      //     return;
-      //   }
-      
-      //   // ✅ CORRECT OBJECT PATH
-      //   const filteredSlots = allSlotConfigs.filter((slot) =>
-      //     String(
-      //       slot?.grievanceSubCategory?.grievanceCategory?.grievanceCategoryId
-      //     ) === String(selectedCategoryId) &&
-      //     slot?.isActive === true
-      //   );
-      
-      //   console.log("Filtered Slots 👉", filteredSlots);
-      //   setSlotDateList(filteredSlots);
-      // };
       
 // Append For Grievance Related Document ----------------
   const addDocument = () => {
@@ -227,7 +140,6 @@ const MondayVirtualGrievanceHearing = () => {
       Array.isArray(prev) ? [...prev, { file: null }] : [{ file: null }]
     );
   };
-
   const removeDocument = (index) => {
     setDocuments((prev) =>
       Array.isArray(prev)
@@ -236,34 +148,20 @@ const MondayVirtualGrievanceHearing = () => {
     );
   };
 
-
-
-
-  // useEffect(() => {
-  //   getGrievanceCategoryName();
-  // }, []);
-  
   const handleChangeInput = (e) => {
+    if (isViewMode) return; 
     const { name, value } = e.target;
     let updatedValue = value;
     
-   
     if (name === "contactNo") {
       updatedValue = cleanContactNoUtil(updatedValue);
     }
     if (name === "email") {
       updatedValue = cleanEmailUtil(updatedValue);
     }
-    // CLEAR ERROR WHEN USER TYPES
     setErrors((prev) => ({ ...prev, [name]: "" }));
     setFormData({ ...formData, [name]: updatedValue });
   };
-
-  // const handleChangeInput = (e) => {
-  //   const { name, value } = e.target;
-  //   setErrors((prev) => ({ ...prev, [name]: "" }));
-  //   setFormData({ ...formData, [name]: value });
-  // };
 
   const handleFileChange = (index, file) => {
     setDocuments((prev) => {
@@ -284,8 +182,8 @@ const MondayVirtualGrievanceHearing = () => {
       return; 
     }
   
-    if (!grvSlotDate) {
-      newErrors.grvSlotDate = "Grievance Slot Date is required";
+    if (!grvSlotDateId) {
+      newErrors.grvSlotDateId = "Grievance Slot Date is required";
       setErrors(newErrors);
       return;
     }
@@ -331,8 +229,7 @@ const MondayVirtualGrievanceHearing = () => {
         setErrors(newErrors);
         return;
       }
-
-     
+ 
     if (!address) {
       newErrors.address = " Address is required";
       setErrors(newErrors);
@@ -356,11 +253,10 @@ const MondayVirtualGrievanceHearing = () => {
       setOpenSubmit(false);
       setExpanded("panel2");
   
-      // 🔐 Encrypt ONLY JSON data (exclude files)
       const jsonPayload = {
         grvHearigId,
         grvCtgId,
-        grvSlotDate,
+        grvSlotDateId,
         grievanceSlot   ,
         subjectLine,
         petitionerName,
@@ -372,7 +268,6 @@ const MondayVirtualGrievanceHearing = () => {
   
       const cipherText = encryptPayload(jsonPayload);
   
-      // 📦 Multipart FormData
       const formDataObj = new FormData();
       formDataObj.append("cipherText", cipherText);
       formDataObj.append("identityProof", identityProofPath);
@@ -385,7 +280,7 @@ const MondayVirtualGrievanceHearing = () => {
         setFormData({
           grvHearigId: null,
           grvCtgId: "",
-          grvSlotDate: null,
+          grvSlotDateId: null,
           grievanceSlot   : "",
           subjectLine: "",
           petitionerName: "",
@@ -404,6 +299,52 @@ const MondayVirtualGrievanceHearing = () => {
       toast.error("Something went wrong");
     }
   };
+// During view Cases------------------
+  useEffect(() => {
+    if (location.state) {
+      setFormData({
+        ...location.state,
+        grvCtgId:location?.state.grvCategoryId,
+        grvSlotDateId: location?.state.grvSlotDateId,
+        grievanceSlot: location?.state.grievanceSlot,
+      });
+    }
+  }, [location.state]);
+  
+useEffect(() => {
+  if (!grvCtgId || allSlotConfigs.length === 0) return;
+
+  const filteredSlots = allSlotConfigs.filter(
+    (slot) => String(slot.grvCtgId) === String(grvCtgId)
+  );
+
+  const uniqueDateMap = new Map();
+
+  filteredSlots.forEach((slot) => {
+    if (!uniqueDateMap.has(slot.grvConfigDate)) {
+      uniqueDateMap.set(slot.grvConfigDate, {
+        value: slot.virtualGrvSlotId,
+        label: slot.grvConfigDate,
+      });
+    }
+  });
+
+  setSlotDateList(Array.from(uniqueDateMap.values()));
+}, [grvCtgId, allSlotConfigs]);
+useEffect(() => {
+  if (!grvCtgId || !grvSlotDateId || allSlotConfigs.length === 0) return;
+
+  const matchedSlots = allSlotConfigs.filter(
+    (slot) =>
+      String(slot.grvCtgId) === String(grvCtgId) &&
+      String(slot.virtualGrvSlotId) === String(grvSlotDateId)
+  );
+
+  setSlotTimeList(
+    matchedSlots.flatMap((slot) => slot.slotTimes || [])
+  );
+}, [grvCtgId, grvSlotDateId, allSlotConfigs]);
+//--------------
   
   return (
     <div>
@@ -411,113 +352,63 @@ const MondayVirtualGrievanceHearing = () => {
         <div className="mt-3 bg-white rounded-md border border-[#f1f1f1] shadow-md">
           {/* Header */}
           <h3 className="text-white text-[18px] px-4 py-2 bg-light-dark border-b-2 border-[#ff9800] rounded-t-md">
-             Virtual Grievance Hearing
-          </h3>
+          {isViewMode ? "View Monday Grievance Hearing List" : "Add Monday Virtual Grievance Hearing"}    
+                </h3>
 
           {/* Body */}
           <div className="py-6 px-5 text-[#444]">
             <div className="grid grid-cols-12 gap-6">
-            <div className="col-span-2">
+          
+              <div className="col-span-2">
                 <SelectField
                   label="Grievance Category"
                   required
                   name="grvCtgId"
-                  value={grvCtgId}
+                  value={grvCtgId}             
                   onChange={handleCategoryChange}
                   options={categoryList.map((d) => ({
                     value: d.grievanceCategoryId,
                     label: d.grievanceCategoryName,
                   }))}
-                    error={errors.grvCtgId}
+                  error={errors.grvCtgId}
                   placeholder="Select"
                 />
               </div>
-
-              <div className="col-span-2">
-              {/* <SelectField
-                label="Grievance Slot Date"
-                required
-                name="grvSlotDate"
-                value={grvSlotDate || ""}
-                onChange={handleSlotDateChange}
-                options={slotDateList.map((d) => ({
-                  value: d.grvConfigDate,
-                  label: d.grvConfigDate,
-                }))}
-                error={errors.grvSlotDate}
-                placeholder={grvCtgId ? "Select Slot Date" : "Select Category First"}
-                disabled={!grvCtgId}  
-              /> */}
-                <SelectField
-                  label="Grievance Slot Date"
+                 
+                <div className="col-span-2">
+                  <SelectField
+                    label="Grievance Slot Date"
+                    required
+                    name="grvSlotDateId"
+                    value={grvSlotDateId || ""}
+                    onChange={handleSlotDateChange}
+                    options={slotDateList}
+                    error={errors.grvSlotDateId}
+                    placeholder={grvCtgId ? "Select Slot Date" : "Select Category First"}
+                    disabled={isViewMode || !grvCtgId}
+                  />
+                </div>
+                             
+             <div className="col-span-2">
+               <SelectField
+                  label="Grievance Slot Time"
+                  name="grievanceSlot"
                   required
-                  name="grvSlotDate"
-                  value={grvSlotDate || ""}
-                  onChange={handleSlotDateChange}
-                  options={slotDateList} // now already unique
-                  error={errors.grvSlotDate}
-                  placeholder={grvCtgId ? "Select Slot Date" : "Select Category First"}
-                  disabled={!grvCtgId}  
-                />
-              </div>
-
-{/* 
-              <div className="col-span-2">
-              <SelectField
-                label="Grievance Slot Time"
-                required
-                name="grievanceSlot   "
-                value={grievanceSlot    || ""}
-                onChange={handleChangeInput}
-                options={slotDateList.map((d) => ({
-                  value: d.grievanceSlot   ,
-                  label: d.grievanceSlot   ,
-                }))}
-                error={errors.grievanceSlot   }
-                placeholder={grvSlotDate ? "Select Slot Time" : "Select Date"}
-                disabled={!grvSlotDate}  
-              />
-
-              </div> */}
-
-
-
-              <div className="col-span-2">
-              <SelectField
-                label="Grievance Slot Time"
-                name="grievanceSlot"
-                required
-                value={grievanceSlot || ""}
-                onChange={handleChangeInput}
-                options={slotTimeList.map((slot) => ({
+                  value={grievanceSlot || ""}
+                  onChange={handleChangeInput}
+                  options={slotTimeList.map((slot) => ({
                   label: `${slot.fromTime} - ${slot.toTime}`,
                   value: slot.virtualGrvSlotDtlsId,
                 }))}
-                placeholder={grvSlotDate ? "Select Slot Time" : "Select Date First"}
-                disabled={!grvSlotDate}
-              />
-
-
-              </div>
-
-              <div className="col-span-2">
-              <InputField
-                  label="Subject Line"
-                  required={true}
-                  textarea={true}
-                  name="subjectLine"
-                  maxLength={255}
-                   value={subjectLine}
-                   error={errors.subjectLine}
-                  onChange={handleChangeInput}
+                placeholder={grvSlotDateId ? "Select Slot Time" : "Select Date First"}
+                 disabled={isViewMode ||!grvSlotDateId}
                 />
-              </div>
-
-              <div className="col-span-2">
+            </div>
+                
+            <div className="col-span-2">
               <InputField
                   label="Petitioner Name"
                   required={true}
-                  textarea={true}
                   name="petitionerName"
                   maxLength={255}
                    value={petitionerName}
@@ -526,12 +417,22 @@ const MondayVirtualGrievanceHearing = () => {
                 />
               </div>
 
+              <div className="col-span-2">
+              <InputField
+                  label="Subject Line"
+                  required={true}
+                  name="subjectLine"
+                  maxLength={255}
+                   value={subjectLine}
+                   error={errors.subjectLine}
+                  onChange={handleChangeInput}
+                />
+              </div>
+
               <div className="col-span-2" >
               <InputField 
-             
                   label="Contact No"
                   required={true}
-                  textarea={true}
                   name="contactNo"
                   maxLength={255}
                    value={contactNo}
@@ -542,10 +443,9 @@ const MondayVirtualGrievanceHearing = () => {
 
               <div className="col-span-2">
               <InputField
-              
                   label="Email Id "
                   required={true}
-                  textarea={true}
+                  type='email'
                   name="email"
                   maxLength={255}
                    value={email}
@@ -554,36 +454,37 @@ const MondayVirtualGrievanceHearing = () => {
                 />
               </div>
 
-             <div className="col-span-3">
+             {!isViewMode && (
+              <div className="col-span-3">
                 <InputField
-                    type="file"
-                    required={true}
-                    label="Identity Proof"
-                    name="identityProofPath"
-                    error={errors.identityProofPath}
-                    onChange={(e) => {
+                  type="file"
+                  required
+                  label="Identity Proof"
+                  name="identityProofPath"
+                  error={errors.identityProofPath}
+                  onChange={(e) => {
                     setFormData({ ...formData, identityProofPath: e.target.files[0] });
                     setErrors((prev) => ({ ...prev, identityProofPath: "" }));
-                    }}
+                  }}
                 />
-                </div>
+              </div>
+            )}
 
-                <div className="col-span-3">
+            {!isViewMode && (
+              <div className="col-span-3">
                 <InputField
-                    type="file"
-                    required={true}
-                    label="Grievance Related Document"
-                    name="grievanceDocumentPath"
-                    error={errors.grievanceDocumentPath}
-                    onChange={(e) => {
+                  type="file"
+                  required
+                  label="Grievance Related Document"
+                  name="grievanceDocumentPath"
+                  error={errors.grievanceDocumentPath}
+                  onChange={(e) => {
                     setFormData({ ...formData, grievanceDocumentPath: e.target.files[0] });
                     setErrors((prev) => ({ ...prev, grievanceDocumentPath: "" }));
-                    }}
+                  }}
                 />
-                </div>
-
-     
-
+              </div>
+            )}
               <div className="col-span-2">
               <InputField
                   label=" Address"
@@ -610,35 +511,13 @@ const MondayVirtualGrievanceHearing = () => {
                 />
               </div>
 
-
-              {/* Textarea */}
-              {/* <div className="col-span-4">
-                <label className="block text-sm font-medium mb-1">
-                  Purpose
-                </label>
-                { required={true}
-                  textarea={true}
-                  name="purpose"
-                  maxLength={255}
-                   value={purpose}
-                   error={errors.purpose}
-                  onChange={handleChangeInput} }
-                <textarea
-                  className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400"
-                  rows={3}
-                  placeholder="Describe the grievance purpose..."
-                />
-              </div> */}
-
-              {/* appending grievance related document  */}
-
             </div>
           </div>
 
           {/* Footer */}
           <div className="flex justify-center gap-3 bg-[#42001d0f] border-t px-4 py-3 rounded-b-md">
             <ResetBackBtn />
-            <SubmitBtn type="submit" />
+            {!isViewMode && <SubmitBtn type="submit" />}
           </div>
         </div>
       </form>

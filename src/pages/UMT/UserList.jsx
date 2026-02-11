@@ -127,8 +127,7 @@ const UserList = () => {
         setCount(1)
     }, [formData.size])
 
-
-
+ 
     return (
         <div className="mt-3 p-2 bg-white rounded-sm border border-[#f1f1f1] shadow-[0_4px_12px_rgba(0,0,0,0.08)]">
 
@@ -169,7 +168,13 @@ const UserList = () => {
                                         <td className="border-r border-slate-200 py-1 px-3 text-sm">{i.userId}</td>
                                         <td className="border-r border-slate-200 py-1 px-3 text-sm">{i.mobile}</td>
                                         <td className="border-r border-slate-200 py-1 px-3 text-sm">{i.email}</td>
-                                        <td className="border-r border-slate-200 py-1 px-3 text-sm"></td>
+                                        <td className="border-r border-slate-200 py-1 px-3 text-sm">
+                                        {i.createdOn
+                                            ? new Date(Number(i.createdOn)).toLocaleDateString("en-GB")
+                                            : "N/A"}
+                                        </td>
+
+                                        {/* <td className="border-r border-slate-200 py-1 px-3 text-sm"></td> */}
 
                                         <td className="border-r border-slate-200 py-1 px-3 text-sm flex items-center gap-3">
                                             <button className="h-8 w-8 bg-blue-500/25 text-blue-500 rounded-sm flex justify-center items-center" onClick={() => ViewUser(i.userId)}>

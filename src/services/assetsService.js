@@ -11,7 +11,7 @@ export const saveUpdateAssetsCategoryService=(data)=>Api.post(endpoints.assetsCa
 export const getAssetsCategoryListService=()=>Api.get(endpoints.assetsCategoryMaster.getAssetsCategoryList)
 export const getAssetsCategoryByIdService=(cipherText)=>Api.get(endpoints.assetsCategoryMaster.getAssetsCategoryById,{params:{cipherText}}) 
 
-export const saveUpdateAssetsService=(data)=>Api.post(endpoints.assetsMaster.saveUpdateAssets,data)
-export const getAssetsListService=(filters={})=>Api.get(endpoints.assetsMaster.getAssetsList,{obj:filters})
-export const getAssetsByIdService=(assetsId)=>Api.get(endpoints.assetsMaster.getAssetsById,{params:{assetsId}})
+export const saveUpdateAssetsService=(data)=>Api.post(endpoints.assetsMaster.saveUpdateAssetsMaster,data)
+export const getAssetsListService=(filters={})=>Api.get(endpoints.assetsMaster.getAssetsMasterList,{obj:filters})
+export const getAssetsByIdService=(assetsId)=>Api.get(endpoints.assetsMaster.getAssetsMasterById,{params:{assetsId}})
 export const getAssetsLookupValuesService=(lookupCode)=>Api.get(endpoints.assetsMaster.getAssetsLookupValues,{params:{lookupCode}})

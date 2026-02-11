@@ -13,6 +13,8 @@ import { GoPencil } from "react-icons/go";
 import { MdCheck, MdClose, MdLockOutline } from "react-icons/md";
 import { MdLockOpen } from "react-icons/md";
 import SelectField from "../../components/common/SelectField";
+import { DataGrid } from "@mui/x-data-grid";
+
 import {
   
   editSubCategoryService,
@@ -117,7 +119,11 @@ const AddSubCategory = () => {
       console.error(error);
     }
   };
-
+  const [paginationModel, setPaginationModel] = useState({
+    page: 0,
+    pageSize: 5,
+  });
+  
   const handleSubmit = async (e) => {
     const sendData = {
       grvSubCtgId,
@@ -163,66 +169,145 @@ const AddSubCategory = () => {
       }
     }
   };
-
-  const AchievementChartList = [
+  const dataGridColumns = [
     {
-      name: "Sl No.",
-      selector: (row, index) => index + 1,
-      width: "80px",
+      field: "slno",
+      headerName: "Sl No",
+      width: 80,
+      sortable: false,
+      renderCell: (params) =>
+        paginationModel.page * paginationModel.pageSize + 
+        params.api.getRowIndexRelativeToVisibleRows(params.id) + 1,
     },
-
+    
     {
-      name: "Category Type",
-      selector: (row) => {
+      field: "category",
+      headerName: "Category Type",
+      flex: 1,
+      valueGetter: (value, row) => {
+        if (!row || !categoryList?.length) return "N/A";
+    
         const des = categoryList.find(
           (d) => d.grievanceCategoryId === row.grvCtgId
         );
+    
         return des ? des.grievanceCategoryName : "N/A";
       },
     },
-
+    
     {
-      name: "Sub Category Type",
-      selector: (row) => row.grvSubCtgName || "N/A",
+      field: "grvSubCtgName",
+      headerName: "Sub Category Type",
+      flex: 1,
     },
     {
-      name: "Sub Category Code",
-      selector: (row) => row.grvSubCtgCode || "N/A",
+      field: "grvSubCtgCode",
+      headerName: "Sub Category Code",
+      flex: 1,
     },
-
     {
-      name: "Role Type",
-      selector: (row) => {
-        if (!Array.isArray(row.routeType)) return "N/A";
-
-        const names = roleList
-          .filter((r) => row.routeType.includes(String(r.roleCode))) 
+      field: "routeType",
+      headerName: "Role Type",
+      flex: 1,
+      valueGetter: (value, row) => {
+        if (!Array.isArray(row?.routeType) || !roleList?.length) return "N/A";
+    
+        return roleList
+          .filter((r) => row.routeType.includes(String(r.roleCode)))
           .map((r) => r.roleName)
           .join(", ");
-
-        return names || "N/A";
       },
     },
-
+    
     {
-      name: "Active",
-      selector: (row) => (row.isActive ? "Active" : "Inactive"),
+      field: "isActive",
+      headerName: "Status",
+      width: 120,
+      renderCell: (params) => (
+        <span
+          className={`px-2 py-1 rounded text-xs font-medium ${
+            params.value ? "" : "bg-red-100 text-red-700"
+          }`}
+        >
+          {params.value ? "Active" : "Inactive"}
+        </span>
+      ),
     },
-
     {
-      name: "Action",
-      selector: (row) => (
-        <div className="flex gap-2">
-          <button
-            className="flex items-center justify-center h-8 w-8 bg-blue-500/25 text-blue-500 rounded-full"
-            onClick={() => editSubCategory(row?.grvSubCtgId)}
-          >
-            <FiEdit className="w-4 h-4" />
-          </button>
-        </div>
+      field: "action",
+      headerName: "Action",
+      width: 120,
+      sortable: false,
+      renderCell: (params) => (
+        <button
+          className="flex items-center justify-center h-8 w-8 bg-blue-500/25 text-blue-500 rounded-full"
+          onClick={() => editSubCategory(params.row.grvSubCtgId)}
+        >
+          <FiEdit className="w-4 h-4" />
+        </button>
       ),
     },
   ];
+  
+  // const AchievementChartList = [
+  //   {
+  //     name: "Sl No.",
+  //     selector: (row, index) => index + 1,
+  //     width: "80px",
+  //   },
+
+  //   {
+  //     name: "Category Type",
+  //     selector: (row) => {
+  //       const des = categoryList.find(
+  //         (d) => d.grievanceCategoryId === row.grvCtgId
+  //       );
+  //       return des ? des.grievanceCategoryName : "N/A";
+  //     },
+  //   },
+
+  //   {
+  //     name: "Sub Category Type",
+  //     selector: (row) => row.grvSubCtgName || "N/A",
+  //   },
+  //   {
+  //     name: "Sub Category Code",
+  //     selector: (row) => row.grvSubCtgCode || "N/A",
+  //   },
+
+  //   {
+  //     name: "Role Type",
+  //     selector: (row) => {
+  //       if (!Array.isArray(row.routeType)) return "N/A";
+
+  //       const names = roleList
+  //         .filter((r) => row.routeType.includes(String(r.roleCode))) 
+  //         .map((r) => r.roleName)
+  //         .join(", ");
+
+  //       return names || "N/A";
+  //     },
+  //   },
+
+  //   {
+  //     name: "Active",
+  //     selector: (row) => (row.isActive ? "Active" : "Inactive"),
+  //   },
+
+  //   {
+  //     name: "Action",
+  //     selector: (row) => (
+  //       <div className="flex gap-2">
+  //         <button
+  //           className="flex items-center justify-center h-8 w-8 bg-blue-500/25 text-blue-500 rounded-full"
+  //           onClick={() => editSubCategory(row?.grvSubCtgId)}
+  //         >
+  //           <FiEdit className="w-4 h-4" />
+  //         </button>
+  //       </div>
+  //     ),
+  //   },
+  // ];
 
   const isActiveOptions = [
     { value: true, label: "Active" },
@@ -365,7 +450,32 @@ const AddSubCategory = () => {
 
         {/* Body */}
         <div className="min-h-[120px] py-5 px-4 text-[#444]">
-          <ReusableDataTable data={tableData} columns={AchievementChartList} />
+        <div style={{ height: 420, width: "100%" }}>
+        <DataGrid
+  rows={tableData || []}
+  columns={dataGridColumns}
+  getRowId={(row) => row.grvSubCtgId}
+
+  pagination
+  paginationModel={paginationModel}
+  onPaginationModelChange={setPaginationModel}
+  pageSizeOptions={[5, 10, 20]}
+
+  disableRowSelectionOnClick
+  sx={{
+    "& .MuiDataGrid-columnHeaders": {
+      backgroundColor: "#fff2e7",
+      fontWeight: "bold",
+    },
+    "& .MuiDataGrid-row:hover": {
+      backgroundColor: "#f9fafb",
+    },
+  }}
+/>
+
+</div>
+
+          {/* <ReusableDataTable data={tableData} columns={AchievementChartList} /> */}
         </div>
 
         <ReusableDialog

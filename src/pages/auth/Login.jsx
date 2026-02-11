@@ -1,56 +1,96 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { encryptPayload } from "../../crypto.js/encryption";
 import { loginUser } from "../../redux/slices/authThunks";
 import { fetchUserDetails } from "../../redux/slices/menuSlice";
 import { useNavigate } from "react-router-dom";
 import { images } from "../../assets/images";
+import CryptoJS from "crypto-js";
+import { getCaptchaService } from "../../services/authService";
+import { toast } from "react-toastify";
 
 const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const generateCaptcha = () => {
-    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-    return Array.from({ length: 5 }, () =>
-      chars[Math.floor(Math.random() * chars.length)]
-    ).join("");
-  };
+  const [loading, setLoading] = useState(false);
 
-  const [captcha, setCaptcha] = useState(generateCaptcha());
   const [formData, setFormData] = useState({
     userName: "",
     password: "",
     captchaText: "",
   });
 
-  const refreshCaptcha = () => {
-    setCaptcha(generateCaptcha());
-    setFormData({ ...formData, captchaText: "" });
-  };
+  const [originalCreds, setOriginalCreds] = useState({
+    userName: "",
+    password: "",
+  });
+  const [captchaItem, setCaptchaItem] = useState({})
+  const getCaptcha = async () => {
+    try {
+      const res = await getCaptchaService(6)
+      console.log(res);
+      setCaptchaItem(res?.data)
+
+    } catch (error) {
+      // console.log(error);
+      throw error
+    }
+  }
 
   const handleInp = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    setLoading(true);
+
+    setOriginalCreds({
+      userName: formData.userName,
+      password: formData.password,
+    });
+
+    const hashedUsername = CryptoJS.SHA256(formData.userName).toString();
+    const hashedPassword = CryptoJS.SHA256(formData.password).toString();
+
+    setFormData((prev) => ({
+      ...prev,
+      userName: hashedUsername,
+      password: hashedPassword,
+    }));
+
     try {
-      
-      const payload = encryptPayload(formData);
+      const payload = encryptPayload({
+        userName: originalCreds.userName || formData.userName,
+        password: originalCreds.password || formData.password,
+        captcha: formData.captchaText,
+        captchaToken:captchaItem?.captchaToken
+      });
+
       const res = await dispatch(loginUser(payload)).unwrap();
-      console.log(res)
+
       if (res?.outcome) {
         localStorage.setItem("token", res.data);
         await dispatch(fetchUserDetails());
-        
         navigate("/dashboard");
       }
     } catch (err) {
       console.error(err);
+    } finally {
+      setFormData((prev) => ({
+        ...prev,
+        userName: originalCreds.userName,
+        password: originalCreds.password,
+      }));
+      setLoading(false);
     }
   };
+  useEffect(() => {
+    getCaptcha()
+  }, [])
 
   return (
     <div
@@ -88,9 +128,9 @@ const Login = () => {
               WODC Odisha
             </h1>
             <p className="mt-3 text-sm text-gray-300 text-center leading-relaxed">
-              Western Odisha Development Council 
+              Western Odisha Development Council
               <br />
-              Government of Odisha 
+              Government of Odisha
             </p>
 
             <div className="mt-12 text-xs text-gray-400 tracking-wide">
@@ -120,6 +160,7 @@ const Login = () => {
             name="userName"
             value={formData.userName}
             onChange={handleInp}
+            disabled={loading}
             placeholder="Enter username"
             className="h-11 px-3 rounded-md border border-gray-300 text-sm mb-5
             focus:ring-2 focus:ring-blue-600 focus:outline-none"
@@ -134,6 +175,7 @@ const Login = () => {
             name="password"
             value={formData.password}
             onChange={handleInp}
+            disabled={loading}
             placeholder="Enter password"
             className="h-11 px-3 rounded-md border border-gray-300 text-sm mb-5
             focus:ring-2 focus:ring-blue-600 focus:outline-none"
@@ -155,13 +197,14 @@ const Login = () => {
             />
 
             <div
-              onClick={refreshCaptcha}
+              onClick={getCaptcha}
               className="w-1/2 h-11 flex items-center justify-center
               rounded-md bg-teal-50 border border-teal-600
-              text-teal-700 font-bold tracking-widest cursor-pointer select-none"
+              text-teal-700 font-bold tracking-widest cursor-pointer select-none px-4 py-1"
               title="Refresh Captcha"
             >
-              {captcha}
+              {/* {captcha} */}
+              <img src={captchaItem?.captchaImage} className="h-full w-full" alt="" />
             </div>
           </div>
 

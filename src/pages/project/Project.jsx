@@ -40,6 +40,7 @@ import {
   saveProjectService,
   totalBudgetService,
 } from "../../services/projectService";
+import CommonFormModal from "../../components/common/CommonFormModal";
 import { getMunicipalityViaDistrictsService } from "../../services/wardService";
 import { getGIAtypeList } from "../../services/giaService";
 import { useDispatch, useSelector } from "react-redux";
@@ -105,6 +106,7 @@ const Project = () => {
 
     // fundReleaseTo: "DISTRICT",
     approvedAmount: "",
+    remarks: ""
   });
 
   const {
@@ -140,6 +142,7 @@ const Project = () => {
     fundReleaseTo,
     estimatedBudget,
     approvedAmount,
+    remarks,
   } = formData;
 
   // ALL SELECT'S OPTIONS
@@ -166,23 +169,30 @@ const Project = () => {
   // --------------------------------------------------------------------------
   const [forwardedId, setForwardedId] = useState(null)
   const [button, setButtons] = useState([])
-  const [stageForwardedRuleStatus,setStageForwardedRuleStatus] = useState('')
+  const [stageForwardedRuleStatus, setStageForwardedRuleStatus] = useState('')
 
   const location = useLocation()
 
   const getWorkFlow = async () => {
     try {
-      const payload = encryptPayload({ appModuleUrl: location.pathname, forwardedId: (forwardedId ? Number(forwardedId) : null) })
+      const payload = encryptPayload({
+        appModuleUrl: location.pathname,
+        forwardedId: (forwardedId ? Number(forwardedId) : null)
+      })
       const res = await forwardListByMenuService(payload)
-      // console.log(res);
+
       if (res?.status === 200 && res?.data.outcome) {
-        setButtons(res?.data.data)
-      }
-      else {
+        const filteredButtons = res?.data.data.filter(button =>
+          button.actionType.actionCode !== stageForwardedRuleStatus
+        )
+
+        setButtons(filteredButtons)
+      } else {
         setButtons([])
       }
     } catch (error) {
-      console.log(error);
+      console.log(error)
+      setButtons([])
     }
   }
 
@@ -815,10 +825,28 @@ const Project = () => {
       setOpenSubmit(false);
     }
   };
+  const [pendingAction, setPendingAction] = useState(null);
+
+  const handleRemarksSubmit = () => {
+    if (!remarks || !remarks.trim()) {
+      toast.error("Remarks are mandatory");
+      return;
+    }
+
+    setForwardedId(pendingAction?.forwardedId);
+    const id = pendingAction?.forwardedId;
+
+    setRejectionModal(false);
+    setPendingAction(null);
+
+    handleSubmit(id);
+  };
+
   const navigate = useNavigate();
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (passedForwardedId = null) => {
+
     const sendData = {
-      forwardedId,
+      forwardedId: passedForwardedId ?? forwardedId,
       projectId,
       finYear,
       projectName,
@@ -844,6 +872,7 @@ const Project = () => {
       approvedAmount: totalAmount,
 
       fundReleaseInfo: fundReleaseRows,
+      remarks,
     };
     // console.log(proposedBy);
 
@@ -891,6 +920,7 @@ const Project = () => {
 
           // fundReleaseTo: "DISTRICT",
           approvedAmount: "",
+          remarks: ""
         });
         setFundReleaseRows([
           {
@@ -922,7 +952,19 @@ const Project = () => {
     const [dd, mm, yyyy] = d.split("/");
     return `${yyyy}-${mm}-${dd}`;
   };
-  // console.log(forwardedId);
+  console.log(stageForwardedRuleStatus);
+  const [showRejectionModal, setRejectionModal] = useState(false)
+  const revertRejectModal = (btn) => {
+    console.log(showRejectionModal)
+
+    if (
+      btn?.actionType.actionCode == "REVERTED" ||
+      btn?.actionType.actionCode == "REJECTED"
+    ) {
+      setRejectionModal(true)
+    }
+  }
+
 
   const mapProjectResponseToForm = (data) => {
     setForwardedId(data?.forwardedId)
@@ -972,8 +1014,12 @@ const Project = () => {
     };
   };
 
-  // console.log(forwardedId);
+  const isFieldEditable = () => {
+    if (!stageForwardedRuleStatus) return true;
 
+    return stageForwardedRuleStatus === "DRAFT" ||
+      stageForwardedRuleStatus === "REVERTED";
+  };
 
   const mapFundReleaseRows = (rows) => {
     return rows.map((row) => ({
@@ -1209,7 +1255,7 @@ const Project = () => {
                     }))}
                     error={errors.finYear}
                     placeholder="Select "
-                    readOnly={stageForwardedRuleStatus != "DRAFT" ? false:true}
+                    disabled={!isFieldEditable()}
                   />
                 </div>
                 <div className="col-span-2">
@@ -1222,7 +1268,7 @@ const Project = () => {
                     value={projectName}
                     maxLength={50}
                     minLength={4}
-                    readOnly={stageForwardedRuleStatus != "DRAFT" ? false:true}
+                    readOnly={!isFieldEditable()}
 
                     error={errors.projectName}
                   />
@@ -1249,6 +1295,7 @@ const Project = () => {
                     placeholder="Enter AA order number"
                     value={aaOrderNo}
                     onChange={handleChangeInput}
+                    readOnly={!isFieldEditable()}
                     error={errors.aaOrderNo}
                   />
                 </div>
@@ -1261,6 +1308,7 @@ const Project = () => {
                     placeholder="Enter AA order date"
                     value={aaOrderDate}
                     onChange={handleChangeInput}
+                    readOnly={!isFieldEditable()}
                     error={errors.aaOrderDate}
                   />
                 </div>
@@ -1276,6 +1324,8 @@ const Project = () => {
                       label: d.districtName,
                     }))}
                     error={errors.districtId}
+                    disabled={!isFieldEditable()}
+
                     placeholder="Select"
                   />
                 </div>
@@ -1295,6 +1345,8 @@ const Project = () => {
                         checked={formData.areaType === "BLOCK"}
                         id="radio1"
                         onChange={handleChangeInput}
+                        disabled={!isFieldEditable()}
+
                       />
                       <label
                         htmlFor="radio1"
@@ -1316,6 +1368,8 @@ const Project = () => {
                         checked={formData.areaType === "MUNICIPALITY"}
                         id="radio2"
                         onChange={handleChangeInput}
+                        disabled={!isFieldEditable()}
+
                       />
                       <label
                         htmlFor="radio2"
@@ -1339,7 +1393,8 @@ const Project = () => {
                           value: d.blockId,
                           label: d.blockNameEN,
                         }))}
-                        disabled={districtId ? false : true}
+                        // disabled={districtId ? false : true}
+                        disabled={!districtId || !isFieldEditable()}
                         //   error={errors.districtId}
                         placeholder="Select "
                       />
@@ -1355,7 +1410,8 @@ const Project = () => {
                           value: d.gpId,
                           label: d.gpNameEN,
                         }))}
-                        disabled={blockId ? false : true}
+                        disabled={!blockId || !isFieldEditable()}
+
                         //   error={errors.districtId}
                         placeholder="Select "
                       />
@@ -1371,7 +1427,8 @@ const Project = () => {
                           value: d.villageId,
                           label: d.villageNameEn,
                         }))}
-                        disabled={gpId ? false : true}
+                        disabled={!gpId || !isFieldEditable()}
+
                         error={errors.objectId}
                         placeholder="Select"
                       />
@@ -1391,7 +1448,8 @@ const Project = () => {
                           value: d.municipalityId,
                           label: d.municipalityName,
                         }))}
-                        disabled={districtId ? false : true}
+                        disabled={!districtId || !isFieldEditable()}
+
                         //   error={errors.districtId}
                         placeholder="Select"
                       />
@@ -1407,7 +1465,7 @@ const Project = () => {
                           value: d.wardId,
                           label: d.wardName,
                         }))}
-                        disabled={municipalityId ? false : true}
+                        disabled={!municipalityId || !isFieldEditable()}
                         error={errors.objectId}
                         placeholder="Select "
                       />
@@ -1428,6 +1486,7 @@ const Project = () => {
                       label: d.sectorName,
                     }))}
                     error={errors.sectorId}
+                    disabled={!isFieldEditable()}
                     placeholder="Select "
                   />
                 </div>
@@ -1436,12 +1495,13 @@ const Project = () => {
                     label="Sub-Sector"
                     name="subSector"
                     value={subSector}
-                    disabled={sectorId ? false : true}
                     onChange={handleChangeInput}
                     options={subSectorOptions?.map((d) => ({
                       value: d.subSectorId,
                       label: d.subSectorName,
                     }))}
+                    disabled={!sectorId || !isFieldEditable()}
+
                     //   error={errors.districtId}
                     placeholder="Select "
                   />
@@ -1472,6 +1532,7 @@ const Project = () => {
                     value={startDate}
                     onChange={handleChangeInput}
                     error={errors.startDate}
+                    disabled={!isFieldEditable()}
                   />
                 </div>
                 <div className="col-span-2">
@@ -1484,6 +1545,7 @@ const Project = () => {
                     min={startDate || ""}
                     onChange={handleChangeInput}
                     error={errors.endDate}
+                    disabled={!isFieldEditable()}
                   />
                 </div>
                 <div className="col-span-2">
@@ -1494,6 +1556,7 @@ const Project = () => {
                     value={actualStartDate}
                     onChange={handleChangeInput}
                     error={errors.actualStartDate}
+                    disabled={!isFieldEditable()}
                   />
                 </div>
                 <div className="col-span-2">
@@ -1505,6 +1568,7 @@ const Project = () => {
                     min={actualStartDate || ""}
                     onChange={handleChangeInput}
                     error={errors.actualEndDate}
+                    disabled={!isFieldEditable()}
                   />
                 </div>
                 <div className="col-span-2">
@@ -1518,6 +1582,7 @@ const Project = () => {
                     value={formatWithCommas(estimatedBudget)}
                     onChange={handleChangeInput}
                     error={errors.estimatedBudget}
+                    disabled={!isFieldEditable()}
                   />
                 </div>
 
@@ -1542,6 +1607,7 @@ const Project = () => {
                     }))}
                     // error={errors.proposeByDist}
                     placeholder="Select "
+                    disabled={!isFieldEditable()}
                   />
                 </div>
                 <div className="col-span-2">
@@ -1555,9 +1621,10 @@ const Project = () => {
                       value: d.blockId,
                       label: d.blockNameEN,
                     }))}
-                    disabled={proposeByDist ? false : true}
                     //   error={errors.districtId}
                     placeholder="Select "
+                    disabled={!proposeByDist || !isFieldEditable()}
+
                   />
                 </div>
 
@@ -1567,7 +1634,7 @@ const Project = () => {
                     // required={true}
                     name="proposedBy"
                     value={proposedBy}
-                    disabled={proposeByBlock ? false : true}
+                    disabled={!proposeByBlock || !isFieldEditable()}
                     onChange={handleChangeInput}
                     options={juridictionOpts?.map((d) => ({
                       value: d.judictionConfigMapId,
@@ -1586,6 +1653,7 @@ const Project = () => {
                     value={proposedByName}
                     onChange={handleChangeInput}
                     // error={errors.proposedByName}
+                    disabled={!isFieldEditable()}
                     maxLength={50}
                   />
                 </div>
@@ -1670,6 +1738,8 @@ const Project = () => {
                           value: d.finyearId,
                           label: d.finYear,
                         }))}
+                        disabled={!isFieldEditable()}
+
                         //   error={errors.districtId}
                         placeholder="All "
                       />
@@ -1686,6 +1756,7 @@ const Project = () => {
                           value: d.giaTypeId,
                           label: d.giaTypeName,
                         }))}
+                        disabled={!isFieldEditable()}
                         //   error={errors.districtId}
                         placeholder="Select "
                       />
@@ -1703,6 +1774,7 @@ const Project = () => {
                             label: d.bankName,
                           })) || []
                         }
+                        disabled={!isFieldEditable()}
                         placeholder="Select"
                       />
                     </div>
@@ -1719,6 +1791,7 @@ const Project = () => {
                             label: `${i.branch} | ${i.accNo} | ${i.ifsc}`,
                           })) || []
                         }
+                        disabled={!isFieldEditable()}
                       />
                     </div>
                     <div className="col-span-2">
@@ -1732,6 +1805,7 @@ const Project = () => {
                           value: d.lookupValueCode,
                           label: d.lookupValueEn,
                         }))}
+                        disabled={!isFieldEditable()}
                         //   error={errors.districtId}
                         placeholder="Select "
                       />
@@ -1746,28 +1820,10 @@ const Project = () => {
                         name="releaseAmount"
                         value={formatWithCommas(i.releaseAmount)}
                         // disabled={i.maxamount ? false : true}
+                        disabled={!isFieldEditable()}
                         onChange={(e) => handleRowChange(e, index)}
-                        error={i.releaseAmount > i.maxamount ? errors.releaseAmount = `Release Amount cant be more than ₹ ${i.maxamount.toLocaleString("en-IN")}`:''}
+                        error={i.releaseAmount > i.maxamount ? errors.releaseAmount = `Release Amount cant be more than ₹ ${i.maxamount.toLocaleString("en-IN")}` : ''}
                       />
-                      {/* <div className="flex justify-between">
-                        {i.maxamount !== undefined && i.maxamount !== null && (
-                          <div className="text-[11px] text-blue-700">
-                            Total :{" "}
-                            <span className="font-semibold">
-                              ₹ {Number(i.maxamount).toLocaleString("en-IN")}
-                            </span>
-                          </div>
-                        )}
-                        {i.maxamount !== undefined && (
-                          <div className="text-[11px] text-blue-700">
-                            Remaining :{" "}
-                            <span className="font-semibold">
-                              ₹ {Number(i.remainingAmount || 0).toLocaleString("en-IN")}
-
-                            </span>
-                          </div>
-                        )}
-                      </div> */}
                     </div>
                     <div className="col-span-4">
                       <InputField
@@ -1776,7 +1832,7 @@ const Project = () => {
                         name="remarks"
                         maxLength={255}
                         value={i.remarks}
-                        placeholder="Write Remarks..."
+                        disabled={!isFieldEditable()}
                         onChange={(e) => handleRowChange(e, index)}
                       />
                     </div>
@@ -1803,10 +1859,21 @@ const Project = () => {
                   button?.map((i, index) => {
                     return (
                       <button
-                        type={'submit'}
+                        type={'button'}
                         key={index}
                         className={i?.actionType.color}
-                        onClick={() => setForwardedId(i.forwardedId)}
+                        onClick={() => {
+                          if (
+                            i?.actionType.actionCode === "REVERTED" ||
+                            i?.actionType.actionCode === "REJECTED"
+                          ) {
+                            setPendingAction(i);
+                            setRejectionModal(true);
+                          } else {
+                            setForwardedId(i.forwardedId);
+                            setOpenSubmit(true);
+                          }
+                        }}
                       >
 
                         <GrSave /> {i?.actionType.actionNameEn}
@@ -1827,6 +1894,29 @@ const Project = () => {
         onClose={() => setOpenSubmit(false)}
         onConfirm={handleSubmit}
       />
+
+      <CommonFormModal
+        open={showRejectionModal}
+        onClose={() => setRejectionModal(false)}
+        title="Add Remarks"
+        subtitle="Remarks are mandatory for this action"
+        footer={
+          <>
+            <button type="button" class="bg - #bbef7f  text-[green] text-[13px] px-3 py-1 rounded-sm border border-[green] transition-all active:scale-95 uppercase flex items-center gap-1" onClick={handleRemarksSubmit}>Submit</button>
+          </>
+        }
+      >
+        <InputField
+          label="Remarks"
+          type="text"
+          name={"remarks"}
+          value={remarks}
+          textarea={true}
+          onChange={handleChangeInput}
+        />
+      </CommonFormModal>
+
+
     </div>
   );
 };

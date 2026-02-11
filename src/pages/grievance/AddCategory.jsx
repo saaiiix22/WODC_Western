@@ -14,6 +14,7 @@ import { MdCheck, MdClose, MdLockOutline } from "react-icons/md";
 import { MdLockOpen } from "react-icons/md";
 import SelectField from "../../components/common/SelectField";
 import { editGrievanceService, getCategoryListService, saveUpdateGrievanceService } from "../../services/grievanceService";
+import { DataGrid } from "@mui/x-data-grid";
 
 const AddCategory = () => {
   const [formData, setFormData] = useState({
@@ -156,39 +157,52 @@ const AddCategory = () => {
     }
   };
 
-  const GrievanceCategoryList = [
+  const columns = [
     {
-      name: "Sl No.",
-      selector: (row, index) => index + 1,
-      width: "80px",
-    },
-    {
-      name: "Category Type",
-      selector: (row) => row.grievanceCategoryName || "N/A",
-    },
-    {
-      name: "Category Code",
-      selector: (row) => row.grvCtgCode || "N/A",
-    },
-
-    {
-      name: "Active",
-      selector: (row) => (row.active ? "Active" : "Inactive"),
+      field: "slno",
+      headerName: "Sl No",
+      width: 80,
+      sortable: false,
+      renderCell: (params) =>
+        paginationModel.page * paginationModel.pageSize + 
+        params.api.getRowIndexRelativeToVisibleRows(params.id) + 1,
     },
     
-
     {
-      name: "Action",
-      selector: (row) => (
-        <div className="flex gap-2">
-          <button
-            className="flex items-center justify-center h-8 w-8 bg-blue-500/25 text-blue-500 rounded-full"
-            onClick={() => editGrievance(row.grievanceCategoryId)}
-          >
-            <FiEdit className="w-4 h-4" />
-          </button>
-         
-        </div>
+      field: "grievanceCategoryName",
+      headerName: "Category Name",
+      flex: 1,
+    },
+    {
+      field: "grvCtgCode",
+      headerName: "Code",
+      flex: 1,
+    },
+    {
+      field: "active",
+      headerName: "Status",
+      width: 120,
+      renderCell: (params) =>
+        params.value ? (
+          <span >Active</span>
+        ) : (
+          <span className="text-red-600 font-semibold">Inactive</span>
+        ),
+    },
+    {
+      field: "action",
+      headerName: "Action",
+      width: 120,
+      sortable: false,
+      renderCell: (params) => (
+        <button
+          className="h-8 w-8 rounded-full bg-blue-500/20 text-blue-600 flex items-center justify-center"
+          onClick={() =>
+            editGrievance(params.row.grievanceCategoryId)
+          }
+        >
+          <FiEdit />
+        </button>
       ),
     },
   ];
@@ -235,7 +249,11 @@ const AddCategory = () => {
     }
   };
   
-
+  const [paginationModel, setPaginationModel] = useState({
+    page: 0,
+    pageSize: 5,
+  });
+  
   
 
     useEffect(() => {
@@ -324,10 +342,40 @@ const AddCategory = () => {
 
         {/* Body */}
         <div className="min-h-[120px] py-5 px-4 text-[#444]">
-          <ReusableDataTable data={tableData} columns={GrievanceCategoryList} />
+        <div className="mt-4 bg-white shadow rounded p-3">
+        {/* <h3 className="flex items-center gap-2 bg-light-dark text-white px-3 py-2">
+          <FiFileText /> Category List
+        </h3> */}
+
+        <div style={{ height: 420, width: "100%" }}>
+        <DataGrid
+           rows={tableData}
+          columns={columns}
+          getRowId={(row) => row.grievanceCategoryId}
+          pagination
+          paginationModel={paginationModel}
+          onPaginationModelChange={setPaginationModel}
+          pageSizeOptions={[5, 10, 20]}
+          disableRowSelectionOnClick
+          sx={{
+            "& .MuiDataGrid-cell": {
+              borderRight: "2px solid #ddd", // vertical line between cells
+            },
+            "& .MuiDataGrid-columnHeaders": {
+              borderBottom: "2px solid #ddd", // horizontal line under header
+            },
+            "& .MuiDataGrid-row": {
+              borderBottom: "2px solid #eee", // horizontal lines between rows
+            },
+          }}
+        />
+
+        </div>
+      </div>
+          {/* <ReusableDataTable data={tableData} columns={GrievanceCategoryList} /> */}
         </div>
 
-        <ReusableDialog
+        <ReusableDialog 
           onClose={() => setOpen(false)}
           onConfirm={handleSubmit}
           open={open}

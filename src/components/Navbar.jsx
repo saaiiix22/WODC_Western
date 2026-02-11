@@ -9,6 +9,8 @@ import { images } from "../assets/images";
 import i18n from "../i18n/i18n";
 import { useTranslation } from "react-i18next";
 import ReusableDialog from "./common/ReusableDialog";
+import { notificationsService } from "../services/dashboardService";
+import { addAllowedPath } from "../redux/slices/menuSlice";
 
 const Navbar = () => {
   const [openNotif, setOpenNotif] = useState(false);
@@ -22,32 +24,10 @@ const Navbar = () => {
 
   const [open, setOpen] = useState(false);
 
-  const [openLogoutModal,setOpenLogoutModal] = useState(false)
-
+  const [openLogoutModal, setOpenLogoutModal] = useState(false)
+  const [notifications, setNotifications] = useState([])
   const dropdownRef = useRef(null);
-  const notifications = [
-    {
-      id: 1,
-      title: "New Application Submitted",
-      message: "A new application has been submitted for review.",
-      time: "2 min ago",
-      unread: true,
-    },
-    {
-      id: 2,
-      title: "Password Changed",
-      message: "Your password was changed successfully.",
-      time: "1 hr ago",
-      unread: false,
-    },
-    {
-      id: 3,
-      title: "System Update",
-      message: "System maintenance scheduled at 10 PM.",
-      time: "Yesterday",
-      unread: false,
-    },
-  ];
+
   const logout = async () => {
     try {
       const payload = encryptPayload(token);
@@ -69,6 +49,24 @@ const Navbar = () => {
     localStorage.setItem("lang", newLang);
   };
 
+  const notificationsMenu = async () => {
+    try {
+      const res = await notificationsService()
+      // console.log(res);
+
+      if (res?.status === 200) {
+        setNotifications(res?.data)
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  // console.log(notifications);
+  const totalNotifCount = notifications?.reduce(
+    (sum, item) => sum + Number(item.count || 0),
+    0
+  );
+
 
   useEffect(() => {
     const close = (e) => {
@@ -81,6 +79,7 @@ const Navbar = () => {
   }, []);
 
   useEffect(() => {
+
     const closeNotif = (e) => {
       if (notifRef.current && !notifRef.current.contains(e.target)) {
         setOpenNotif(false);
@@ -89,6 +88,10 @@ const Navbar = () => {
     document.addEventListener("mousedown", closeNotif);
     return () => document.removeEventListener("mousedown", closeNotif);
   }, []);
+
+  useEffect(() => {
+    notificationsMenu()
+  }, [])
 
 
 
@@ -141,27 +144,29 @@ const Navbar = () => {
               "
             >
               <FiBell size={20} className="text-slate-800" />
-
-              {/* UNREAD COUNT */}
-              {notifications.some(n => n.unread) && (
+              {totalNotifCount > 0 && (
                 <span
                   className="
-          absolute -top-1 -right-1
-          min-w-[18px] h-[18px]
-          px-1 text-[10px] font-semibold
-          bg-orange-400 text-black
-          rounded-full flex items-center justify-center
-        "
+        absolute -top-1 -right-1
+        min-w-[20px] h-5 px-1
+        flex items-center justify-center
+        text-[10px] font-bold
+        text-white
+        bg-orange-500
+        rounded-full
+        shadow-md
+      "
                 >
-                  {notifications.filter(n => n.unread).length}
+                  {totalNotifCount}
                 </span>
               )}
+
             </button>
 
             {openNotif && (
               <div
                 className="
-        absolute right-0 mt-2 w-80 z-50
+        absolute right-0 mt-2 w-72 z-50
         rounded-xl border border-white/10
         bg-[#f5f5f5] shadow-2xl
         animate-slideFade overflow-hidden
@@ -177,34 +182,31 @@ const Navbar = () => {
 
                 {/* LIST */}
                 <div className="max-h-80 overflow-y-auto">
-                  {notifications.length === 0 ? (
+                  {notifications?.length === 0 ? (
                     <p className="text-sm text-center py-6 opacity-70">
                       No notifications
                     </p>
                   ) : (
-                    notifications.map((item) => (
+                    notifications?.map((item, idx) => (
+
                       <div
-                        key={item.id}
+                        key={idx}
                         className={`
-                px-4 py-3 cursor-pointer
-                border-b border-white/5
-                hover:bg-white/5
-                ${item.unread ? "bg-white/5" : ""}
-              `}
+                          px-4 py-3 cursor-pointer
+                          border-b border-white/5
+                          hover:bg-white/5
+                          flex justify-between items-center
+                        `}
                       >
+
                         <div className="flex justify-between items-start gap-2">
-                          <p className="text-sm font-medium text-slate-600">
+                          <p className="text-[12px] font-medium text-slate-600">
                             {item.title}
                           </p>
-                          {item.unread && (
-                            <span className="w-2 h-2 bg-orange-400 rounded-full mt-1" />
-                          )}
                         </div>
-                        <p className="text-xs opacity-80 mt-1 text-slate-600">
-                          {item.message}
-                        </p>
-                        <p className="text-[11px] opacity-60 mt-1 text-slate-600">
-                          {item.time}
+
+                        <p className="text-[11px] px-3 py-1 bg-orange-300/25 rounded-sm mt-1 text-orange-600 font-bold">
+                          {item.count}
                         </p>
                       </div>
                     ))
@@ -304,30 +306,36 @@ const Navbar = () => {
 
                 <ul className="py-1">
                   <li>
-                    <Link
-                      to="/userProfile"
+                    <p
+                      onClick={() => {
+                        dispatch(addAllowedPath("/userProfile"))
+                        navigate("/userProfile")
+                      }}
                       className="flex items-center gap-3 px-4 py-3 hover:bg-white/10 text-sm"
                     >
                       <FiUser size={18} className="text-[#feca57]" />
                       View Profile
-                    </Link>
+                    </p>
                   </li>
 
                   <li>
-                    <Link
-                      to="/changePassword"
+                    <p
+                      onClick={() => {
+                        dispatch(addAllowedPath("/changePassword"))
+                        navigate("/changePassword")
+                      }}
                       className="flex items-center gap-3 px-4 py-3 hover:bg-white/10 text-sm"
                     >
                       <FiKey size={18} className="text-[#4ecdc4]" />
                       Change Password
-                    </Link>
+                    </p>
                   </li>
 
                   <div className="border-t border-white/10 my-1" />
 
                   <li>
                     <button
-                      onClick={()=>setOpenLogoutModal(true)}
+                      onClick={() => setOpenLogoutModal(true)}
                       className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/10 text-sm text-red-400 font-medium"
                     >
                       <FiLogOut size={18} />
@@ -343,9 +351,9 @@ const Navbar = () => {
 
       <ReusableDialog
         open={openLogoutModal}
-        onClose={()=>setOpenLogoutModal(false)}
+        onClose={() => setOpenLogoutModal(false)}
         onConfirm={logout}
-        description={"Do you want to logout ?"}        
+        description={"Do you want to logout ?"}
       />
 
       {/* ================= ANIMATION ================= */}

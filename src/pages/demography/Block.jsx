@@ -60,6 +60,8 @@ const Block = () => {
   };
 
   const handleChangeInput = (e) => {
+    // console.log(e.target);
+    
     const { name, value } = e.target;
     let updatedVal = value
     if (name === "blockNameEN") {

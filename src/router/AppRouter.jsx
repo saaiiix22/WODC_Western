@@ -8,15 +8,6 @@ import Loader from "../components/common/Loader";
 import ChangePassword from "../pages/UMT/ChangePassword";
 import AddWorkFlowConfig from "../pages/grievance/AddWorkFlowConfig";
 import PublicRoute from "../components/PublicRoute";
-import MenuProtectedRoutes from "../components/MenuProtectedRoutes";
-
-
-import ViewAsset from "../pages/assets/ViewAsset";
-import AssetCategoryMaster from "../pages/assets/AssetsCategoryMaster";
-import AssetTypeMaster from "../pages/assets/AssetsTypeMaster";
-import CreateAsset from "../pages/assets/CreateAsset";
-import ImportExportAsset from "../pages/assets/ImportExportAsset";
-
 
 import AddCategory from "../pages/grievance/AddCategory";
 import AddSubCategory from "../pages/grievance/AddSubCategory";
@@ -26,6 +17,18 @@ import AddWorkFlowConfiguration from "../pages/grievance/AddWorkFlowConfiguratio
 import GrievanceRequestList from "../pages/grievance/GrievanceRequestList";
 import GrievanceList from "../pages/grievance/GrievanceList";
 import MondayVirtualGrievanceHearing from "../pages/grievance/MondayVirtualGrievanceHearing";
+
+import MenuProtectedRoutes from "../components/MenuProtectedRoutes";
+import GrievanceHearingList from "../pages/grievance/GrievanceHearingList";
+
+
+
+import ViewAsset from "../pages/assets/ViewAsset";
+import AssetCategoryMaster from "../pages/assets/AssetsCategoryMaster";
+import AssetTypeMaster from "../pages/assets/AssetsTypeMaster";
+import CreateAsset from "../pages/assets/CreateAsset";
+import ImportExportAsset from "../pages/assets/ImportExportAsset";
+
 
 
 /* AUTH */
@@ -143,6 +146,7 @@ const ErrorPage = lazy(() =>
 const AddFeedbackType = lazy(() => import("../pages/fbms/FeedbackType/AddFeedbackType"));
 const AddFeedbackQuestions = lazy(() => import("../pages/fbms/feedbackQuestions/AddFeedbackQuestions"));
 const AddFeedback = lazy(() => import("../pages/fbms/feedback/Feedback"));
+const FeedbackListByStatus = lazy(() => import("../pages/fbms/feedback/FeedbackListByStatus"));
 
 
 const AppRouter = () => {
@@ -160,7 +164,7 @@ const AppRouter = () => {
         <Route element={<ProtectedRoutes />}>
 
           <Route element={<MainLayout />}>
-            {/* <Route element={<MenuProtectedRoutes />}> */}
+            <Route element={<MenuProtectedRoutes />}>
               <Route path="*" element={<ErrorPage />} />
 
               <Route path={routes.dashboard.path} element={<Dashboard />} />
@@ -217,7 +221,6 @@ const AppRouter = () => {
               <Route path={routes.addWorkConfig.path} element={<AddWorkFlowConfig />} />
               <Route path={routes.gisMap.path} element={<GisMain />} />
 
-              <Route path={routes.workflowConfig.path} element={<WorkflowConfig />} />
 
 
 
@@ -229,8 +232,13 @@ const AppRouter = () => {
               <Route path={routes.grievanceRequestList.path} element={<GrievanceRequestList />} />
               <Route path={routes.addWorkFlowConfiguration.path} element={<AddWorkFlowConfiguration />} />
               <Route path={routes.virtualGrievanceHearing.path} element={<MondayVirtualGrievanceHearing />} />
+              <Route path={routes.virtualGrievanceHearingList.path} element={<GrievanceHearingList />} />
 
 
+              <Route path={routes.addWorkFlowConfiguration.path} element={<AddWorkFlowConfiguration />} />
+
+
+              <Route path={routes.workflowConfig.path} element={<WorkflowConfig />} />
 
 
 
@@ -247,9 +255,10 @@ const AppRouter = () => {
               <Route path={routes.addFeedbackType.path} element={<AddFeedbackType />} />
               <Route path={routes.addFeedbackQuestions.path} element={<AddFeedbackQuestions />} />
               <Route path={routes.addFeedback.path} element={<AddFeedback />} />
+              <Route path={routes.feedbackListByStatus.path} element={<FeedbackListByStatus />} />
 
 
-            {/* </Route> */}
+            </Route>
           </Route>
         </Route>
 

@@ -7,3 +7,4 @@ export const logoutService = (data) => Api.post(endpoints.auth.logout,data)
 export const MenuList = (data) =>  Api.get(endpoints.menu.getMenuList,{params:{cipherText:data}})
 
 export const UserProfileDetails= () => Api.get(endpoints.menu.UserDetails)
+export const getCaptchaService =(data) => Api.get(endpoints.auth.captcha,{params:{size:data}})

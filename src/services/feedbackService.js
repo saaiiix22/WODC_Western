@@ -6,3 +6,7 @@ export const getFeedbackService = (cipherText) =>Api.post(endpoints.fbms.feedbac
 export const feedbackStatusListService = () =>Api.get(endpoints.fbms.feedback.feedbackStatusList);
 export const feedbackQuestionsByProjectAndFeedbackTypeService = (cipherText) =>
   Api.get(endpoints.fbms.feedback.feedbackQuestionsByProjectAndFeedbackType,{  params: { cipherText }});
+export const feedbackListMapByProjectService = (cipherText) =>
+  Api.get(endpoints.fbms.feedback.feedbackListByProject,{  params: { cipherText }});
+export const feedbackStatusLevelListService = () =>Api.get(endpoints.fbms.feedback.feedbackStatusLevelList);
+export const saveFeedbackStatusService =  (cipherText) => Api.post(endpoints.fbms.feedback.saveFeedbackStatus, null,{ params: { cipherText } });

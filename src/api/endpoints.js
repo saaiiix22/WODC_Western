@@ -2,10 +2,14 @@ const endpoints = {
     auth: {
         login: '/login',
         logout: '/logout',
+        captcha:"/captcha"
     },
     menu: {
         getMenuList: '/admin/menu/list',
         UserDetails: '/admin/role/getCurrentRole',
+    },
+    dashboard: {
+        notifications: "/dashboard/find-notification"
     },
     getDistrict: {
         saveDistrict: '/mst/save-n-update-district-details',
@@ -100,6 +104,7 @@ const endpoints = {
 
 
         getProjectList: '/project/get-project-list',
+        getProjectListByAgency: '/project/get-project-list-by-agency',
         getMilestone: '/project/get-milestone-list-by-projectid',
         getBudgetByProject: '/project/get-total-fund-by-projectid',
         saveProjectAgencyMilestone: '/project/save-update-project-agency-milestone',
@@ -144,7 +149,9 @@ const endpoints = {
         saveBeneficiary: '/mst/save-n-update-beneficiary-details',
         getBeneficiaryDetails: '/mst/get-beneficiary-list',
         editBeneficiary: '/mst/get-beneficiary-by-id',
-        toggleBeneficiaryStatus: '/mst/toggle-status-beneficiary-by-id'
+        toggleBeneficiaryStatus: '/mst/toggle-status-beneficiary-by-id',
+        getGender: "/cmn/get-gender-list",
+        empType: "/cmn/get-emp-type-list",
     },
     sectorPage: {
         saveSector: '/mst/manage-sector-subsector',
@@ -257,16 +264,27 @@ const endpoints = {
         getAssetsTypeList: '/assets/get-assets-type-list',
         getAssetsTypeById: '/assets/get-assets-type-by-id'
     },
+
     assetsCategoryMaster: {
         saveUpdateAssetsCategory: '/assets/save-update-assets-category',
         getAssetsCategoryList: '/assets/get-assets-category-list',
         getAssetsCategoryById: '/assets/get-assets-category-by-id'
     },
+
+
     assetsMaster: {
         saveUpdateAssetsMaster: '/assets/save-update-assets',
         getAssetsMasterList: '/assets/get-assets-list',
         getAssetsMasterById: '/assets/get-assets-by-id',
         getAssetsLookupValues: '/assets/lookup-values'
+    },
+
+
+    grievanceCategory: {
+        savegrievance: "/griv/config/save-update-grievance-category",
+        editgrievance: "/griv/config/get-grievance-category-by-id",
+        getAllgrievance: "/griv/config/get-grievance-category-list"
+
     },
     grievanceSubCategory: {
         saveSubCategory: "/griv/config/save-update-grievance-sub-category",
@@ -286,9 +304,16 @@ const endpoints = {
 
     },
     grievanceHearing: {
-        saveGrievanceHearing: "/griv/config/save-update-virtual-grievance-hearing"
-    },
 
+        saveGrievanceHearing: "/griv/config/save-update-virtual-grievance-hearing",
+        getAllHearingList: "/griv/config/get-grievance-hearing-list",
+        getGrievanceHearingById: "/griv/config/get-grievance-hearing-by-id"
+    },
+    addGrievance: {
+        saveGrievance: "/grivance/save-update-add-grievance",
+        getAllGrievance: "/grivance/get-add-grievance-list",
+        getGrievanceByid: "/grivance/get-add-grievance-by-id"
+    },
     fbms: {
         fbmsCommon: {
             fetchFeedbackType: "/fbms/common/feedback-type-list",
@@ -304,15 +329,19 @@ const endpoints = {
         feedbackQuestions: {
             saveFeedbackQuestions: "/feedback-questions/save",
             updateFeedbackQuestions: "/feedback-questions/edit",
-            feedbackQuestionsList: "/feedback-questions/list"
+            feedbackQuestionsList: "/feedback-questions/list",
+            fetchFeedbackQuestionByTypeAndProject: "/feedback-questions/fetch-feedback-questions-by-type-and-project"
         },
         feedback: {
             saveFeedback: "/feedback/save",
             getFeedbackById: "/feedback/get-feedback",
             feedbackStatusList: "/feedback/feedback-status",
-            feedbackQuestionsByProjectAndFeedbackType: "/feedback/feedback-questions-list-by-project-and-type"
+            feedbackQuestionsByProjectAndFeedbackType: "/feedback/feedback-questions-list-by-project-and-type",
+            feedbackListByProject: "/feedback/get-feedback-list-by-project",
+            feedbackStatusLevelList: "/feedback/feedback-status-level",
+            saveFeedbackStatus: "/feedback/save-feedback-status"
         }
-    }
+    },
 
 }
 export default endpoints 
