@@ -70,7 +70,7 @@ const MapSection = ({ data = [], onSelectProject }) => {
       .catch(error => console.error("Error fetching GeoJSON:", error));
   }, []);
 
-  // Filter GeoJSON to only show districts present in data
+
   const districtNames = new Set(data.map(p => p.districtName?.trim().toLowerCase()).filter(Boolean));
 
   const filteredGeoJson = geoJsonData ? {
@@ -95,7 +95,7 @@ const MapSection = ({ data = [], onSelectProject }) => {
 
         if (res?.data?.outcome) {
           let imgData = res.data.data;
-          // Check if data URI scheme is present, if not add it (assuming jpeg/png based on common responses, user mentioned /9j so likely jpeg)
+         
           if (!imgData.startsWith('data:image')) {
             imgData = `data:image/jpeg;base64,${imgData}`;
           }
@@ -122,9 +122,9 @@ const MapSection = ({ data = [], onSelectProject }) => {
             key={JSON.stringify(Array.from(districtNames))}
             data={filteredGeoJson}
             style={{
-              color: '#1e40af', // Dark Blue
+              color: '#1e40af',
               weight: 2,
-              fillColor: '#86efac', // Light Green
+              fillColor: '#86efac',
               fillOpacity: 0.2
             }}
           />

@@ -45,7 +45,7 @@ const GetDistrict = () => {
 
   // FORM HANDLING
 
-  const {t} = useTranslation("getDistrict")
+  const { t } = useTranslation("getDistrict")
 
   const [formData, setFormData] = useState({
     districtName: "",
@@ -182,6 +182,7 @@ const GetDistrict = () => {
   const commonColumns = [
     {
       name: "Sl No",
+      exportValue: (_, index) => index + 1,
       selector: (row, index) => index + 1,
       width: "80px",
       center: true,
@@ -189,7 +190,8 @@ const GetDistrict = () => {
     },
     {
       name: "District Name",
-
+      exportValue: (row) =>
+        `${row.districtlgdCode} | ${row.districtName}`,
       selector: (row) =>
         (
           <div className="flex gap-1">
@@ -201,7 +203,7 @@ const GetDistrict = () => {
 
     {
       name: "Status",
-      // selector: (row) => (row.isActive ? "Active" : "Inactive"),
+      exportValue: (row) => (row.isActive ? "Active" : "Inactive"),
       width: "100px",
       cell: (row) => (
         <span className={`px-2 py-1 rounded-sm text-xs ${row.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
@@ -211,6 +213,7 @@ const GetDistrict = () => {
     },
     {
       name: "Remarks",
+      exportValue: (row) => row.remark || "N/A",
       selector: (row) => <p className="text-wrap">{row.remark || "N/A"}</p>,
       sortable: true,
     },

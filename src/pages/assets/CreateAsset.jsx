@@ -6,6 +6,7 @@ import {
   getAssetsCategoryListService,
   getAssetsLookupValuesService,
   getAssetsTypeListService,
+  saveUpdateAssetsService,
 } from "../../services/assetsService";
 import {
   getProjectAgencyMilestoneMapDetailsService,
@@ -14,12 +15,18 @@ import {
   getProjectMapByProjectIdService,
   getSectorService,
 } from "../../services/projectService";
+import { districtList } from "../../services/demographyService";
+import { getBlockThroughDistrictService } from "../../services/gpService";
+import { load } from "../../hooks/load";
 import { encryptPayload } from "../../crypto.js/encryption";
 import { getAgencyDetailsService } from "../../services/agencyService";
+import { useLocation } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const tabs = ["Basic Asset Details", "Asset Condition & Utilization"];
 
 const CreateAsset = () => {
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState(0);
   const [assetsCategoryList, setAssetsCategoryList] = useState([]);
   const [assetsTypeList, setAssetsTypeList] = useState([]);
@@ -28,17 +35,22 @@ const CreateAsset = () => {
   const [subSectorList, setSubSectorList] = useState([]);
   const [agencyList, setAgencyList] = useState([]);
   const [projectList, setProjectList] = useState([]);
- 
+
   const [agencyProjectMap, setAgencyProjectMap] = useState([]);
   const [lifeCycleOptions, setLifeCycleOptions] = useState([]);
   const [conditionOptions, setConditionOptions] = useState([]);
   const [utilizationOptions, setUtilizationOptions] = useState([]);
+  const [districtMasterList, setDistrictMasterList] = useState([]);
+  const [districtListOptions, setDistrictListOptions] = useState([]);
+  const [blockList, setBlockList] = useState([]);
 
   const [formData, setFormData] = useState({
     assetsId: null,
     assetsName: "",
     assetsCtgId: null,
     assetsTypeId: null,
+    districtId: null,
+    blockId: null,
     sectorId: null,
     subSectorId: null,
     agencyId: null,
@@ -57,9 +69,68 @@ const CreateAsset = () => {
   //------------------------ handler Functions ----------------------------//
   // ----------------------------------------------------------------------//
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Asset submitted");
+
+    // Basic validation
+    if (!formData.assetsName.trim()) {
+      toast.error("Asset Name is required.");
+      return;
+    }
+    if (!formData.assetsCtgId) {
+      toast.error("Asset Category is required.");
+      return;
+    }
+
+    if (!formData.sectorId) {
+      toast.error("Sector is required.");
+      return;
+    }
+    if (!formData.agencyId) {
+      toast.error("Agency is required.");
+      return;
+    }
+    if (!formData.projectId) {
+      toast.error("Project is required.");
+      return;
+    }
+
+    try {
+  
+      const encryptedData = encryptPayload(formData);
+      const response = await saveUpdateAssetsService(encryptedData);
+
+      if (response?.data?.outcome) {
+        toast.error("Asset created successfully!");
+        // Reset form or navigate as needed
+        setFormData({
+          assetsId: null,
+          assetsName: "",
+          assetsCtgId: null,
+          assetsTypeId: null,
+          districtId:null,
+          blockId:null,
+          sectorId: null,
+          subSectorId: null,
+          agencyId: null,
+          projectId: null,
+          actualStartDate: "",
+          assetCreationDate: "",
+          assetAmount: null,
+          assetLifeCycleStageCode: "",
+          assetConditionCode: "",
+          assetUtilizationStatusCode: "",
+          lastInspectionDate: "",
+          remarks: "",
+        });
+        setActiveTab(0); // Go back to first tab
+      } else {
+        toast.error("Failed to create asset. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error creating asset:", error);
+      toast.error("An error occurred while creating the asset.");
+    }
   };
 
   const handleInputChange = (e) => {
@@ -154,6 +225,50 @@ const CreateAsset = () => {
     setSubSectorList(subSectorOptions);
   };
 
+
+  // ---------------- Districts & Blocks ----------------
+  const loadDistricts = async () => {
+    await load(districtList, { isActive: true }, (result) => {
+      const data = result || [];
+      setDistrictMasterList(data);
+      const opts = data.map((d) => ({
+        value: d.districtId,
+        label: d.districtName || d.districtNameEN || `District ${d.districtId}`,
+      }));
+      setDistrictListOptions(opts);
+    });
+  };
+
+  const handleDistrictChange = async (districtIdValue) => {
+    if (!districtIdValue) {
+      setFormData((prev) => ({ ...prev, districtId: null, blockId: null }));
+      setBlockList([]);
+      return;
+    }
+
+    const districtId = Number(districtIdValue);
+    setFormData((prev) => ({ ...prev, districtId, blockId: null }));
+
+    try {
+      await load(
+        getBlockThroughDistrictService,
+        { isActive: true, districtId },
+        (blocks) => {
+          const data = blocks || [];
+          const blockOpts = data.map((b) => ({
+            value: b.blockId,
+            label: b.blockNameEN || b.blockName || `Block ${b.blockId}`,
+          }));
+          setBlockList(blockOpts);
+        }
+      );
+    } catch (err) {
+      console.error("Error loading blocks:", err);
+      setBlockList([]);
+    }
+  };
+
+  
   const loadAgencies = async () => {
     try {
       const payload = encryptPayload({ isActive: true });
@@ -169,10 +284,9 @@ const CreateAsset = () => {
               value: item.agencyId,
               label: item.agencyName,
             },
-          ])
+          ]),
         ).values(),
       ];
-
       setAgencyList(agencyOptions);
     } catch (err) {
       console.error("Error fetching agencies:", err);
@@ -207,7 +321,7 @@ const CreateAsset = () => {
               value: item.projectId,
               label: item.projectName,
             },
-          ])
+          ]),
         ).values(),
       ];
 
@@ -221,7 +335,7 @@ const CreateAsset = () => {
   const handleProjectChange = (projectIdValue) => {
     const projectId = Number(projectIdValue);
     const selectedProject = agencyProjectMap.find(
-      (p) => p.projectId === projectId
+      (p) => p.projectId === projectId,
     );
     // convert DD/MM/YYYY → YYYY-MM-DD for input[type="date"]
     let formattedDate = "";
@@ -236,13 +350,12 @@ const CreateAsset = () => {
     }));
   };
 
-
   const loadAssetLookups = async () => {
     try {
       const [lifeCycleRes, conditionRes, utilizationRes] = await Promise.all([
-        getAssetsLookupValuesService("ASSET_LIFE_CYCLE"),
+        getAssetsLookupValuesService("ASSET_LIFECYCLE_STAGE"),
         getAssetsLookupValuesService("ASSET_CONDITION"),
-        getAssetsLookupValuesService("UTILIZATION_STATUS"),
+        getAssetsLookupValuesService("ASSET_UTILIZATION"),
       ]);
 
       if (lifeCycleRes?.data?.outcome) {
@@ -269,7 +382,6 @@ const CreateAsset = () => {
   const BasicDetails = useMemo(
     () => (
       <div className="grid grid-cols-12 gap-6">
-
         <div className="col-span-3">
           <InputField
             label="Asset Name"
@@ -288,6 +400,29 @@ const CreateAsset = () => {
             options={assetsCategoryList}
             placeholder="select category"
             onChange={(e) => handleSelectChange("assetsCtgId", e.target.value)}
+          />
+        </div>
+
+        <div className="col-span-3">
+          <SelectField
+            label="District"
+            name="districtId"
+            value={formData.districtId || ""}
+            options={districtListOptions}
+            placeholder="Select District"
+            onChange={(e) => handleDistrictChange(e.target.value)}
+          />
+        </div>
+
+        <div className="col-span-3">
+          <SelectField
+            label="Block"
+            name="blockId"
+            value={formData.blockId || ""}
+            options={blockList}
+            placeholder="Select Block"
+            disabled={!formData.districtId}
+            onChange={(e) => handleSelectChange("blockId", e.target.value)}
           />
         </div>
 
@@ -389,6 +524,9 @@ const CreateAsset = () => {
             Purpose / Description
           </label>
           <textarea
+            name="description"
+            value={formData.description}
+            onChange={handleInputChange}
             rows={3}
             className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400"
             placeholder="Describe asset purpose and usage..."
@@ -477,7 +615,35 @@ const CreateAsset = () => {
     loadSector();
     loadAgencies();
     loadAssetLookups();
+    loadDistricts();
   }, []);
+
+  useEffect(() => {
+    if (location.state?.asset && assetsCategoryList.length > 0 && assetsTypeList.length > 0 && sectorMasterList.length > 0 && agencyList.length > 0 && projectList.length > 0) {
+      // Populate form with asset data for editing
+      const asset = location.state.asset;
+      setFormData({
+        assetsId: asset.assetsId || null,
+        assetsName: asset.assetsName || "",
+        assetsCtgId: asset.assetsCtgId || null,
+        assetsTypeId: asset.assetsTypeId || null,
+        districtId: asset.districtId || null,
+        blockId: asset.blockId || null,
+        sectorId: asset.sectorId || null,
+        subSectorId: asset.subSectorId || null,
+        agencyId: asset.agencyId || null,
+        projectId: asset.projectId || null,
+        actualStartDate: asset.actualStartDate || "",
+        assetCreationDate: asset.assetCreationDate || "",
+        assetAmount: asset.assetAmount || null,
+        assetLifeCycleStageCode: asset.assetLifeCycleStageCode || "",
+        assetConditionCode: asset.assetConditionCode || "",
+        assetUtilizationStatusCode: asset.assetUtilizationStatusCode || "",
+        lastInspectionDate: asset.lastInspectionDate || "",
+        remarks: asset.remarks || "",
+      });
+    }
+  }, [location.state, assetsCategoryList, assetsTypeList, sectorMasterList, agencyList, projectList]);
 
   return (
     <form onSubmit={handleSubmit}>
@@ -494,9 +660,10 @@ const CreateAsset = () => {
               key={tab}
               onClick={() => setActiveTab(index)}
               className={`px-3 py-1 rounded text-sm border
-                ${activeTab === index
-                  ? "bg-[#ff9800] text-white border-[#ff9800]"
-                  : "bg-white text-[#444] border-[#ddd] hover:bg-[#fff3e0]"
+                ${
+                  activeTab === index
+                    ? "bg-[#ff9800] text-white border-[#ff9800]"
+                    : "bg-white text-[#444] border-[#ddd] hover:bg-[#fff3e0]"
                 }`}
             >
               {tab}

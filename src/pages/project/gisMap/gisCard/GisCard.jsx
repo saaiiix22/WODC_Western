@@ -5,7 +5,7 @@ const GisCard = ({ data }) => {
     const inProgress = data?.inProgressCount || 0;
     const completed = data?.completedCount || 0;
     const delayed = data?.delayedCount || 0;
-    // const highRisk = data?.cancelledCount || 0; 
+
 
     const StatCard = ({ icon: Icon, color, bg, label, value, subLabel }) => (
         <div className="bg-white rounded-lg p-4 shadow-[0_2px_8px_rgba(0,0,0,0.08)] border border-gray-100 flex items-center justify-between">

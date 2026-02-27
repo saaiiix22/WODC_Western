@@ -5,3 +5,4 @@ export const saveAgencySerice =(data)=>Api.post(endpoints.agency.saveAgency,{obj
 export const getAgencyDetailsService=(data)=>Api.get(endpoints.agency.getAgencyDetails,{params:{cipherText:data}})
 export const editAgencySerice=(data)=>Api.get(endpoints.agency.editAgency,{params:{cipherText:data}})
 export const toggleAgencyStatus=(data)=>Api.get(endpoints.agency.toggleAgencyStatus,{params:{cipherText:data}})
+export const checkAgencyBankDetailsService=(data)=>Api.get(endpoints.agency.checkAgencyBankDetails,{params:{cipherText:data}})

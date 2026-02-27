@@ -14,6 +14,7 @@ import { MdCheck, MdClose, MdLockOutline } from "react-icons/md";
 import { MdLockOpen } from "react-icons/md";
 import SelectField from "../../components/common/SelectField";
 import { DataGrid } from "@mui/x-data-grid";
+import { exportToExcel, exportToPDF } from "../../utils/exportUtils";
 
 import {
   
@@ -171,28 +172,20 @@ const AddSubCategory = () => {
   };
   const dataGridColumns = [
     {
-      field: "slno",
+      field: "slNo",
       headerName: "Sl No",
       width: 80,
       sortable: false,
       renderCell: (params) =>
-        paginationModel.page * paginationModel.pageSize + 
-        params.api.getRowIndexRelativeToVisibleRows(params.id) + 1,
+        paginationModel.page * paginationModel.pageSize +
+        params.api.getRowIndexRelativeToVisibleRows(params.id) +
+        1,
     },
     
     {
       field: "category",
       headerName: "Category Type",
       flex: 1,
-      valueGetter: (value, row) => {
-        if (!row || !categoryList?.length) return "N/A";
-    
-        const des = categoryList.find(
-          (d) => d.grievanceCategoryId === row.grvCtgId
-        );
-    
-        return des ? des.grievanceCategoryName : "N/A";
-      },
     },
     
     {
@@ -209,29 +202,12 @@ const AddSubCategory = () => {
       field: "routeType",
       headerName: "Role Type",
       flex: 1,
-      valueGetter: (value, row) => {
-        if (!Array.isArray(row?.routeType) || !roleList?.length) return "N/A";
-    
-        return roleList
-          .filter((r) => row.routeType.includes(String(r.roleCode)))
-          .map((r) => r.roleName)
-          .join(", ");
-      },
     },
     
     {
       field: "isActive",
       headerName: "Status",
       width: 120,
-      renderCell: (params) => (
-        <span
-          className={`px-2 py-1 rounded text-xs font-medium ${
-            params.value ? "" : "bg-red-100 text-red-700"
-          }`}
-        >
-          {params.value ? "Active" : "Inactive"}
-        </span>
-      ),
     },
     {
       field: "action",
@@ -249,65 +225,6 @@ const AddSubCategory = () => {
     },
   ];
   
-  // const AchievementChartList = [
-  //   {
-  //     name: "Sl No.",
-  //     selector: (row, index) => index + 1,
-  //     width: "80px",
-  //   },
-
-  //   {
-  //     name: "Category Type",
-  //     selector: (row) => {
-  //       const des = categoryList.find(
-  //         (d) => d.grievanceCategoryId === row.grvCtgId
-  //       );
-  //       return des ? des.grievanceCategoryName : "N/A";
-  //     },
-  //   },
-
-  //   {
-  //     name: "Sub Category Type",
-  //     selector: (row) => row.grvSubCtgName || "N/A",
-  //   },
-  //   {
-  //     name: "Sub Category Code",
-  //     selector: (row) => row.grvSubCtgCode || "N/A",
-  //   },
-
-  //   {
-  //     name: "Role Type",
-  //     selector: (row) => {
-  //       if (!Array.isArray(row.routeType)) return "N/A";
-
-  //       const names = roleList
-  //         .filter((r) => row.routeType.includes(String(r.roleCode))) 
-  //         .map((r) => r.roleName)
-  //         .join(", ");
-
-  //       return names || "N/A";
-  //     },
-  //   },
-
-  //   {
-  //     name: "Active",
-  //     selector: (row) => (row.isActive ? "Active" : "Inactive"),
-  //   },
-
-  //   {
-  //     name: "Action",
-  //     selector: (row) => (
-  //       <div className="flex gap-2">
-  //         <button
-  //           className="flex items-center justify-center h-8 w-8 bg-blue-500/25 text-blue-500 rounded-full"
-  //           onClick={() => editSubCategory(row?.grvSubCtgId)}
-  //         >
-  //           <FiEdit className="w-4 h-4" />
-  //         </button>
-  //       </div>
-  //     ),
-  //   },
-  // ];
 
   const isActiveOptions = [
     { value: true, label: "Active" },
@@ -317,9 +234,36 @@ const AddSubCategory = () => {
   const getTableData = async () => {
     try {
       const res = await getSubCategoryListService();
-      setTableData(res?.data.data || []);
+      const raw = res?.data?.data || [];
+  
+      const mapped = raw.map((row, index) => {
+        const category = categoryList.find(
+          (c) => c.grievanceCategoryId === row.grvCtgId
+        );
+  
+        const roleNames = Array.isArray(row.routeType)
+          ? roleList
+              .filter((r) =>
+                row.routeType.includes(String(r.roleCode))
+              )
+              .map((r) => r.roleName)
+              .join(", ")
+          : "N/A";
+  
+        return {
+          ...row,
+          slNo: index + 1,
+          category: category
+            ? category.grievanceCategoryName
+            : "N/A",
+          routeType: roleNames || "N/A",
+          isActive: row.isActive ? "Active" : "Inactive",
+        };
+      });
+  
+      setTableData(mapped);
     } catch (error) {
-      throw error;
+      console.error(error);
     }
   };
 
@@ -349,11 +293,55 @@ const AddSubCategory = () => {
   };
 
   useEffect(() => {
-    getTableData();
-    getGrievanceCategoryName();
-    getrouteType();
-  }, []);
+    const fetchAll = async () => {
+      try {
+        const categoryRes = await getCategoryListService();
+        const roleRes = await getRoleTypeListService();
   
+        const categories = categoryRes?.data?.data || [];
+        const roles = roleRes?.data?.data || [];
+  
+        setCategoryList(categories);
+        setRoleList(roles);
+  
+        // Now fetch table AFTER lists are ready
+        const subRes = await getSubCategoryListService();
+        const raw = subRes?.data?.data || [];
+  
+        const mapped = raw.map((row, index) => {
+          const category = categories.find(
+            (c) => c.grievanceCategoryId === row.grvCtgId
+          );
+  
+          const roleNames = Array.isArray(row.routeType)
+            ? roles
+                .filter((r) =>
+                  row.routeType.includes(String(r.roleCode))
+                )
+                .map((r) => r.roleName)
+                .join(", ")
+            : "N/A";
+  
+          return {
+            ...row,
+            slNo: index + 1,
+            category: category
+              ? category.grievanceCategoryName
+              : "N/A",
+            grvSubCtgCode: row.grvSubCtgCode || "N/A",
+            routeType: roleNames || "N/A",
+            isActive: row.isActive ? "Active" : "Inactive",
+          };
+        });
+  
+        setTableData(mapped);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+  
+    fetchAll();
+  }, []);
   console.log(routeType);
   
 
@@ -418,7 +406,7 @@ const AddSubCategory = () => {
 
               <div className="col-span-2">
                 <SelectField
-                  label="Is isActive:"
+                  label="Is Active:"
                   required={true}
                   name="isActive"
                   value={isActive}
@@ -450,6 +438,34 @@ const AddSubCategory = () => {
 
         {/* Body */}
         <div className="min-h-[120px] py-5 px-4 text-[#444]">
+        <div className="flex gap-3 mb-3">
+  <button
+    onClick={() =>
+      exportToExcel(
+        tableData,
+        dataGridColumns.filter(col => col.field !== "action"),
+        "SubCategory_List"
+      )
+    }
+    className="px-4 py-2 bg-emerald-100 text-emerald-700 rounded hover:bg-emerald-300 transition"
+    >
+    Export Excel
+  </button>
+
+  <button
+    onClick={() =>
+      exportToPDF(
+        tableData,
+        dataGridColumns.filter(col => col.field !== "action"),
+        "SubCategory_List"
+      )
+    }
+    className="px-4 py-2 bg-rose-100 text-rose-700 border border-rose-300 rounded hover:bg-rose-300 transition"
+    >
+    Export PDF
+  </button>
+</div>
+
         <div style={{ height: 420, width: "100%" }}>
         <DataGrid
   rows={tableData || []}

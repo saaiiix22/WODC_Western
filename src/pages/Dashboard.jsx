@@ -60,9 +60,8 @@ const [finyearOption, setFinyearOptions] = useState([]);
   const projectStatusData = [
     { name: 'Not Started', value: 4293, fill: '#532f3c' },
     { name: 'In Progress', value: 1743, fill: '#3b3954' },
-    { name: 'Diverted', value: 247, fill: '#574827' },
     { name: 'Completed', value: 16005, fill: '#234341' },
-    { name: 'Cancelled', value: 6, fill: '#ff7900' }
+ 
   ];
 
   // Work type data for the new chart
@@ -84,32 +83,32 @@ const [finyearOption, setFinyearOptions] = useState([]);
 
   // District-wise work status data
   const districtWorkStatusData = [
-    { district: 'Angul', notStarted: 120, inProgress: 85, completed: 320, cancelled: 5, diverged: 3 },
-    { district: 'Balangir', notStarted: 150, inProgress: 95, completed: 280, cancelled: 8, diverged: 4 },
-    { district: 'Bargarh', notStarted: 110, inProgress: 75, completed: 350, cancelled: 3, diverged: 2 },
-    { district: 'Boudh', notStarted: 80, inProgress: 60, completed: 180, cancelled: 2, diverged: 1 },
-    { district: 'Cuttack', notStarted: 200, inProgress: 150, completed: 520, cancelled: 10, diverged: 8 },
-    { district: 'Deogarh', notStarted: 386, inProgress: 49, completed: 590, cancelled: 26, diverged: 6 },
-    { district: 'Dhenkanal', notStarted: 130, inProgress: 90, completed: 380, cancelled: 4, diverged: 3 },
-    { district: 'Gajapati', notStarted: 70, inProgress: 50, completed: 160, cancelled: 2, diverged: 1 },
-    { district: 'Ganjam', notStarted: 180, inProgress: 120, completed: 450, cancelled: 7, diverged: 5 },
-    { district: 'Jagatsinghpur', notStarted: 90, inProgress: 70, completed: 290, cancelled: 3, diverged: 2 },
-    { district: 'Jajpur', notStarted: 140, inProgress: 100, completed: 400, cancelled: 6, diverged: 4 },
-    { district: 'Kalahandi', notStarted: 160, inProgress: 110, completed: 2617, cancelled: 12, diverged: 9 },
-    { district: 'Kandhamal', notStarted: 100, inProgress: 80, completed: 220, cancelled: 4, diverged: 3 },
-    { district: 'Kendrapara', notStarted: 120, inProgress: 85, completed: 310, cancelled: 5, diverged: 3 },
-    { district: 'Keonjhar', notStarted: 170, inProgress: 120, completed: 420, cancelled: 8, diverged: 6 },
-    { district: 'Khordha', notStarted: 190, inProgress: 140, completed: 480, cancelled: 9, diverged: 7 },
-    { district: 'Koraput', notStarted: 150, inProgress: 105, completed: 380, cancelled: 7, diverged: 5 },
-    { district: 'Malkangiri', notStarted: 85, inProgress: 65, completed: 200, cancelled: 3, diverged: 2 },
-    { district: 'Mayurbhanj', notStarted: 180, inProgress: 130, completed: 460, cancelled: 8, diverged: 6 },
-    { district: 'Nabarangpur', notStarted: 95, inProgress: 70, completed: 240, cancelled: 4, diverged: 3 },
-    { district: 'Nuapada', notStarted: 75, inProgress: 55, completed: 190, cancelled: 2, diverged: 1 },
-    { district: 'Puri', notStarted: 130, inProgress: 95, completed: 340, cancelled: 6, diverged: 4 },
-    { district: 'Rayagada', notStarted: 110, inProgress: 80, completed: 300, cancelled: 5, diverged: 3 },
-    { district: 'Sambalpur', notStarted: 160, inProgress: 115, completed: 410, cancelled: 7, diverged: 5 },
-    { district: 'Sonepur', notStarted: 85, inProgress: 60, completed: 210, cancelled: 3, diverged: 2 },
-    { district: 'Sundargarh', notStarted: 190, inProgress: 140, completed: 490, cancelled: 9, diverged: 7 }
+    { district: 'Angul', notStarted: 120, inProgress: 85, completed: 320 },
+    { district: 'Balangir', notStarted: 150, inProgress: 95, completed: 280  },
+    { district: 'Bargarh', notStarted: 110, inProgress: 75, completed: 350},
+    { district: 'Boudh', notStarted: 80, inProgress: 60, completed: 180 },
+    { district: 'Cuttack', notStarted: 200, inProgress: 150, completed: 520 },
+    { district: 'Deogarh', notStarted: 386, inProgress: 49, completed: 590 },
+    { district: 'Dhenkanal', notStarted: 130, inProgress: 90, completed: 380 },
+    { district: 'Gajapati', notStarted: 70, inProgress: 50, completed: 160 },
+    { district: 'Ganjam', notStarted: 180, inProgress: 120, completed: 450 },
+    { district: 'Jagatsinghpur', notStarted: 90, inProgress: 70, completed: 290 },
+    { district: 'Jajpur', notStarted: 140, inProgress: 100, completed: 400 },
+    { district: 'Kalahandi', notStarted: 160, inProgress: 110, completed: 2617 },
+    { district: 'Kandhamal', notStarted: 100, inProgress: 80, completed: 220 },
+    { district: 'Kendrapara', notStarted: 120, inProgress: 85, completed: 310 },
+    { district: 'Keonjhar', notStarted: 170, inProgress: 120, completed: 420 },
+    { district: 'Khordha', notStarted: 190, inProgress: 140, completed: 480 },
+    { district: 'Koraput', notStarted: 150, inProgress: 105, completed: 380 },
+    { district: 'Malkangiri', notStarted: 85, inProgress: 65, completed: 200 },
+    { district: 'Mayurbhanj', notStarted: 180, inProgress: 130, completed: 460 },
+    { district: 'Nabarangpur', notStarted: 95, inProgress: 70, completed: 240 },
+    { district: 'Nuapada', notStarted: 75, inProgress: 55, completed: 190 },
+    { district: 'Puri', notStarted: 130, inProgress: 95, completed: 340 },
+    { district: 'Rayagada', notStarted: 110, inProgress: 80, completed: 300 },
+    { district: 'Sambalpur', notStarted: 160, inProgress: 115, completed: 410 },
+    { district: 'Sonepur', notStarted: 85, inProgress: 60, completed: 210 },
+    { district: 'Sundargarh', notStarted: 190, inProgress: 140, completed: 490 }
   ];
 
   // Delayed projects data - using your theme colors
@@ -164,8 +163,6 @@ const [finyearOption, setFinyearOptions] = useState([]);
     'Not Started': '#ff7900',
     'In Progress': '#3b3954',
     'Completed': '#234341',
-    'Cancelled': '#532f3c',
-    'Diverged': '#574827'
   };
 
   // Colors for project types - using your theme colors
@@ -386,13 +383,7 @@ const [finyearOption, setFinyearOptions] = useState([]);
       />
     </div>
 
-    {/* District */}
-    {/* <div className="flex flex-col min-w-[180px]">
-      <label className="text-xs font-medium text-gray-700 mb-1">
-        District
-      </label>
-     
-    </div> */}
+  
 
   </div>
 </div>
@@ -551,8 +542,8 @@ const [finyearOption, setFinyearOptions] = useState([]);
                         <th className="px-3 py-3 text-left font-semibold tracking-wide">District</th>
                         <th className="px-3 py-3 text-center font-semibold">Projects</th>
                         <th className="px-3 py-3 text-center font-semibold">Approved</th>
-                        <th className="px-3 py-3 text-center font-semibold">WODC</th>
-                        <th className="px-3 py-3 text-center font-semibold">Dist.</th>
+                        <th className="px-3 py-3 text-center font-semibold">Fund Allocated</th>
+                        <th className="px-3 py-3 text-center font-semibold">Fund Released</th>
                         <th className="px-3 py-3 text-center font-semibold">Expenditure</th>
                       </tr>
                     </thead>
@@ -749,7 +740,7 @@ const [finyearOption, setFinyearOptions] = useState([]);
             </div>
           </div>
           
-          <div className="mt-4 flex flex-wrap justify-center gap-4">
+          <div className="mt-2 flex flex-wrap justify-center gap-4">
             {Object.entries(categoryColors).map(([category, color]) => (
               <div key={category} className="flex items-center gap-2">
                 <div 
@@ -763,52 +754,50 @@ const [finyearOption, setFinyearOptions] = useState([]);
         </div>
 
         {/* District-Wise Work Status - Responsive */}
-        <div className="bg-white rounded-lg p-2 border border-gray-200 shadow-sm">
-          <h4 className="text-xl font-medium mb-4 flex items-center gap-2 text-gray-800">
-            <FiTrendingUp className="text-[#ff7900]" />
-            District-Wise Work Status
-          </h4>
-          
-          <div className="overflow-auto">
-            <ResponsiveContainer width="100%" height={isMobile ? 350 : 400}>
-              <BarChart 
-                data={showAllDistricts ? districtWorkStatusData : districtWorkStatusData.slice(0, isMobile ? 8 : 15)} 
-                margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis 
-                  dataKey="district" 
-                  stroke="#666" 
-                  tick={{ fontSize: isMobile ? 8 : 10 }} 
-                  angle={isMobile ? -90 : -45} 
-                  textAnchor="end" 
-                  height={isMobile ? 120 : 80}
-                />
-                <YAxis stroke="#666" tick={{ fontSize: isMobile ? 8 : 10 }} />
-                <Tooltip content={<DistrictWorkStatusTooltip />} />
-                <Legend 
-                  iconType="rect"
-                  wrapperStyle={{ fontSize: isMobile ? '8px' : '10px' }}
-                />
-                <Bar dataKey="notStarted" stackId="a" fill={workStatusColors['Not Started']} name="Not Started" />
-                <Bar dataKey="inProgress" stackId="a" fill={workStatusColors['In Progress']} name="In Progress" />
-                <Bar dataKey="completed" stackId="a" fill={workStatusColors['Completed']} name="Completed" />
-                <Bar dataKey="cancelled" stackId="a" fill={workStatusColors['Cancelled']} name="Cancelled" />
-                <Bar dataKey="diverged" stackId="a" fill={workStatusColors['Diverged']} name="Diverged" />
-              </BarChart>
-            </ResponsiveContainer>
-            {isMobile && (
-              <div className="text-center mt-2">
-                <button 
-                  onClick={() => setShowAllDistricts(!showAllDistricts)}
-                  className="text-sm text-blue-600 hover:text-blue-800 underline"
-                >
-                  {showAllDistricts ? 'Show Less Districts' : 'Show All Districts'}
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
+      <div className="bg-white rounded-lg mt-6 p-2 border border-gray-200 shadow-sm">
+  <h4 className="text-xl font-medium mb-4 flex items-center gap-2 text-gray-800">
+    <FiTrendingUp className="text-[#ff7900]" />
+    District-Wise Work Status
+  </h4>
+  
+  <div className="overflow-auto">
+    <ResponsiveContainer width="100%" height={isMobile ? 350 : 400}>
+      <BarChart 
+        data={showAllDistricts ? districtWorkStatusData : districtWorkStatusData.slice(0, isMobile ? 8 : 15)} 
+        margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+      >
+        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+        <XAxis 
+          dataKey="district" 
+          stroke="#666" 
+          tick={{ fontSize: isMobile ? 8 : 10 }} 
+          angle={isMobile ? -90 : -45} 
+          textAnchor="end" 
+          height={isMobile ? 120 : 80}
+        />
+        <YAxis stroke="#666" tick={{ fontSize: isMobile ? 8 : 10 }} />
+        <Tooltip content={<DistrictWorkStatusTooltip />} />
+        <Legend 
+          iconType="rect"
+          wrapperStyle={{ fontSize: isMobile ? '8px' : '10px' }}
+        />
+        <Bar dataKey="notStarted" stackId="a" fill={workStatusColors['Not Started']} name="Not Started" />
+        <Bar dataKey="inProgress" stackId="a" fill={workStatusColors['In Progress']} name="In Progress" />
+        <Bar dataKey="completed" stackId="a" fill={workStatusColors['Completed']} name="Completed" />
+      </BarChart>
+    </ResponsiveContainer>
+    {isMobile && (
+      <div className="text-center mt-2">
+        <button 
+          onClick={() => setShowAllDistricts(!showAllDistricts)}
+          className="text-sm text-blue-600 hover:text-blue-800 underline"
+        >
+          {showAllDistricts ? 'Show Less Districts' : 'Show All Districts'}
+        </button>
+      </div>
+    )}
+  </div>
+</div>
 
         <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm mt-6">
           <h4 className="text-xl font-medium mb-4 flex items-center gap-2 text-gray-800">

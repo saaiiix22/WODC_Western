@@ -60,7 +60,7 @@ const EditBudget = () => {
         ifsc: item.ifsc || "",
         giaTypeId: item.giaType?.giaTypeId || "",
       }));
-    //   console.log(mappedRows);
+ 
       
       setRows(
         mappedRows.length

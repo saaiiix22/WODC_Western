@@ -9,4 +9,7 @@ export const getAllInspectionByCategoryService=(data)=>Api.get(endpoints.inspect
 export const getInspectionCalendarDataService=(data)=>Api.post(endpoints.inspection.getInspectionCalendarData,{obj:data})
 export const getInspectionByDateService=(data)=>Api.post(endpoints.inspection.getInspectionByDate,{obj:data})
 export const getInspectionByIdService=(data)=>Api.get(endpoints.inspection.getInspectionById,{params:{cipherText:data}})
+export const saveInspectionByStatuservice=(data)=>Api.post(endpoints.inspection.approveInspection,{obj:data})
+
+export const getLookUpForInspectionService=()=>Api.get(endpoints.inspection.getByLookUpInspection)
 

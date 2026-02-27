@@ -10,9 +10,10 @@ import { MdLockOutline, MdOutlineAddCircle } from "react-icons/md";
 import { MdLockOpen } from "react-icons/md";
 import DatePicker from "react-datepicker";
 // import { addDays } from "date-fns";
+import { exportToExcel, exportToPDF } from "../../utils/exportUtils";
 
 // import { addDays } from "date-fns";
-
+import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 
 import "react-datepicker/dist/react-datepicker.css";
 import { DataGrid } from "@mui/x-data-grid";
@@ -46,34 +47,8 @@ const AddGrievanceSlotConfiguration = () => {
     setExpanded(newExpanded ? panel : false);
   };
 
-  // Convert API date → dd/MM/yyyy
-  // const formatToDDMMYYYY = (dateStr) => {
-  //   if (!dateStr) return "";
 
-  //   // If already dd/MM/yyyy
-  //   if (dateStr.includes("/")) return dateStr;
-
-  //   const d = new Date(dateStr);
-  //   if (isNaN(d)) return "";
-
-  //   const day = String(d.getDate()).padStart(2, "0");
-  //   const month = String(d.getMonth() + 1).padStart(2, "0");
-  //   const year = d.getFullYear();
-
-  //   return `${day}/${month}/${year}`;
-  // };
-
-  // const dateToDDMMYYYY = (date) => {
-  //   if (!date || isNaN(date)) return "";
-
-  //   const day = String(date.getDate()).padStart(2, "0");
-  //   const month = String(date.getMonth() + 1).padStart(2, "0");
-  //   const year = date.getFullYear();
-
-  //   return `${day}/${month}/${year}`;
-  // };
-
-  // FORM HANDLING
+  
 
   const [formData, setFormData] = useState({
     virtualGrvSlotId: null,
@@ -104,7 +79,7 @@ const AddGrievanceSlotConfiguration = () => {
 
   const [rows, setRows] = useState([
     {
-      _rowKey: crypto.randomUUID(),
+    
       fromTime: "",
       toTime: "",
       meetingLink: "",
@@ -225,9 +200,9 @@ const AddGrievanceSlotConfiguration = () => {
     setErrors({});
     setOpenSubmit(true);
   };
-  const isMondayDate = (date) => {
-    return date.getDay() === 1; // Monday
-  };
+  // const isMondayDate = (date) => {
+  //   return date.getDay() === 1; // Monday
+  // };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -294,7 +269,29 @@ const AddGrievanceSlotConfiguration = () => {
       const res = await getSlotListService(payload);
       console.log(res);
       if (res?.data.outcome && res?.status === 200) {
-        setTableData(res?.data.data || []);
+        const rawData = res?.data.data || [];
+      
+        const mappedData = rawData.map((row) => {
+          const sub = allSubCategories.find(
+            (d) =>
+              String(d.grvSubCtgId) ===
+              String(row.grievanceSubCategory)
+          );
+      
+          return {
+            ...row,
+            grievanceSubCategoryName:
+              sub?.grvSubCtgName?.trim() || "N/A",
+      
+            fromTime:
+              row?.slotTimes?.map((t) => t.fromTime).join(", ") || "N/A",
+      
+            toTime:
+              row?.slotTimes?.map((t) => t.toTime).join(", ") || "N/A",
+          };
+        });
+      
+        setTableData(mappedData);
       }
     } catch (error) {
       throw error;
@@ -307,11 +304,11 @@ const AddGrievanceSlotConfiguration = () => {
     pageSize: 10,
   });
 
-  useEffect(() => {
-    getAllTableData();
-    getGrievanceCategoryName();
-    getGrievanceSubCategoryName();
-  }, []);
+  // useEffect(() => {
+  //   getAllTableData();
+  //   getGrievanceCategoryName();
+  //   getGrievanceSubCategoryName();
+  // }, []);
 
 
   const [openModal, setOpenModal] = useState(false);
@@ -394,10 +391,10 @@ const AddGrievanceSlotConfiguration = () => {
     }));
   };
 
-  const isMonday = (dateStr) => {
-    const d = new Date(dateStr);
-    return d.getDay() === 1;
-  };
+  // const isMonday = (dateStr) => {
+  //   const d = new Date(dateStr);
+  //   return d.getDay() === 1;
+  // };
 
   const isFutureDate = (dateStr) => {
     const today = new Date();
@@ -465,17 +462,10 @@ const AddGrievanceSlotConfiguration = () => {
     },
 
     {
-      field: "subCategory",
+      field: "grievanceSubCategoryName",
       headerName: "Sub Category",
       flex: 1,
-      valueGetter: (value, row) => {
-        const des = allSubCategories.find(
-          d => String(d.grvSubCtgId) === String(row?.grievanceSubCategory)
-        );
-        return des ? des.grvSubCtgName : "N/A";
-      },
-    }
-    ,
+    },
     {
       field: "grvConfigDate",
       headerName: "Slot Date",
@@ -486,16 +476,11 @@ const AddGrievanceSlotConfiguration = () => {
       field: "fromTime",
       headerName: "From Time",
       flex: 1,
-      valueGetter: (value, row) =>
-        row?.slotTimes?.map(t => t.fromTime).join(", ") || "N/A"
     },
     {
       field: "toTime",
       headerName: "To Time",
       flex: 1,
-      valueGetter: (value, row) =>
-        row?.slotTimes?.map(t => t.toTime).join(", ") || "N/A"
-
     },
     {
       field: "actions",
@@ -511,83 +496,59 @@ const AddGrievanceSlotConfiguration = () => {
       ),
     },
   ];
+  useEffect(() => {
+    if (allSubCategories.length > 0) {
+      setTableData((prev) => [...prev]);
+    }
+  }, [allSubCategories]);
 
-  // const sectorColumn = [
-  //   {
-  //     name: "Sl No",
-  //     selector: (row, index) => index + 1,
-  //     width: "80px",
-  //     center: true,
-  //   },
-  //   // {
-  //   //   name: "Category",
-  //   //   selector: (row) => row.ctgName || "N/A",
-  //   // },
-  //   {
-  //     name: "Sub Category Type",
-  //     selector: (row) => {
-  //       const des = allSubCategories.find(
-  //         (d) => String(d.grvSubCtgId) === String(row.grievanceSubCategory)
-  //       );
-  //       return des ? des.grvSubCtgName : "N/A";
-  //     },
-  //   },
-
-
-  //   {
-  //     name: "Slot Date",
-  //     selector: (row) =>
-  //       row?.grvConfigDate ? (
-  //         <div className="flex flex-col leading-tight">
-  //           <span>{row.grvConfigDate}</span>
-  //           <span className="text-slate-600 text-[12px]">
-  //             {/* {new Date(row.grvConfigDate).toLocaleDateString("en-IN", )} */}
-  //           </span>
-  //         </div>
-  //       ) : (
-  //         "N/A"
-  //       ),
-  //     sortable: true,
-  //   },
-  //   {
-  //     name: "From Time",
-  //     selector: (row) =>
-  //       row.slotTimes?.map(t => t.fromTime).join(", ") || "N/A",
-  //   },
-
-  //   {
-  //     name: "To Time",
-  //     selector: (row) =>
-  //       row.slotTimes?.map(t => t.toTime).join(", ") || "N/A",
-  //   },
-
-
-
-  //   {
-  //     name: "Action",
-  //     width: "120px",
-  //     cell: (row) => (
-  //       <div className="flex items-center gap-2">
-  //         {/* EDIT BUTTON */}
-  //         <Tooltip title="Edit" arrow>
-  //           <button
-  //             type="button"
-  //             className="flex items-center justify-center h-8 w-8 bg-blue-500/25 text-blue-500 rounded-full"
-  //             onClick={() => {
-  //               editSector(row?.virtualGrvSlotId);
-  //             }}
-  //           >
-  //             <GoPencil className="w-4 h-4" />
-  //           </button>
-  //         </Tooltip>
-  //       </div>
-  //     ),
-  //     ignoreRowClick: true,
-  //     allowOverflow: true,
-  //     button: true,
-  //   },
-  // ];
-
+  useEffect(() => {
+    const loadAllData = async () => {
+      try {
+        // 1️⃣ Load category list
+        const catRes = await getCategoryListService();
+        setCategoryList(catRes?.data?.data || []);
+  
+        // 2️⃣ Load subcategory list
+        const subRes = await getSubCategoryListService();
+        const subCategories = subRes?.data?.data || [];
+        setAllSubCategories(subCategories);
+  
+        // 3️⃣ Load slot list
+        const payload = encryptPayload({ isActive: false });
+        const slotRes = await getSlotListService(payload);
+        const rawData = slotRes?.data?.data || [];
+  
+        // 4️⃣ Map with subcategory name
+        const mappedData = rawData.map((row) => {
+          const sub = subCategories.find(
+            (d) =>
+              String(d.grvSubCtgId) ===
+              String(row.grievanceSubCategory)
+          );
+  
+          return {
+            ...row,
+            grievanceSubCategoryName:
+              sub?.grvSubCtgName?.trim() || "N/A",
+  
+            fromTime:
+              row?.slotTimes?.map((t) => t.fromTime).join(", ") || "N/A",
+  
+            toTime:
+              row?.slotTimes?.map((t) => t.toTime).join(", ") || "N/A",
+          };
+        });
+  
+        setTableData(mappedData);
+      } catch (error) {
+        console.error(error);
+        toast.error("Failed to load data");
+      }
+    };
+  
+    loadAllData();
+  }, []);
   return (
     <div className="mt-3">
       <Accordion
@@ -636,7 +597,7 @@ const AddGrievanceSlotConfiguration = () => {
               <div className="col-span-2">
 
                 <SelectField
-                  label="Grievance Sub Category"
+                  label=" Sub Category"
                   required
                   name="grvSubCtgId"
                   value={grvSubCtgId || ""}
@@ -650,35 +611,8 @@ const AddGrievanceSlotConfiguration = () => {
                   disabled={!grvCtgId}
                 />
 
-                <SelectField
-                  label="Grievance Sub Category"
-                  required
-                  name="grvSubCtgId"
-                  value={grvSubCtgId || ""}
-                  onChange={handleChangeInput}
-                  options={subCategoryList.map((d) => ({
-                    value: d.grvSubCtgId,
-                    label: d.grvSubCtgName,
-                  }))}
-                  error={errors.grvSubCtgId}
-                  placeholder={grvCtgId ? "Select Sub Category" : "Select"}
-                  disabled={!grvCtgId}
-                />
-
-                <SelectField
-                  label="Grievance Sub Category"
-                  required
-                  name="grvSubCtgId"
-                  value={grvSubCtgId || ""}
-                  onChange={handleChangeInput}
-                  options={subCategoryList.map((d) => ({
-                    value: d.grvSubCtgId,
-                    label: d.grvSubCtgName,
-                  }))}
-                  error={errors.grvSubCtgId}
-                  placeholder={grvCtgId ? "Select Sub Category" : "Select Category First"}
-                  disabled={!grvCtgId}
-                />
+               
+       
 
               </div>
 
@@ -686,41 +620,42 @@ const AddGrievanceSlotConfiguration = () => {
                 <label className="block text-[10px] font-medium text-gray-700 mb-1">
                   Slot Date <span className="text-red-500">*</span>
                 </label>
-                <DatePicker
-                  selected={
-                    formData.grvConfigDate
-                      ? new Date(formData.grvConfigDate.split("/").reverse().join("-"))
-                      : null
-                  }
-                  onChange={(date) => {
-                    if (!isMondayDate(date)) {
-                      toast.error("Only Mondays are allowed");
-                      return;
+
+                <div className="relative mt-1">
+                  <DatePicker
+                    selected={
+                      formData.grvConfigDate
+                        ? new Date(formData.grvConfigDate.split("/").reverse().join("-"))
+                        : null
                     }
-                    if (date < new Date()) {
-                      toast.error("Past dates are not allowed");
-                      return;
-                    }
+                    onChange={(date) => {
+                      const today = new Date();
+                      today.setHours(0, 0, 0, 0);
 
-                    setFormData((prev) => ({
-                      ...prev,
-                      grvConfigDate: dateToDDMMYYYY(date),
-                    }));
-                  }}
-                  dateFormat="dd/MM/yyyy"
-                  minDate={new Date()}
-                  placeholderText="Select a slot date"
+                      if (date < today) {
+                        toast.error("Past dates are not allowed");
+                        return;
+                      }
 
-                  dayClassName={(date) =>
-                    isMondayDate(date) && date >= new Date()
-                      ? "highlight-monday"
-                      : undefined
-                  }
-
-
-                  className={`w-full rounded-md border border-gray-300 px-2.5 py-1.5 mt-1 text-sm ${errors.grvConfigDate ? "border-red-500" : ""
+                      setFormData((prev) => ({
+                        ...prev,
+                        grvConfigDate: dateToDDMMYYYY(date),
+                      }));
+                    }}
+                    dateFormat="dd/MM/yyyy"
+                    minDate={new Date()}
+                    placeholderText="Select a slot date"
+                    className={`w-full rounded-md border border-gray-300 px-2.5 py-1.5 pr-10 text-sm ${
+                      errors.grvConfigDate ? "border-red-500" : ""
                     }`}
-                />
+                  />
+
+                  {/* Calendar Icon */}
+                  <CalendarMonthIcon
+                    fontSize="small"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
+                  />
+                </div>
 
                 {errors.grvConfigDate && (
                   <p className="text-red-500 text-xs mt-1">
@@ -891,6 +826,33 @@ const AddGrievanceSlotConfiguration = () => {
         />
 
         <AccordionDetails>
+        <div className="flex gap-3 mb-3">
+  <button
+    onClick={() =>
+      exportToExcel(
+        tableData,
+        columns,
+        "Slot_List"
+      )
+    }
+    className="px-4 py-2 bg-emerald-100 text-emerald-700 rounded hover:bg-emerald-300 transition"
+    >
+    Export Excel
+  </button>
+
+  <button
+    onClick={() =>
+      exportToPDF(
+        tableData,
+        columns,
+        "Slot_List"
+      )
+    }
+    className="px-4 py-2 bg-rose-100 text-rose-700 border border-rose-300 rounded hover:bg-rose-300 transition"
+    >
+    Export PDF
+  </button>
+</div>
 
           <div style={{ height: 420, width: "100%" }}>
             <DataGrid

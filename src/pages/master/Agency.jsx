@@ -15,17 +15,12 @@ import {
   AccordionSummary,
 } from "../../components/common/CommonAccordion";
 import { ResetBackBtn, SubmitBtn } from "../../components/common/CommonButtons";
-import {
-  editMilestoneService,
-  getMilesStoneListService,
-  saveMilesStoneService,
-  toggleMilestoneStatusService,
-} from "../../services/milesStoneService";
 import SelectField from "../../components/common/SelectField";
 import { districtList } from "../../services/demographyService";
 import { FaMinusCircle } from "react-icons/fa";
 import { getBankNamesService } from "../../services/budgetService";
 import {
+  checkAgencyBankDetailsService,
   editAgencySerice,
   getAgencyDetailsService,
   saveAgencySerice,
@@ -33,12 +28,9 @@ import {
 } from "../../services/agencyService";
 import {
   accountNumberUtil,
-  cleanAadhaarUtil,
   cleanContactNoUtil,
   cleanEmailUtil,
   ifscUtil,
-  IFSCutil,
-  validateAadhaarUtil,
   validateAccountNoUtil,
   validateContactNoUtil,
   validateEmailUtil,
@@ -71,11 +63,7 @@ const Agency = () => {
     address,
     districtId,
   } = formData;
-  const formatDateToDDMMYYYY = (dateStr) => {
-    if (!dateStr) return "";
-    const [yyyy, mm, dd] = dateStr.split("-");
-    return `${dd}/${mm}/${yyyy}`;
-  };
+
 
   const formatDateMMDDYY = (dateStr) => {
     if (!dateStr) return "";
@@ -135,10 +123,12 @@ const Agency = () => {
   const [rows, setRows] = useState([
     {
       agencyBankId: null,
-      bankId: "",
+      bankId: null,
       branchName: "",
       accountNo: "",
       ifscCode: "",
+      isBankVerified: null,
+
     },
   ]);
 
@@ -157,14 +147,20 @@ const Agency = () => {
       return;
     }
 
+    if (lastRow.isBankVerified === false) {
+      toast.error("Please enter valid bank details before adding a new row");
+      return;
+    }
+
     setRows([
       ...rows,
       {
         agencyBankId: null,
-        bankId: "",
+        bankId: null,
         branchName: "",
         accountNo: "",
         ifscCode: "",
+        isBankVerified: null,
       },
     ]);
   };
@@ -175,20 +171,45 @@ const Agency = () => {
     setRows(updated);
   };
 
-  const handleInput = (index, name, value) => {
-  const updated = [...rows];
+  const handleInput = async (index, name, value) => {
+    const updated = [...rows];
 
-  if (name === "accountNo") {
-    value = accountNumberUtil(value); // digits only
-  }
+    if (name === "accountNo") {
+      value = accountNumberUtil(value);
+    }
 
-  if (name === "ifscCode") {
-    value = ifscUtil(value); // uppercase + format
-  }
+    if (name === "ifscCode") {
+      value = ifscUtil(value);
+    }
+    updated[index] = {
+      ...updated[index],
+      [name]: value,
+    };
+    const { accountNo, ifscCode, bankId } = updated[index];
 
-  updated[index][name] = value;
-  setRows(updated);
-};
+    if (
+      accountNo &&
+      ifscCode &&
+      accountNo.length >= 9 &&
+      accountNo.length <= 18 &&
+      ifscCode.length === 11
+    ) {
+      try {
+        const payload = encryptPayload({ accountNo, ifscCode, bankId });
+        const res = await checkAgencyBankDetailsService(payload);
+
+        updated[index].isBankVerified = res?.data?.outcome ?? false;
+
+        if (!res?.data?.outcome) {
+          toast.error(res?.data?.message);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    }
+
+    setRows(updated);
+  };
 
 
   const [errors, setErrors] = useState({});
@@ -197,6 +218,14 @@ const Agency = () => {
   const handleSubmitConfirmModal = (e) => {
     e.preventDefault();
     let newErrors = {};
+    const hasInvalidBank = rows.some(
+      (row) => row.isBankVerified === false
+    );
+
+    if (hasInvalidBank) {
+      toast.error("One or more bank details are invalid");
+      return;
+    }
     if (!districtId) {
       newErrors.districtId = "District name is required";
       setErrors(newErrors);
@@ -642,7 +671,7 @@ const Agency = () => {
                           <td className="border-r border-slate-200 px-2 py-1">
                             <input
                               name="ifscCode"
-                              value={ifscUtil(i.ifscCode)}
+                              value={i.ifscCode}
                               maxLength={11}
                               onChange={(e) =>
                                 handleInput(index, "ifscCode", e.target.value)

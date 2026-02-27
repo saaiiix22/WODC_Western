@@ -97,6 +97,7 @@ const InputField = ({
         <input
           type={type}
           name={name}
+          autoComplete="false"
           value={value ?? ""}
           onChange={safeOnChange}
           onBlur={onBlur}

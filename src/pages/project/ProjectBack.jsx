@@ -27,7 +27,6 @@ import {
   getConsByDistService,
   getConsThroughDistService,
   getJuridictionService,
-  // getFavourANDmodeOfTransferService,
   getProjectDetailsByProjectIdService,
   getProposalByDistService,
   getSectorService,
@@ -40,6 +39,7 @@ import {
   saveProjectService,
   totalBudgetService,
 } from "../../services/projectService";
+import CommonFormModal from "../../components/common/CommonFormModal";
 import { getMunicipalityViaDistrictsService } from "../../services/wardService";
 import { getGIAtypeList } from "../../services/giaService";
 import { useDispatch, useSelector } from "react-redux";
@@ -55,6 +55,10 @@ import { GrSave } from "react-icons/gr";
 import { constituencyTypeListService } from "../../services/constituencyService";
 import { judictionMapConfigService } from "../../services/judictionMapConfigService";
 import { sanitizeInputUtil } from "../../utils/sanitizeInputUtil";
+import {
+  getAllHeadListService,
+  getSubHeadsByHeadIdlist,
+} from "../../services/headService";
 
 const Project = () => {
   const [expanded, setExpanded] = useState("panel1");
@@ -62,11 +66,7 @@ const Project = () => {
   const handleChange = (panel) => (event, newExpanded) => {
     setExpanded(newExpanded ? panel : false);
   };
-
   const stateSelect = useSelector((state) => state.project.selectedProject);
-  // console.log(stateSelect);
-
-  // FORM HANDLING
 
   const [formData, setFormData] = useState({
     districtId: "",
@@ -95,6 +95,8 @@ const Project = () => {
     constituencyTypeCode: "",
     startDate: "",
     endDate: "",
+    actualStartDate: "",
+    actualEndDate: "",
     fundAllocDate: null,
 
     projectStatus: "",
@@ -103,8 +105,8 @@ const Project = () => {
     objectType: "",
     objectId: "",
 
-    // fundReleaseTo: "DISTRICT",
     approvedAmount: "",
+    remarks: ""
   });
 
   const {
@@ -140,6 +142,7 @@ const Project = () => {
     fundReleaseTo,
     estimatedBudget,
     approvedAmount,
+    remarks,
   } = formData;
 
   // ALL SELECT'S OPTIONS
@@ -153,36 +156,43 @@ const Project = () => {
   const [constituencyOpts, setConstituencyOpts] = useState([]);
   const [propsByBlock, setPropsByBlock] = useState([]);
   const [juridictionOpts, setJuridictionOpts] = useState([]);
-  const [selectedVal, setSelectedVal] = useState({})
-  const [proposedByDesignationOpts, setProposedByDesignationOpts] = useState(
-    []
-  );
   const [sectorOpts, setSectorOpts] = useState([]);
   const [subSectorOptions, setSubSectorOpts] = useState([]);
-  // const [bankListOpts, setbankListOpts] = useState([]);
   const [giaOpts, setGIAoptions] = useState([]);
   const [actualFinDuartion, setActualFinDuartion] = useState({})
+
+  // Head and Subhead options
+  const [headOpts, setHeadOpts] = useState([]);
+  const [subHeadOpts, setSubHeadOpts] = useState({}); // Changed to object for row-specific options
 
   // --------------------------------------------------------------------------
   const [forwardedId, setForwardedId] = useState(null)
   const [button, setButtons] = useState([])
-  const [stageForwardedRuleStatus,setStageForwardedRuleStatus] = useState('')
+  const [stageForwardedRuleStatus, setStageForwardedRuleStatus] = useState('')
 
   const location = useLocation()
 
   const getWorkFlow = async () => {
     try {
-      const payload = encryptPayload({ appModuleUrl: location.pathname, forwardedId: (forwardedId ? Number(forwardedId) : null) })
+      const payload = encryptPayload({
+        appModuleUrl: location.pathname,
+        forwardedId: (forwardedId ? Number(forwardedId) : null)
+      })
       const res = await forwardListByMenuService(payload)
-      // console.log(res);
+
+
       if (res?.status === 200 && res?.data.outcome) {
+        // const filteredButtons = res?.data.data.filter(button =>
+        //   button.actionType.actionCode !== stageForwardedRuleStatus
+        // )
+
         setButtons(res?.data.data)
-      }
-      else {
+      } else {
         setButtons([])
       }
     } catch (error) {
-      console.log(error);
+      console.log(error)
+      setButtons([])
     }
   }
 
@@ -228,12 +238,6 @@ const Project = () => {
       setWardOpts
     );
 
-  // const getProposedByOptions = () =>
-  //   load(
-  //     getProposalByDistService,
-  //     { isActive: true, districtId: proposeByDist },
-  //     setProposedByDesignationOpts
-  //   );
   const getAllSectors = () =>
     load(getSectorService, { isActive: true }, setSectorOpts);
 
@@ -242,6 +246,96 @@ const Project = () => {
 
   const getGIATypeOpts = () =>
     load(getGIAtypeList, { isActive: true }, setGIAoptions);
+
+  const getAllHeads = () =>
+    load(getAllHeadListService, { isActive: true }, setHeadOpts);
+
+  // Updated getSubHeadsByHeadId function to handle row-specific options
+  const getSubHeadsByHeadId = async (headId, rowIndex = null) => {
+    if (!headId) {
+      if (rowIndex !== null) {
+        setSubHeadOpts(prev => ({
+          ...prev,
+          [rowIndex]: []
+        }));
+      } else {
+        setSubHeadOpts({});
+      }
+      return;
+    }
+
+    try {
+      const payload = encryptPayload({
+        isActive: true,
+        headId: headId
+      });
+      const res = await getSubHeadsByHeadIdlist(payload);
+
+      if (res?.status === 200 && res?.data?.outcome) {
+        const subHeads = res.data.data || [];
+
+        if (rowIndex !== null) {
+          // Store subheads for specific row
+          setSubHeadOpts(prev => ({
+            ...prev,
+            [rowIndex]: subHeads
+          }));
+        } else {
+          // Store globally (for new rows)
+          const globalOpts = {};
+          globalOpts[0] = subHeads;
+          setSubHeadOpts(globalOpts);
+        }
+      } else {
+        if (rowIndex !== null) {
+          setSubHeadOpts(prev => ({
+            ...prev,
+            [rowIndex]: []
+          }));
+        } else {
+          setSubHeadOpts({});
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching subheads:", error);
+      toast.error("Failed to fetch subheads");
+      if (rowIndex !== null) {
+        setSubHeadOpts(prev => ({
+          ...prev,
+          [rowIndex]: []
+        }));
+      } else {
+        setSubHeadOpts({});
+      }
+    }
+  };
+
+  // Function to load subheads for existing rows during edit
+  const loadExistingSubHeads = async () => {
+    if (stateSelect?.fundReleaseInfo?.length > 0) {
+      // For each row that has a headId, load its subheads
+      stateSelect.fundReleaseInfo.forEach(async (row, index) => {
+        if (row.headId) {
+          try {
+            const payload = encryptPayload({
+              isActive: true,
+              headId: row.headId
+            });
+            const res = await getSubHeadsByHeadIdlist(payload);
+
+            if (res?.status === 200 && res?.data?.outcome) {
+              setSubHeadOpts(prev => ({
+                ...prev,
+                [index]: res.data.data || []
+              }));
+            }
+          } catch (error) {
+            console.error("Error loading subheads:", error);
+          }
+        }
+      });
+    }
+  };
 
   const [modeOfTransferList, setModeOfTransferList] = useState([]);
   const getFavourandModeOpts = async () => {
@@ -257,6 +351,8 @@ const Project = () => {
   const [fundReleaseRows, setFundReleaseRows] = useState([
     {
       fundReleaseInfoId: null,
+      headId: "",
+      subHeadId: "",
       bankId: "",
       modeOfTransfer: "",
       favourOf: "",
@@ -269,9 +365,12 @@ const Project = () => {
     },
   ]);
   const [totalAmount, setTotalAmount] = useState(0);
+
   const handleAddRow = () => {
     const allFilled = fundReleaseRows.every(
       (item) =>
+        item.headId &&
+        item.subHeadId &&
         item.bankId &&
         item.modeOfTransfer &&
         item.releaseAmount &&
@@ -291,6 +390,8 @@ const Project = () => {
         ...prev,
         {
           fundReleaseInfoId: null,
+          headId: "",
+          subHeadId: "",
           bankId: "",
           modeOfTransfer: "",
           favourOf: "",
@@ -315,6 +416,12 @@ const Project = () => {
 
   const handleRemoveRow = (index) => {
     setFundReleaseRows((prev) => prev.filter((_, i) => i !== index));
+    // Also remove subhead options for this row
+    setSubHeadOpts(prev => {
+      const newOpts = { ...prev };
+      delete newOpts[index];
+      return newOpts;
+    });
   };
 
   const [bankListOpts, setBankListOpts] = useState({});
@@ -364,11 +471,6 @@ const Project = () => {
     indices.forEach(i => {
       let used = Number(updated[i].releaseAmount || 0);
 
-      // if (used > totalBudget - runningUsed) {
-      //   used = totalBudget - runningUsed;
-      //   updated[i].releaseAmount = String(used);
-      // }
-
       updated[i] = {
         ...updated[i],
         maxamount: totalBudget,
@@ -381,8 +483,6 @@ const Project = () => {
     return updated;
   };
 
-
-
   const handleRowChange = async (e, index) => {
     const { name, value } = e.target;
 
@@ -391,7 +491,24 @@ const Project = () => {
       const rows = [...prev];
       const row = { ...rows[index], [name]: value };
 
-      // Reset dependent fields (DO NOT touch maxamount)
+      // Reset dependent fields
+      if (name === "headId") {
+        row.subHeadId = "";
+        row.bankId = "";
+        row.bankAccConfigId = "";
+        row.releaseAmount = "";
+        row.remainingAmount = 0;
+        row.fundAllocDate = "";
+      }
+
+      if (name === "subHeadId") {
+        row.bankId = "";
+        row.bankAccConfigId = "";
+        row.releaseAmount = "";
+        row.remainingAmount = 0;
+        row.fundAllocDate = "";
+      }
+
       if (name === "giaYear" || name === "giaTypeId") {
         row.bankId = "";
         row.bankAccConfigId = "";
@@ -413,7 +530,7 @@ const Project = () => {
 
         rows[index] = {
           ...rows[index],
-          releaseAmount: raw, // keep as string for input
+          releaseAmount: raw,
         };
 
         const combo = {
@@ -426,14 +543,12 @@ const Project = () => {
         return recalcSequentialForCombination(rows, combo);
       }
 
-
       rows[index] = row;
       return rows;
     });
 
     // Stop side effects for releaseAmount
     if (name === "releaseAmount") return;
-
 
     // ================= SIDE EFFECTS =================
     const currentRow = fundReleaseRows[index];
@@ -448,6 +563,16 @@ const Project = () => {
       name === "bankAccConfigId"
         ? value
         : currentRow.bankAccConfigId;
+    const updatedHeadId =
+      name === "headId" ? value : currentRow.headId;
+    const updatedSubHeadId =
+      name === "subHeadId" ? value : currentRow.subHeadId;
+
+    // -------- Load Subheads when Head changes --------
+    if (name === "headId" && updatedHeadId) {
+      await getSubHeadsByHeadId(updatedHeadId, index);
+      return;
+    }
 
     // -------- Load Banks --------
     if (
@@ -520,7 +645,7 @@ const Project = () => {
 
           rows[index] = {
             ...rows[index],
-            maxamount: total,       // All rows get the SAME total
+            maxamount: total,
             releaseAmount: "",
             fundAllocDate,
           };
@@ -552,13 +677,12 @@ const Project = () => {
           const rows = [...prev];
           rows[index] = {
             ...rows[index],
-            maxamount: total, // All rows will show this same total
-            remainingAmount: total, // Initially, remaining is total (no release yet)
+            maxamount: total,
+            remainingAmount: total,
             fundAllocDate: res.data.data.fundAllocDate || "",
             releaseAmount: "",
           };
 
-          // Recalculate for this combination if there are other rows
           return recalcSequentialForCombination(rows, {
             giaYear: updatedYear,
             giaTypeId: updatedType,
@@ -569,7 +693,6 @@ const Project = () => {
       }
     }
   };
-
 
   const validateField = (fieldName, fieldValue, data) => {
     let error = "";
@@ -636,7 +759,6 @@ const Project = () => {
     return error;
   };
 
-
   const handleChangeInput = (e) => {
     const { name, value } = e.target;
 
@@ -675,13 +797,10 @@ const Project = () => {
     setErrors(newErrors);
   };
 
-
-
   const generateCode = async () => {
     try {
       const payload = encryptPayload({ projectName: projectName });
       const res = await generateProjectCodeService(payload);
-      // console.log(res);
 
       setFormData((prev) => ({
         ...prev,
@@ -691,6 +810,7 @@ const Project = () => {
       console.error(error);
     }
   };
+
   useEffect(() => {
     if (projectName.length === 4) {
       generateCode();
@@ -709,76 +829,100 @@ const Project = () => {
     return `${dd}/${mm}/${yyyy}`;
   };
 
-
   const [errors, setErrors] = useState({});
 
   const [openSubmit, setOpenSubmit] = useState(false);
+
   const handleSubmitConfirmModal = (e) => {
     e.preventDefault();
     let newErrors = {};
+
+    console.log("hello");
+
+    // Financial Year validation
     if (!finYear) {
       newErrors.finYear = "Financial Year is required";
       setExpanded("panel1");
       setErrors(newErrors);
       return;
     }
+
+    // Project Name validation
     if (!projectName || !projectName.trim()) {
       newErrors.projectName = "Project name is required";
       setExpanded("panel1");
       setErrors(newErrors);
       return;
     }
+
+    // AA Order Number validation
     if (!aaOrderNo || !aaOrderNo.trim()) {
       newErrors.aaOrderNo = "AA order number is required";
       setExpanded("panel1");
       setErrors(newErrors);
       return;
     }
+
+    // AA Order Date validation
     if (!aaOrderDate || !aaOrderDate.trim()) {
       newErrors.aaOrderDate = "AA order date is required";
       setExpanded("panel1");
       setErrors(newErrors);
       return;
     }
+
+    // District validation
     if (!districtId) {
       newErrors.districtId = "District name is required";
       setExpanded("panel1");
       setErrors(newErrors);
       return;
     }
+
+    // Area Type validation
     if (!areaType) {
       newErrors.areaType = "Area type is required";
       setExpanded("panel1");
       setErrors(newErrors);
       return;
     }
+
+    // Object/Village/Ward validation
     if (areaType) {
       if (!objectId) {
-        newErrors.objectId = "Kindly select";
+        const fieldName = areaType === "BLOCK" ? "Village" : "Ward";
+        newErrors.objectId = `Please select a ${fieldName}`;
         setExpanded("panel1");
         setErrors(newErrors);
         return;
       }
     }
 
+    // Sector validation
     if (!sectorId) {
       newErrors.sectorId = "Kindly select Sector";
       setExpanded("panel1");
       setErrors(newErrors);
       return;
     }
+
+    // Start Date validation
     if (!startDate) {
       newErrors.startDate = "Kindly choose start date";
       setExpanded("panel1");
       setErrors(newErrors);
       return;
     }
+
+    // End Date validation
     if (!endDate) {
       newErrors.endDate = "Kindly choose end date";
       setExpanded("panel1");
       setErrors(newErrors);
       return;
     }
+
+    // Estimated Budget validation
     if (!estimatedBudget) {
       newErrors.estimatedBudget = "Kindly fill estimated project cost";
       setExpanded("panel1");
@@ -786,135 +930,151 @@ const Project = () => {
       return;
     }
 
-
-
-    if (!sectorId) {
-      newErrors.sectorId = "Sector is required";
-      setExpanded("panel1");
-      setErrors(newErrors);
-      return;
-    }
-
-    if (!startDate) {
-      newErrors.startDate = "Start date is required";
-      setExpanded("panel1");
-      setErrors(newErrors);
-      return;
-    }
-
-    if (!endDate) {
-      newErrors.endDate = "End date is required";
-      setExpanded("panel1");
-      setErrors(newErrors);
-      return;
-    }
-
-    if (Object.keys(newErrors).length === 0) {
+    if (Object.keys(errors).length === 0) {
       setOpenSubmit(true);
     } else {
       setOpenSubmit(false);
     }
   };
-  const navigate = useNavigate();
-  const handleSubmit = async (e) => {
-    const sendData = {
-      forwardedId,
-      projectId,
-      finYear,
-      projectName,
-      projectCode,
-      aaOrderNo,
-      aaOrderDate: formatDateToDDMMYYYY(aaOrderDate),
-      areaType,
-      constituencyId,
-      proposedBy: proposedBy ? proposedBy : null,
-      proposedByName,
-      objectType: areaType === "BLOCK" ? "VILLAGE" : "WARD",
-      objectId: objectId,
-      sector: sectorId,
-      subSector: Number(subSector),
-      actualStartDate: formatDateToDDMMYYYY(actualStartDate),
-      actualEndDate: formatDateToDDMMYYYY(actualEndDate),
-      startDate: formatDateToDDMMYYYY(startDate),
-      endDate: formatDateToDDMMYYYY(endDate),
-      estimatedBudget,
-      fundAllocDate,
 
-      // fundReleaseTo,
-      approvedAmount: totalAmount,
+  const [pendingAction, setPendingAction] = useState(null);
 
-      fundReleaseInfo: fundReleaseRows,
-    };
-    // console.log(proposedBy);
-
-    try {
-      const payload = encryptPayload(sendData);
-      const res = await saveProjectService(payload);
-      console.log(res);
-      if (res?.status === 200 && res?.data.outcome) {
-        setOpenSubmit(false);
-        toast.success(res?.data.message);
-        navigate("/project-list");
-        setFormData({
-          districtId: "",
-          blockId: "",
-          gpId: "",
-          municipalityId: "",
-
-          projectId: null,
-          finYear: "",
-          projectName: "",
-          projectCode: "",
-          aaOrderNo: "",
-          aaOrderDate: "",
-          areaType: "",
-          // constituencyId: "", 
-          districtProposed: "",
-
-          proposeByDist: "",
-          proposedBy: "",
-          proposedByName: "",
-          sectorId: "",
-          sector: "",
-          subSector: "",
-          startDate: "",
-          endDate: "",
-          actualStartDate: "",
-          actualEndDate: "",
-          fundAllocDate: null,
-
-          projectStatus: "",
-          estimatedBudget: "",
-
-          objectType: "",
-          objectId: "",
-
-          // fundReleaseTo: "DISTRICT",
-          approvedAmount: "",
-        });
-        setFundReleaseRows([
-          {
-            fundReleaseInfoId: null,
-            bankId: "",
-            modeOfTransfer: "",
-            // favourOf: "",
-            releaseAmount: "",
-            giaYear: "",
-            giaTypeId: "",
-            bankAccConfigId: "",
-            // sanctionOrderNo: "",
-            // sanctionOrderDate: "",
-            // releaseLetterNo: "",
-            // releaseLetterDate: "",
-            remarks: "",
-            fundAllocDate: "",
-          },
-        ]);
-      }
-    } catch (error) {
-      throw error;
+  const handleRemarksSubmit = () => {
+    if (!remarks || !remarks.trim()) {
+      toast.error("Remarks are mandatory");
+      return;
     }
-    // console.log(sendData);
+
+    setForwardedId(pendingAction?.forwardedId);
+    const id = pendingAction?.forwardedId;
+
+    setRejectionModal(false);
+    setPendingAction(null);
+
+    handleSubmit(id);
+  };
+
+  const navigate = useNavigate();
+  // console.log(errors);
+
+  const handleSubmit = async (passedForwardedId = null) => {
+
+
+    const cleanedFundReleaseRows = fundReleaseRows.map(row => ({
+      fundReleaseInfoId: row.fundReleaseInfoId || null,
+      headId: row.headId || "",
+      subHeadId: row.subHeadId || "",
+      bankId: row.bankId || "",
+      modeOfTransfer: row.modeOfTransfer || "",
+      favourOf: row.favourOf || "",
+      releaseAmount: row.releaseAmount || "0",
+      giaYear: row.giaYear || "",
+      giaTypeId: row.giaTypeId || "",
+      bankAccConfigId: row.bankAccConfigId || "",
+      remarks: row.remarks || "",
+      fundAllocDate: row.fundAllocDate || "",
+    }));
+
+    const sendData = {
+      forwardedId: passedForwardedId ?? forwardedId,
+      projectId: projectId || null,
+      finYear: finYear || "",
+      projectName: projectName || "",
+      projectCode: projectCode || "",
+      aaOrderNo: aaOrderNo || "",
+      aaOrderDate: formatDateToDDMMYYYY(aaOrderDate) || "",
+      areaType: areaType || "",
+      constituencyId: constituencyId || "",
+      proposedBy: proposedBy || null,
+      proposedByName: proposedByName || "",
+      objectType: areaType === "BLOCK" ? "VILLAGE" : "WARD",
+      objectId: objectId || "",
+      sector: sectorId || "",
+      subSector: Number(subSector) || 0,
+      actualStartDate: formatDateToDDMMYYYY(actualStartDate) || "",
+      actualEndDate: formatDateToDDMMYYYY(actualEndDate) || "",
+      startDate: formatDateToDDMMYYYY(startDate) || "",
+      endDate: formatDateToDDMMYYYY(endDate) || "",
+      estimatedBudget: estimatedBudget || "0",
+      fundAllocDate: fundAllocDate || "",
+      approvedAmount: totalAmount || 0,
+      fundReleaseInfo: cleanedFundReleaseRows,
+      remarks: remarks || "",
+    };
+    if (Object.keys(errors).length === 0) {
+      try {
+        const payload = encryptPayload(sendData);
+
+        const res = await saveProjectService(payload);
+
+        if (res?.status === 200 && res?.data.outcome) {
+          setOpenSubmit(false);
+          toast.success(res?.data.message);
+          navigate("/project-list");
+
+          // Reset form
+          setFormData({
+            districtId: "",
+            blockId: "",
+            gpId: "",
+            municipalityId: "",
+            projectId: null,
+            finYear: "",
+            projectName: "",
+            projectCode: "",
+            aaOrderNo: "",
+            aaOrderDate: "",
+            areaType: "BLOCK",
+            constituencyId: "",
+            districtProposed: "",
+            proposeByDist: "",
+            proposeByBlock: "",
+            proposedBy: "",
+            proposedByName: "",
+            sectorId: "",
+            sector: "",
+            subSector: "",
+            judictionType: "",
+            constituencyTypeCode: "",
+            startDate: "",
+            endDate: "",
+            actualStartDate: "",
+            actualEndDate: "",
+            fundAllocDate: null,
+            projectStatus: "",
+            estimatedBudget: "",
+            objectType: "",
+            objectId: "",
+            approvedAmount: "",
+            remarks: ""
+          });
+
+          setFundReleaseRows([
+            {
+              fundReleaseInfoId: null,
+              headId: "",
+              subHeadId: "",
+              bankId: "",
+              modeOfTransfer: "",
+              releaseAmount: "",
+              giaYear: "",
+              giaTypeId: "",
+              bankAccConfigId: "",
+              remarks: "",
+              fundAllocDate: "",
+            },
+          ]);
+          setSubHeadOpts({});
+        }
+      } catch (error) {
+        console.error(error);
+        setOpenSubmit(false)
+      }
+    }
+    else{
+      setOpenSubmit(false)
+    }
+
   };
 
   const toYMD = (d) => {
@@ -922,93 +1082,80 @@ const Project = () => {
     const [dd, mm, yyyy] = d.split("/");
     return `${yyyy}-${mm}-${dd}`;
   };
-  // console.log(forwardedId);
+
+  const [showRejectionModal, setRejectionModal] = useState(false)
 
   const mapProjectResponseToForm = (data) => {
     setForwardedId(data?.forwardedId)
     setStageForwardedRuleStatus(data?.stageForwardedRuleStatus)
     return {
-      // LOCATION
       districtId: data?.districtId || "",
       blockId: data?.blockId || "",
       gpId: data?.gpId || "",
       municipalityId: data?.municipalityId || "",
-
-      // PROJECT BASIC
       projectId: data?.projectId || "",
       finYear: data?.finYear || "",
       projectName: data?.projectName || "",
       projectCode: data?.projectCode || "",
       aaOrderNo: data?.aaOrderNo || "",
       aaOrderDate: toYMD(data?.aaOrderDate),
-      areaType: data?.areaType || "",
+      areaType: data?.areaType || "BLOCK",
       constituencyId: data?.constituencyId || "",
-
-      // PROPOSED
       proposeByDist: data?.proposed?.districtId || "",
       proposeByBlock: data?.proposed?.blockId || "",
       proposedBy: data?.proposed?.proposalId || "",
       proposedByName: data?.proposedByName || "",
-
-      // SECTOR
       sectorId: data?.sector || "",
       sector: data?.sector || "",
       subSector: data?.subSector || "",
-
-      // DATES
       startDate: toYMD(data?.startDate),
       endDate: toYMD(data?.endDate),
       actualEndDate: toYMD(data?.actualEndDate),
       actualStartDate: toYMD(data?.actualStartDate),
       fundAllocDate: data?.fundAllocDate || "",
-
-      // FINANCIAL
       estimatedBudget: data?.estimatedBudget || "",
       approvedAmount: data?.approvedAmount || "",
-
-      // OBJECT (VILLAGE/WARD)
       objectType: data?.objectType || "",
       objectId: data?.objectId || "",
     };
   };
 
-  // console.log(forwardedId);
-
+  const isFieldEditable = () => {
+    if (!stageForwardedRuleStatus) return true;
+    return stageForwardedRuleStatus === "DRAFT" || stageForwardedRuleStatus === "REVERTED";
+  };
 
   const mapFundReleaseRows = (rows) => {
     return rows.map((row) => ({
       ...row,
-      maxamount: 0, // Initialize with 0
-      remainingAmount: 0, // Initialize with 0
-      releaseAmount: row.releaseAmount || "", // Ensure string format
+      headId: row.headId || "",
+      subHeadId: row.subHeadId || "",
+      maxamount: 0,
+      remainingAmount: 0,
+      releaseAmount: row.releaseAmount || "",
     }));
   };
 
   const [totalBudgetSum, setTotalBudgetSum] = useState("");
+
   const getTotalBudget = async () => {
     try {
       const res = await totalBudgetService();
-      // console.log(res);
       setTotalBudgetSum(res?.data.data);
     } catch (error) {
       throw error;
     }
   };
 
-
-  // SIDE EFFECTS HANDLING
-
   useEffect(() => {
     getFinancialYearOptions();
     getAllDistOpts();
     getAllSectors();
-    // getBankList();
     getGIATypeOpts();
     getTotalBudget();
     getFavourandModeOpts();
+    getAllHeads();
   }, []);
-
-  // console.log(actualFinDuartion);
 
   useEffect(() => {
     if (proposeByDist) {
@@ -1032,8 +1179,8 @@ const Project = () => {
     }
   }, [finYear])
 
-
   const dispatch = useDispatch();
+
   useEffect(() => {
     return () => {
       dispatch(clearSelectedProject());
@@ -1051,9 +1198,6 @@ const Project = () => {
     if (municipalityId) {
       getAllWardOptions();
     }
-    // if (proposeByDist) {
-    //   getProposedByOptions();
-    // }
     if (sectorId) {
       getSubSectorOpts();
     }
@@ -1074,8 +1218,11 @@ const Project = () => {
   useEffect(() => {
     if (stateSelect) {
       setFormData(mapProjectResponseToForm(stateSelect));
-
       setFundReleaseRows(mapFundReleaseRows(stateSelect?.fundReleaseInfo || []));
+
+      if (stateSelect?.fundReleaseInfo?.length > 0) {
+        loadExistingSubHeads();
+      }
     }
   }, [stateSelect]);
 
@@ -1087,8 +1234,6 @@ const Project = () => {
     setTotalAmount(total);
   }, [fundReleaseRows]);
 
-
-  // In the useEffect that fetches maxBudget
   useEffect(() => {
     if (!stateSelect?.fundReleaseInfo?.length) return;
 
@@ -1129,14 +1274,14 @@ const Project = () => {
 
         if (res?.status === 200 && res?.data?.outcome) {
           const maxamount = res.data.data.totalBudget || 0;
-          const currentRelease = Number(row.releaseAmount || 0); // Use row.releaseAmount from the API response
+          const currentRelease = Number(row.releaseAmount || 0);
 
           setFundReleaseRows((prev) => {
             const rows = [...prev];
             rows[index] = {
               ...rows[index],
               maxamount: maxamount,
-              remainingAmount: Math.max(maxamount - currentRelease, 0), // Calculate here
+              remainingAmount: Math.max(maxamount - currentRelease, 0),
               fundAllocDate: res.data.data.fundAllocDate || "",
             };
             return rows;
@@ -1146,19 +1291,13 @@ const Project = () => {
     });
   }, [stateSelect]);
 
-  // console.log(forwardedId);
-
-
   useEffect(() => {
     getWorkFlow()
   }, [forwardedId])
 
-  // console.log(errors);
-
   return (
     <div className="mt-3">
-      {/* ---------- Accordion 1: Get District Form ---------- */}
-      <form action="" onSubmit={handleSubmitConfirmModal}>
+      <form onSubmit={handleSubmitConfirmModal}>
         <Accordion
           expanded={expanded === "panel1"}
           onChange={handleChange("panel1")}
@@ -1190,7 +1329,6 @@ const Project = () => {
                       className="flex items-center gap-1 text-[12px] w-fit text-amber-600 rounded-sm cursor-pointer"
                     >
                       <span className=" text-white bg-amber-600 rounded-full p-1"><GiSevenPointedStar /></span>
-
                       <span>{`${i.judictionRoleCode} - ${i.constituencyName}`}</span>
                     </div>
                   ))}
@@ -1209,7 +1347,7 @@ const Project = () => {
                     }))}
                     error={errors.finYear}
                     placeholder="Select "
-                    readOnly={stageForwardedRuleStatus != "DRAFT" ? false:true}
+                    disabled={!isFieldEditable()}
                   />
                 </div>
                 <div className="col-span-2">
@@ -1222,8 +1360,7 @@ const Project = () => {
                     value={projectName}
                     maxLength={50}
                     minLength={4}
-                    readOnly={stageForwardedRuleStatus != "DRAFT" ? false:true}
-
+                    readOnly={!isFieldEditable()}
                     error={errors.projectName}
                   />
                 </div>
@@ -1237,7 +1374,6 @@ const Project = () => {
                     disabled={true}
                     onChange={handleChangeInput}
                     maxLength={50}
-                  // error={errors.projectCode}
                   />
                 </div>
                 <div className="col-span-2">
@@ -1249,6 +1385,7 @@ const Project = () => {
                     placeholder="Enter AA order number"
                     value={aaOrderNo}
                     onChange={handleChangeInput}
+                    readOnly={!isFieldEditable()}
                     error={errors.aaOrderNo}
                   />
                 </div>
@@ -1261,6 +1398,7 @@ const Project = () => {
                     placeholder="Enter AA order date"
                     value={aaOrderDate}
                     onChange={handleChangeInput}
+                    readOnly={!isFieldEditable()}
                     error={errors.aaOrderDate}
                   />
                 </div>
@@ -1276,6 +1414,7 @@ const Project = () => {
                       label: d.districtName,
                     }))}
                     error={errors.districtId}
+                    disabled={!isFieldEditable()}
                     placeholder="Select"
                   />
                 </div>
@@ -1289,12 +1428,10 @@ const Project = () => {
                         type="radio"
                         value={"BLOCK"}
                         name="areaType"
-                        // checked={
-                        //   stateSelect?.areaType === "BLOCK" ? true : false
-                        // }
                         checked={formData.areaType === "BLOCK"}
                         id="radio1"
                         onChange={handleChangeInput}
+                        disabled={!isFieldEditable()}
                       />
                       <label
                         htmlFor="radio1"
@@ -1308,14 +1445,10 @@ const Project = () => {
                         type="radio"
                         value={"MUNICIPALITY"}
                         name="areaType"
-                        // checked={
-                        //   stateSelect?.areaType === "MUNICIPALITY"
-                        //     ? true
-                        //     : false
-                        // }
                         checked={formData.areaType === "MUNICIPALITY"}
                         id="radio2"
                         onChange={handleChangeInput}
+                        disabled={!isFieldEditable()}
                       />
                       <label
                         htmlFor="radio2"
@@ -1339,8 +1472,7 @@ const Project = () => {
                           value: d.blockId,
                           label: d.blockNameEN,
                         }))}
-                        disabled={districtId ? false : true}
-                        //   error={errors.districtId}
+                        disabled={!districtId || !isFieldEditable()}
                         placeholder="Select "
                       />
                     </div>
@@ -1355,8 +1487,7 @@ const Project = () => {
                           value: d.gpId,
                           label: d.gpNameEN,
                         }))}
-                        disabled={blockId ? false : true}
-                        //   error={errors.districtId}
+                        disabled={!blockId || !isFieldEditable()}
                         placeholder="Select "
                       />
                     </div>
@@ -1371,7 +1502,7 @@ const Project = () => {
                           value: d.villageId,
                           label: d.villageNameEn,
                         }))}
-                        disabled={gpId ? false : true}
+                        disabled={!gpId || !isFieldEditable()}
                         error={errors.objectId}
                         placeholder="Select"
                       />
@@ -1391,8 +1522,7 @@ const Project = () => {
                           value: d.municipalityId,
                           label: d.municipalityName,
                         }))}
-                        disabled={districtId ? false : true}
-                        //   error={errors.districtId}
+                        disabled={!districtId || !isFieldEditable()}
                         placeholder="Select"
                       />
                     </div>
@@ -1407,14 +1537,13 @@ const Project = () => {
                           value: d.wardId,
                           label: d.wardName,
                         }))}
-                        disabled={municipalityId ? false : true}
+                        disabled={!municipalityId || !isFieldEditable()}
                         error={errors.objectId}
                         placeholder="Select "
                       />
                     </div>
                   </>
                 )}
-
 
                 <div className="col-span-2">
                   <SelectField
@@ -1428,6 +1557,7 @@ const Project = () => {
                       label: d.sectorName,
                     }))}
                     error={errors.sectorId}
+                    disabled={!isFieldEditable()}
                     placeholder="Select "
                   />
                 </div>
@@ -1436,32 +1566,15 @@ const Project = () => {
                     label="Sub-Sector"
                     name="subSector"
                     value={subSector}
-                    disabled={sectorId ? false : true}
                     onChange={handleChangeInput}
                     options={subSectorOptions?.map((d) => ({
                       value: d.subSectorId,
                       label: d.subSectorName,
                     }))}
-                    //   error={errors.districtId}
+                    disabled={!sectorId || !isFieldEditable()}
                     placeholder="Select "
                   />
                 </div>
-                {/* <div className="col-span-2">
-                    <SelectField
-                      label="Constituency Name"
-                      required={true}
-                      name="constituencyId"
-                      value={constituencyId}
-                      onChange={handleChangeInput}
-                      options={constituencyOpts?.map((d) => ({
-                        value: d.consId,
-                        label: `${d.judictionRoleCode} - ${d.constituencyName}`,
-                      }))}
-                      error={errors.constituencyId}
-                      placeholder="Select "
-                    />
-                  </div> */}
-
 
                 <div className="col-span-2">
                   <InputField
@@ -1472,6 +1585,7 @@ const Project = () => {
                     value={startDate}
                     onChange={handleChangeInput}
                     error={errors.startDate}
+                    disabled={!isFieldEditable()}
                   />
                 </div>
                 <div className="col-span-2">
@@ -1484,6 +1598,7 @@ const Project = () => {
                     min={startDate || ""}
                     onChange={handleChangeInput}
                     error={errors.endDate}
+                    disabled={!isFieldEditable()}
                   />
                 </div>
                 <div className="col-span-2">
@@ -1494,6 +1609,7 @@ const Project = () => {
                     value={actualStartDate}
                     onChange={handleChangeInput}
                     error={errors.actualStartDate}
+                    disabled={!isFieldEditable()}
                   />
                 </div>
                 <div className="col-span-2">
@@ -1505,24 +1621,25 @@ const Project = () => {
                     min={actualStartDate || ""}
                     onChange={handleChangeInput}
                     error={errors.actualEndDate}
+                    disabled={!isFieldEditable()}
                   />
                 </div>
                 <div className="col-span-2">
                   <InputField
                     label="Estimated Project Cost"
                     required={true}
-                    // type="number"
                     amount={true}
                     name="estimatedBudget"
                     placeholder="Enter estimated budget"
                     value={formatWithCommas(estimatedBudget)}
                     onChange={handleChangeInput}
                     error={errors.estimatedBudget}
+                    disabled={!isFieldEditable()}
                   />
                 </div>
 
                 <div className="col-span-12">
-                  <div className="bg-slate-100 border-l-4 border-slate-600  px-4 py-2">
+                  <div className="bg-slate-100 border-l-4 border-slate-600 px-4 py-2">
                     <h5 className="text-sm font-semibold text-slate-700">
                       Proposed By Details
                     </h5>
@@ -1532,7 +1649,6 @@ const Project = () => {
                 <div className="col-span-2">
                   <SelectField
                     label="District"
-                    // required={true}
                     name="proposeByDist"
                     value={proposeByDist}
                     onChange={handleChangeInput}
@@ -1540,14 +1656,13 @@ const Project = () => {
                       value: d.districtId,
                       label: d.districtName,
                     }))}
-                    // error={errors.proposeByDist}
                     placeholder="Select "
+                    disabled={!isFieldEditable()}
                   />
                 </div>
                 <div className="col-span-2">
                   <SelectField
                     label="Block Name"
-                    // required={true}
                     name="proposeByBlock"
                     value={proposeByBlock}
                     onChange={handleChangeInput}
@@ -1555,42 +1670,44 @@ const Project = () => {
                       value: d.blockId,
                       label: d.blockNameEN,
                     }))}
-                    disabled={proposeByDist ? false : true}
-                    //   error={errors.districtId}
                     placeholder="Select "
+                    disabled={!proposeByDist || !isFieldEditable()}
                   />
                 </div>
 
                 <div className="col-span-2">
                   <SelectField
                     label="Proposed by"
-                    // required={true}
                     name="proposedBy"
                     value={proposedBy}
-                    disabled={proposeByBlock ? false : true}
+                    disabled={!proposeByBlock || !isFieldEditable()}
                     onChange={handleChangeInput}
                     options={juridictionOpts?.map((d) => ({
                       value: d.judictionConfigMapId,
                       label: `${d.judictionRoleCode} - ${d.constituencyName}`,
                     }))}
-                    // error={errors.proposedBy}
                     placeholder="Select "
                   />
                 </div>
                 <div className="col-span-2">
                   <InputField
                     label="Proposed by Name"
-                    // required={true}
                     name="proposedByName"
                     placeholder="Enter propose by name"
                     value={proposedByName}
                     onChange={handleChangeInput}
-                    // error={errors.proposedByName}
+                    disabled={!isFieldEditable()}
                     maxLength={50}
                   />
                 </div>
                 <div className="col-span-2">
-                  <button type="button" className="px-5 py-1 text-sm bg-green-200 text-green-800 rounded-sm mt-6" onClick={() => setExpanded("panel3")}>Next</button>
+                  <button
+                    type="button"
+                    className="px-5 py-1 text-sm bg-green-200 text-green-800 rounded-sm mt-6"
+                    onClick={() => setExpanded("panel3")}
+                  >
+                    Next
+                  </button>
                 </div>
               </div>
             </div>
@@ -1652,13 +1769,50 @@ const Project = () => {
                   >
                     {fundReleaseRows.length > 1 && (
                       <span
-                        className="absolute text-xl  p-2 text-red-500 flex justify-center items-center rounded-full"
+                        className="absolute text-xl p-2 text-red-500 flex justify-center items-center rounded-full"
                         style={{ top: "-17px", right: "-14px" }}
                         onClick={() => handleRemoveRow(index)}
                       >
                         <FaMinusCircle />
                       </span>
                     )}
+
+                    {/* Head Field */}
+                    <div className="col-span-2">
+                      <SelectField
+                        label="Head"
+                        name="headId"
+                        required={true}
+                        value={i.headId}
+                        onChange={(e) => handleRowChange(e, index)}
+                        options={headOpts?.map((d) => ({
+                          value: d.headId,
+                          label: d.headName,
+                        }))}
+                        disabled={!isFieldEditable()}
+                        placeholder="Select Head"
+                      />
+                    </div>
+
+                    {/* Subhead Field - Updated to use row-specific options */}
+                    <div className="col-span-2">
+                      <SelectField
+                        label="Subhead"
+                        name="subHeadId"
+                        required={true}
+                        value={i.subHeadId}
+                        onChange={(e) => handleRowChange(e, index)}
+                        options={
+                          (subHeadOpts[index] || []).map((d) => ({
+                            value: d.subHeadId,
+                            label: d.subHeadName,
+                          }))
+                        }
+                        disabled={!i.headId || !isFieldEditable()}
+                        placeholder="Select Subhead"
+                      />
+                    </div>
+
                     <div className="col-span-2">
                       <SelectField
                         label="GIA Year "
@@ -1670,7 +1824,7 @@ const Project = () => {
                           value: d.finyearId,
                           label: d.finYear,
                         }))}
-                        //   error={errors.districtId}
+                        disabled={!isFieldEditable()}
                         placeholder="All "
                       />
                     </div>
@@ -1686,11 +1840,11 @@ const Project = () => {
                           value: d.giaTypeId,
                           label: d.giaTypeName,
                         }))}
-                        //   error={errors.districtId}
+                        disabled={!isFieldEditable()}
                         placeholder="Select "
                       />
                     </div>
-                    <div className="col-span-3">
+                    <div className="col-span-4">
                       <SelectField
                         label="Bank Name"
                         name="bankId"
@@ -1703,6 +1857,7 @@ const Project = () => {
                             label: d.bankName,
                           })) || []
                         }
+                        disabled={!isFieldEditable()}
                         placeholder="Select"
                       />
                     </div>
@@ -1719,6 +1874,7 @@ const Project = () => {
                             label: `${i.branch} | ${i.accNo} | ${i.ifsc}`,
                           })) || []
                         }
+                        disabled={!isFieldEditable()}
                       />
                     </div>
                     <div className="col-span-2">
@@ -1732,42 +1888,22 @@ const Project = () => {
                           value: d.lookupValueCode,
                           label: d.lookupValueEn,
                         }))}
-                        //   error={errors.districtId}
+                        disabled={!isFieldEditable()}
                         placeholder="Select "
                       />
                     </div>
 
                     <div className="col-span-2">
                       <InputField
-                        // type="number"
                         amount={true}
                         label="Release Amount"
                         required={true}
                         name="releaseAmount"
                         value={formatWithCommas(i.releaseAmount)}
-                        // disabled={i.maxamount ? false : true}
+                        disabled={!isFieldEditable()}
                         onChange={(e) => handleRowChange(e, index)}
-                        error={i.releaseAmount > i.maxamount ? errors.releaseAmount = `Release Amount cant be more than ₹ ${i.maxamount.toLocaleString("en-IN")}`:''}
+                        error={i.releaseAmount > i.maxamount ? `Release Amount cant be more than ₹ ${i.maxamount?.toLocaleString("en-IN")}` : ''}
                       />
-                      {/* <div className="flex justify-between">
-                        {i.maxamount !== undefined && i.maxamount !== null && (
-                          <div className="text-[11px] text-blue-700">
-                            Total :{" "}
-                            <span className="font-semibold">
-                              ₹ {Number(i.maxamount).toLocaleString("en-IN")}
-                            </span>
-                          </div>
-                        )}
-                        {i.maxamount !== undefined && (
-                          <div className="text-[11px] text-blue-700">
-                            Remaining :{" "}
-                            <span className="font-semibold">
-                              ₹ {Number(i.remainingAmount || 0).toLocaleString("en-IN")}
-
-                            </span>
-                          </div>
-                        )}
-                      </div> */}
                     </div>
                     <div className="col-span-4">
                       <InputField
@@ -1776,7 +1912,7 @@ const Project = () => {
                         name="remarks"
                         maxLength={255}
                         value={i.remarks}
-                        placeholder="Write Remarks..."
+                        disabled={!isFieldEditable()}
                         onChange={(e) => handleRowChange(e, index)}
                       />
                     </div>
@@ -1794,26 +1930,32 @@ const Project = () => {
                 </button>
               </div>
             </div>
-            <div className=" mt-3">
+            <div className="mt-3">
               <div className="flex justify-center gap-2 text-[13px] bg-[#42001d0f] border-t border-[#ebbea6] px-4 py-3 rounded-b-md">
                 <ResetBackBtn />
-                {/* <SubmitBtn type={"submit"} btnText={projectId} /> */}
-
-                {
-                  button?.map((i, index) => {
-                    return (
-                      <button
-                        type={'submit'}
-                        key={index}
-                        className={i?.actionType.color}
-                        onClick={() => setForwardedId(i.forwardedId)}
-                      >
-
-                        <GrSave /> {i?.actionType.actionNameEn}
-                      </button>
-                    )
-                  })
-                }
+                {button?.map((i, index) => {
+                  return (
+                    <button
+                      type={'button'}
+                      key={index}
+                      className={i?.actionType.color}
+                      onClick={() => {
+                        if (
+                          i?.actionType.actionCode === "REVERTED" ||
+                          i?.actionType.actionCode === "REJECTED"
+                        ) {
+                          setPendingAction(i);
+                          setRejectionModal(true);
+                        } else {
+                          setForwardedId(i.forwardedId);
+                          setOpenSubmit(true);
+                        }
+                      }}
+                    >
+                      <GrSave /> {i?.actionType.actionNameEn}
+                    </button>
+                  )
+                })}
               </div>
             </div>
           </AccordionDetails>
@@ -1822,11 +1964,37 @@ const Project = () => {
 
       <ReusableDialog
         open={openSubmit}
-        // title="Submit"
         description="Are you sure you want to submit?"
         onClose={() => setOpenSubmit(false)}
-        onConfirm={handleSubmit}
+        onConfirm={() => handleSubmit()}
       />
+
+      <CommonFormModal
+        open={showRejectionModal}
+        onClose={() => setRejectionModal(false)}
+        title="Add Remarks"
+        subtitle="Remarks are mandatory for this action"
+        footer={
+          <>
+            <button
+              type="button"
+              className="bg-green-500 text-white text-[13px] px-3 py-1 rounded-sm border border-green-600 transition-all active:scale-95 uppercase flex items-center gap-1"
+              onClick={handleRemarksSubmit}
+            >
+              Submit
+            </button>
+          </>
+        }
+      >
+        <InputField
+          label="Remarks"
+          type="text"
+          name="remarks"
+          value={remarks}
+          textarea={true}
+          onChange={handleChangeInput}
+        />
+      </CommonFormModal>
     </div>
   );
 };

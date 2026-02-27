@@ -322,12 +322,15 @@ const AssetsTypeMaster = () => {
             </div>
 
             <div className="col-span-12">
-              <div className="flex justify-center gap-2 bg-[#42001d0f] border-t border-[#ebbea6] px-4 py-3 rounded-b-md">
-                <SubmitBtn
+              {<div className="flex justify-center gap-2 bg-[#42001d0f] border-t border-[#ebbea6] px-4 py-3 rounded-b-md">
+                {/* <SubmitBtn
                   type="submit"
                   btnText={assetsTypeId ? "Update" : "Save"}
-                />
-              </div>
+                /> */}
+                             <SubmitBtn type={"submit"} btnText={assetsTypeId} />
+
+              </div> }
+
             </div>
           </form>
         </AccordionDetails>

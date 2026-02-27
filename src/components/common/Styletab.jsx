@@ -10,7 +10,7 @@ import TabList from "@mui/lab/TabList";
 const StyledTabList = styled(TabList)(({ theme }) => ({
   backgroundColor: "#f3f4f6",
   padding: "4px",
-  borderRadius: "4px",
+  borderRadius: "20px",
   minHeight: "auto",
 
   "& .MuiTabs-indicator": {
@@ -22,7 +22,7 @@ const StyledTabList = styled(TabList)(({ theme }) => ({
     height: "32px",
     padding: "0 16px",
     margin: "0 2px",
-    borderRadius: "4px",
+    borderRadius: "20px",
     textTransform: "none",
     fontSize: "12px",
     fontWeight: 500,
@@ -30,7 +30,7 @@ const StyledTabList = styled(TabList)(({ theme }) => ({
   },
 
   "& .MuiTab-root.Mui-selected": {
-    backgroundColor: "#9d9d9d",
+    backgroundColor: "#4CAF50",
     color: "#ffffff",
   },
 }));

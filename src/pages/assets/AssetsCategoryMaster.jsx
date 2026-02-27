@@ -324,10 +324,12 @@ const AssetsCategoryMaster = () => {
 
             <div className="col-span-12">
               <div className="flex justify-center gap-2 bg-[#42001d0f] border-t border-[#ebbea6] px-4 py-3 rounded-b-md">
-                <SubmitBtn
+                {/* <SubmitBtn
                   type="submit"
                   btnText={assetsCtgId ? "Update" : "Save"}
-                />
+                /> */}
+                            <SubmitBtn type={"submit"} btnText={assetsCtgId} />
+
               </div>
             </div>
           </form>

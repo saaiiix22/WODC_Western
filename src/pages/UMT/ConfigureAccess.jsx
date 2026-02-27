@@ -36,7 +36,7 @@ const ConfigureAccess = () => {
         try {
             const payload = encryptPayload(formData.userId)
             const res = await userSearchService(payload)
-            // console.log(res);
+           
             if (res?.status === 200 && res?.data.outcome) {
                 setUserOpts(res?.data.data)
             }

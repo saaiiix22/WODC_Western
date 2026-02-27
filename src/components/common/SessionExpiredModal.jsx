@@ -36,12 +36,7 @@ const SessionExpiredModal = ({ open, onContinue }) => {
                     >
                         Logout
                     </button>
-                    {/* <button
-                        onClick={onContinue}
-                        className="px-3 py-1 text-sm rounded bg-blue-600 text-white hover:bg-blue-700"
-                    >
-                        Continue Session
-                    </button> */}
+                 
                 </div>
             </div>
         </div>

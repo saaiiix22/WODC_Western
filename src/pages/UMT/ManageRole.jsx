@@ -18,7 +18,7 @@ import { addAllowedPath } from "../../redux/slices/menuSlice";
 
 const ManageRole = () => {
   const dispatch = useDispatch()
-  const { t , i18n} = useTranslation("manageRole");
+  const { t} = useTranslation("manageRole");
   const [formData, setFormData] = useState({
     roleId: null,
     roleCode: '',

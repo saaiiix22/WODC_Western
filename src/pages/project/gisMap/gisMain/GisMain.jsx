@@ -31,7 +31,7 @@ const GisMain = () => {
       } else {
         setProjectList([]);
         setStats({});
-        // toast.error(res?.data?.message || "Failed to fetch GIS data");
+       
       }
     } catch (error) {
       console.error("Error fetching GIS data:", error);

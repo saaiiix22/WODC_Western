@@ -37,7 +37,7 @@ const AccessRole = () => {
     e.preventDefault()
     setOpen(true)
   }
-  const handleSubmit = async (e) => {
+  const handleSubmit  = async (e) => {
     e.preventDefault()
     try {
       const sendData = {
@@ -47,7 +47,7 @@ const AccessRole = () => {
         status: formData.map(item => item.status),
       };
       const payload = encryptPayload(sendData)
-      // console.log(sendData);
+      
       const res = await saveRoleLevelMapService(payload)
       console.log(res);
       if(res?.status === 200 && res?.data.outcome){
@@ -66,6 +66,7 @@ const AccessRole = () => {
 
   useEffect(() => {
     if (!roleRightLvlMstrList?.length || !roleLvlMapList?.length) return;
+  
 
     setFormData(prev =>
       prev.map(item => {
@@ -98,7 +99,7 @@ const AccessRole = () => {
                   shadow-[0_4px_12px_rgba(0,0,0,0.08)]
                 "
       >
-        {/* Header */}
+      
         <div className="p-0">
           <h3
             className="

@@ -20,6 +20,9 @@ export const editGrievanceService=(data)=>Api.get(endpoints.grievanceCategory.ed
 export const saveUpdateGrievanceService=(data)=>Api.post(endpoints.grievanceCategory.savegrievance,{obj:data})
 export const getCategoryListService=()=>Api.get(endpoints.grievanceCategory.getAllgrievance)
 
+export const getCategoryListVirtualService=()=>Api.get(endpoints.grievanceCategory.getVirtualHearing)
+
+
 
 export const saveUpdateSubGrievanceService=(data)=>Api.post(endpoints.grievanceSubCategory.saveSubCategory,{obj:data})
 export const getSubCategoryListService=()=>Api.get(endpoints.grievanceSubCategory.getAllSubCategory)
@@ -46,7 +49,13 @@ export const saveAndUpdateMondatyGrievanceHearing = (formData) =>
         },
       }
     );
-    export const getHearingListService=()=>Api.get(endpoints.grievanceHearing.getAllHearingList)
+    export const getHearingListService = (params = {}) =>
+      Api.get(
+        endpoints.grievanceHearing.getAllHearingList,
+        { params }
+      );
+    
+    // export const getHearingListService=()=>Api.get(endpoints.grievanceHearing.getAllHearingList)
     export const getGrievanceHearingByIdService = (payload) =>
       Api.get(endpoints.grievanceHearing.getGrievanceHearingById, {
           params: { cipherText: payload } 

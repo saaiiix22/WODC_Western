@@ -1,24 +1,26 @@
 import { useEffect, useState } from "react";
-import Typography from "@mui/material/Typography";
-import {
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-} from "../../components/common/CommonAccordion";
-import ReusableDataTable from "../../components/common/ReusableDataTable";
-import SearchableInput from "../../components/common/SearchableInput";
-import ReusableDialog from "../../components/common/ReusableDialog";
 import { Tooltip } from "@mui/material";
 import { GoEye, GoPencil } from "react-icons/go";
 import { MdSend, MdHistory } from "react-icons/md";
 import SelectField from "../../components/common/SelectField";
 import { FiFileText } from "react-icons/fi";
-import InputField from "../../components/common/InputField";
+import {
+  getAssetsListService,
+  getAssetsTypeListService,
+  getAssetsLookupValuesService,
+} from "../../services/assetsService";
+import { getAllProjectService } from "../../services/projectService";
+import { encryptPayload } from "../../crypto.js/encryption";
+import { exportToExcel, exportToPDF } from "../../utils/exportUtils";
+import { ResetBackBtn } from "../../components/common/CommonButtons";
+import { DataGrid } from "@mui/x-data-grid";
+import { useNavigate } from "react-router-dom";
 
 const ViewAsset = () => {
+  const navigate = useNavigate();
   const [dataTable, setDataTable] = useState([]);
   const [filters, setFilters] = useState({
-    assetTypeId: "",
+    assetsTypeId: "",
     departmentId: "",
     agencyId: "",
     projectId: "",
@@ -26,82 +28,108 @@ const ViewAsset = () => {
     lifeCycleStageCode: "",
   });
 
-  const assetColumns = [
+  const [paginationModel, setPaginationModel] = useState({
+    page: 0,
+    pageSize: 5, // default page size
+  });
+
+  const [assetTypes, setAssetTypes] = useState([]);
+  const [projects, setProjects] = useState([]);
+  const [lifeCycleStages, setLifeCycleStages] = useState([]);
+
+  const columns = [
     {
-      name: "Sl No",
-      selector: (row, index) => index + 1,
-      width: "80px",
-      center: true,
+      field: "slNo",
+      headerName: "Sl No",
+      width: 80,
+      sortable: false,
+      renderCell: (params) => {
+        const page = params.api.state.pagination.paginationModel.page;
+        const pageSize = params.api.state.pagination.paginationModel.pageSize;
+        const index = params.api.getAllRowIds().indexOf(params.id);
+        return page * pageSize + index + 1;
+      },
     },
     {
-      name: "Asset ID",
-      selector: (row) => row.assetId || "N/A",
+      field: "assetsId",
+      headerName: "Asset ID",
+      flex: 1,
       sortable: true,
+      valueFormatter: (value) => value || "N/A",
     },
     {
-      name: "Asset Name",
-      selector: (row) => row.assetName || "N/A",
+      field: "assetsName",
+      headerName: "Asset Name",
+      flex: 1,
       sortable: true,
+      valueFormatter: (value) => value || "N/A",
     },
     {
-      name: "Asset Type",
-      selector: (row) => row.assetType || "N/A",
+      field: "assetsTypeName",
+      headerName: "Asset Type",
+      flex: 1,
+      valueFormatter: (value) => value || "N/A",
     },
     {
-      name: "Sector",
-      selector: (row) => row.sector || "N/A",
+      field: "sectorName",
+      headerName: "Sector",
+      flex: 1,
+      valueFormatter: (value) => value || "N/A",
     },
     {
-      name: "Sub Sector",
-      selector: (row) => row.subSector || "N/A",
+      field: "subSectorName",
+      headerName: "Sub Sector",
+      flex: 1,
+      valueFormatter: (value) => value || "N/A",
     },
     {
-      name: "Agency",
-      selector: (row) => row.agency || "N/A",
+      field: "agencyName",
+      headerName: "Agency",
+      flex: 1,
+      valueFormatter: (value) => value || "N/A",
     },
     {
-      name: "Project",
-      selector: (row) => row.projectName || "—",
+      field: "projectName",
+      headerName: "Project",
+      flex: 1,
+      valueFormatter: (value) => value || "—",
     },
     {
-      name: "Location",
-      selector: (row) => `${row.district} / ${row.block}`,
+      field: "assetLifeCycleStageCode",
+      headerName: "Status",
+      flex: 1,
+      valueFormatter: (value) => value || "N/A",
     },
     {
-      name: "Status",
-      selector: (row) => row.assetStatus,
+      field: "assetAmount",
+      headerName: "Value",
+      flex: 1,
+      valueFormatter: (value) => `₹ ${value?.toLocaleString()}`,
     },
     {
-      name: "Value",
-      selector: (row) => `₹ ${row.currentValue?.toLocaleString()}`,
-      right: true,
-    },
-    // {
-    //   name: "Verification",
-    //   selector: (row) => row.geoTagStatus,
-    // },
-    // {
-    //   name: "Geo-tag Image",
-    //   selector: (row) => row.geoTagImage,
-    // },
-    {
-      name: "Action",
-      width: "160px",
-      cell: (row) => (
+      field: "actions",
+      headerName: "Actions",
+      width: 160,
+      renderCell: (params) => (
         <div className="flex items-center gap-2">
-          <Tooltip title="View Asset">
+          {/* <Tooltip title="View Asset">
             <button className="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center">
               <GoEye />
             </button>
-          </Tooltip>
+          </Tooltip> */}
 
-          <Tooltip title="Edit Asset">
-            <button className="h-8 w-8 rounded-full bg-blue-500/25 text-blue-600 flex items-center justify-center">
-              <GoPencil />
-            </button>
-          </Tooltip>
+          <div className="p-2">
+            <Tooltip title="Edit Asset">
+              <button
+                onClick={() => handleEdit(params.row)}
+                className="h-8 w-8 rounded-full bg-blue-500/25 text-blue-600 flex items-center justify-center"
+              >
+                <GoPencil />
+              </button>
+            </Tooltip>
+          </div>
 
-          <Tooltip title="Submit for Approval">
+          {/* <Tooltip title="Submit for Approval">
             <button className="h-8 w-8 rounded-full bg-green-500/25 text-green-600 flex items-center justify-center">
               <MdSend />
             </button>
@@ -111,114 +139,225 @@ const ViewAsset = () => {
             <button className="h-8 w-8 rounded-full bg-indigo-500/25 text-indigo-600 flex items-center justify-center">
               <MdHistory />
             </button>
-          </Tooltip>
+          </Tooltip> */}
         </div>
       ),
-      ignoreRowClick: true,
-      button: true,
     },
   ];
 
+  const loadAssets = async (filterValues = filters) => {
+    try {
+      const cleanFilters = Object.fromEntries(
+        Object.entries(filterValues).map(([key, value]) => [
+          key === "assetTypeId" ? "assetsTypeId" : key,
+          value === "" ? null : value,
+        ]),
+      );
+
+      const encrypted = encryptPayload(cleanFilters);
+
+      const res = await getAssetsListService(encrypted);
+
+      if (res?.data?.outcome) {
+        setDataTable(res.data.data || []);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleEdit = async (row) => {
+    // Navigate to create asset page with the asset data for editing
+    navigate("/createAsset", { state: { asset: row } });
+  };
+
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+
+    const updatedFilters = {
+      ...filters,
+      [name]: value,
+    };
+
+    setFilters(updatedFilters);
+
+    // Refetch data immediately when filter changes
+    loadAssets(updatedFilters);
+  };
+
+  const loadAssetTypes = async () => {
+    try {
+      const res = await getAssetsTypeListService();
+      setAssetTypes(res?.data?.data || []);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const loadProjects = async () => {
+    try {
+      const payload = encryptPayload({ isActive: true });
+
+      const res = await getAllProjectService(payload);
+      setProjects(res?.data?.data || []);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const loadLifeCycleStages = async () => {
+    try {
+      const res = await getAssetsLookupValuesService("ASSET_LIFECYCLE_STAGE");
+      setLifeCycleStages(res?.data?.data || []);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   useEffect(() => {
-    setDataTable([{}]);
+    loadAssetTypes();
+    loadProjects();
+    loadLifeCycleStages();
+    loadAssets();
   }, []);
 
   return (
-    <>
-      {/* ---------------- FILTER PANEL ---------------- */}
-      <div className="mt-3 p-2 bg-white rounded-sm border border-[#f1f1f1] shadow-[0_4px_12px_rgba(0,0,0,0.08)]">
-        <h3 className="flex items-center gap-2 text-white text-[18px] px-3 py-2 bg-light-dark rounded-t-md">
-          <FiFileText className="text-[24px] p-1 bg-[#ff7900] rounded" />
-          Asset Filters
+    <div className="mt-3 p-2 bg-white rounded-sm border border-[#f1f1f1] shadow-[0_4px_12px_rgba(0,0,0,0.08)]">
+      {/* Header */}
+      <div>
+        <h3
+          className="flex items-center gap-2 text-white font-normal text-[18px]
+                       border-b-2 border-[#ff9800] px-3 py-2 bg-light-dark rounded-t-md"
+        >
+          <FiFileText className="text-[#fff2e7] text-[24px] p-1 bg-[#ff7900] rounded" />
+          Asset List
         </h3>
+      </div>
 
-        <div className="grid grid-cols-12 gap-6 p-4">
+      {/* Table */}
+      <div className="min-h-[120px] h-auto py-5 px-4 text-[#444]">
+        <div className="grid grid-cols-12 gap-4 mb-4">
           <div className="col-span-3">
             <SelectField
               label="Asset Type"
-              name="assetType"
+              name="assetsTypeId"
               placeholder="Select"
               value={filters.assetsTypeId}
-              onChange={(e) =>
-                setFilters({ ...filters, assetsTypeId: e.target.value })
-              }
+              onChange={handleFilterChange}
+              options={assetTypes.map((d) => ({
+                value: d.assetsTypeId,
+                label: d.assetsTypeName,
+              }))}
             />
           </div>
 
           <div className="col-span-3">
             <SelectField
               label="Department"
-              name="department"
+              name="departmentId"
               placeholder="Select Department"
               value={filters.departmentId}
-              onChange={(e) =>
-                setFilters({ ...filters, departmentId: e.target.value })
-              }
+              onChange={handleFilterChange}
             />
           </div>
 
           <div className="col-span-3">
             <SelectField
               label="Implementing Agency"
-              name="agency"
+              name="agencyId"
               placeholder="Select Agency"
               value={filters.agencyId}
-              onChange={(e) =>
-                setFilters({ ...filters, agencyId: e.target.value })
-              }
+              onChange={handleFilterChange}
             />
           </div>
 
           <div className="col-span-3">
             <SelectField
               label="Project"
-              name="project"
+              name="projectId"
               value={filters.projectId}
-              onChange={(e) =>
-                setFilters({ ...filters, projectId: e.target.value })
-              }
+              onChange={handleFilterChange}
+              options={projects.map((d) => ({
+                value: d.projectId,
+                label: d.projectName,
+              }))}
             />
           </div>
-          {/* 
-          <div className="col-span-3">
-            <SelectField label="Location" name="assetStatus" />
-          </div> */}
 
           <div className="col-span-3">
-            <SelectField label="Verification Status" name="geoTagStatus" />
+            <SelectField
+              label="Verification Status"
+              name="geoTagStatus"
+              value={filters.geoTagStatus}
+              onChange={handleFilterChange}
+              options={[
+                { value: "Verified", label: "Verified" },
+                { value: "Not Verified", label: "Not Verified" },
+              ]}
+            />
           </div>
 
           <div className="col-span-3">
             <SelectField
               label="Lifecycle Stage"
-              name="lifeCycleState"
+              name="lifeCycleStageCode"
               value={filters.lifeCycleStageCode}
-              onChange={(e) =>
-                setFilters({ ...filters, lifeCycleStageCode: e.target.value })
-              }
+              onChange={handleFilterChange}
+              options={lifeCycleStages.map((d) => ({
+                value: d.lookupValueCode,
+                label: d.lookupValueName,
+              }))}
             />
           </div>
         </div>
-      </div>
 
-      {/* ---------------- ASSET LIST TABLE ---------------- */}
-      <div className="mt-3 p-2 bg-white rounded-sm border border-[#f1f1f1] shadow-[0_4px_12px_rgba(0,0,0,0.08)]">
-        <h3 className="flex items-center gap-2 text-white text-[18px] px-3 py-2 bg-light-dark rounded-t-md">
-          <FiFileText className="text-[24px] p-1 bg-[#ff7900] rounded" />
-          Asset List
-        </h3>
+        <div className="flex gap-3 mb-3">
+          <button
+            onClick={() =>
+              exportToExcel(
+                dataTable,
+                columns.filter((col) => col.field !== "actions"),
+                "Asset_List",
+              )
+            }
+            className="px-4 py-2 bg-emerald-100 text-emerald-700 rounded hover:bg-emerald-300 transition"
+          >
+            Export Excel
+          </button>
 
-        <div className="min-h-[120px] py-5 px-4">
-          <ReusableDataTable data={dataTable} columns={assetColumns} />
+          <button
+            onClick={() =>
+              exportToPDF(
+                dataTable,
+                columns.filter((col) => col.field !== "actions"),
+                "Asset_List",
+              )
+            }
+            className="px-4 py-2 bg-rose-100 text-rose-700 border border-rose-300 rounded hover:bg-rose-300 transition"
+          >
+            Export PDF
+          </button>
         </div>
-      </div>
 
-      {/* ---------------- CONFIRM DIALOG ---------------- */}
-      <ReusableDialog
-        title="Confirmation"
-        description="Are you sure you want to submit this asset for approval?"
-      />
-    </>
+        <div className="h-[400px]">
+          <DataGrid
+            rows={dataTable}
+            columns={columns}
+            getRowId={(row) => row.assetsId}
+            pagination
+            paginationModel={paginationModel}
+            onPaginationModelChange={setPaginationModel}
+            pageSizeOptions={[5, 10, 20]}
+            disableRowSelectionOnClick
+            slotProps={{
+              toolbar: { showQuickFilter: true },
+            }}
+          />
+        </div>
+
+        <ResetBackBtn />
+      </div>
+    </div>
   );
 };
 

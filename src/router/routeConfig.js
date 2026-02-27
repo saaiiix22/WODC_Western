@@ -28,6 +28,9 @@ export const routes = {
    judictionMapConfiguration: { path: "/jurisdictionMapConfiguration", label: "Judiction Map Configuration", protected: true },
    districtConstituencyMap: { path: "/districtConstituencyMap", label: "Distrcit Constituency Map", protected: true },
 
+   head: { path: "/head", label: "Head", protected: true },
+   subhead: { path: "/subhead", label: "Sub Head", protected: true },
+
 
 
    manageRole: { path: "/get-manage-user", label: "Manage Role", protected: true },
@@ -39,6 +42,7 @@ export const routes = {
    changePassword: { path: "/changePassword", label: "Change Password", protected: true },
    configureAccess: { path: "/configureAccess", label: "Configure Accesss", protected: true },
    projectAgencyMilestone: { path: "/projectAgencyMilestoneMapping", label: "Project Agency Milestone Mapping", protected: true },
+   projectAgencyMilestoneList: { path: "/projectAgencyMilestoneList", label: "Project Agency Milestone List", protected: true },
    workOrderGeneration: { path: "/workOrderGeneration", label: "Work Order Generation", protected: true },
 
    addBeneficiary: { path: "/addBeneficiary", label: "Add Beneficiary", protected: true },
@@ -57,7 +61,6 @@ export const routes = {
 
    // Workflow
    workflowConfig: { path: "/get-workflow-config", label: "Workflow Config Page", protected: true },
-
 
    grievanceCategory: { path: "/grievanceCategory", label: "Grievance Category", protected: true },
    grievanceSubCategory: { path: "/grievanceSubCategory", label: "Grievance Sub-Category", protected: true },
@@ -81,7 +84,16 @@ export const routes = {
    addFeedbackType: { path: "/addFeedbackType", label: "Add Feedback Type", protected: true },
    addFeedbackQuestions: { path: "/addFeedbackQuestions", label: "Add Feedback Questions", protected: true },
    addFeedback: { path: "/addFeedback", label: "Add Feedback", protected: true },
+   benificiaryWorkEntry :{ path: "/benificiaryWorkEntry", label: "Benificiary Work Entry", protected: true },
    feedbackListByStatus: { path: "/feedbackListByStatus", label: "Feedback List By Status", protected: true },
+   performanceMonitoringSystem: { path: "/performanceMonitoringSystem", label: "Performance Monitoring System", protected: true },
+   inspectionDetailsReport: { path: "/inspectionDetailsReport", label: "Inspection Details Report", protected: true },
+   districtPerformanceRankings: { path: "/districtPerformanceRankings", label: "District Performance Rankings", protected: true },
+   fundreconciliationreport: { path: "/fundReconciliationReport", label: "Fund Reconciliation Report", protected: true },
+   benificiaryPayment: { path: "/benificiaryPayment", label: "Benificiary Payment", protected: true },
 
+
+   myFilesDMS: { path: "/myFilesDMS", label: "My Files Tab DMS", protected: true },
+   fileTabDMS: { path: "/fileTabDMS", label: "File Tab DMS", protected: true },
 
 }

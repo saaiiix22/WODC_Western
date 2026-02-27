@@ -174,9 +174,13 @@
 //   return value.replace(/,/g, "");
 // };
 
-export const avoidSpecialCharUtil = (str = '') => {
-  return str.replace(/[^a-zA-Z ]/g, '').trim();
-};
+// export const avoidSpecialCharUtil = (str = '') => {
+//   return str.replace(/[^a-zA-Z ]/g, '').trim();
+// };
+
+export const avoidSpecialCharUtil = (value) => {
+  return value.replace(/[^a-zA-Z0-9\s]/g, ''); // \s allows spaces
+}
 
 export const avoidAllSpaceUtil = (str = '') => {
   return str.replace(/\s+/g, '').trim();
@@ -368,11 +372,17 @@ export const validateEmailUtil = (email = "") => {
 
 
 export const formatWithCommas = (value) => {
-  if (!value) return "";
-  return Number(value).toLocaleString("en-IN");
+  if (!value && value !== 0) return "";
+  const numStr = String(value).replace(/,/g, "");
+  if (!/^\d*\.?\d*$/.test(numStr)) return value;
+  const [integerPart, decimalPart] = numStr.split(".");
+  const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return decimalPart !== undefined
+    ? `${formattedInteger}.${decimalPart}`
+    : formattedInteger;
 };
 
 export const removeCommas = (value) => {
-  if (!value) return "";
-  return value.replace(/,/g, "");
+  if (!value && value !== 0) return "";
+  return String(value).replace(/,/g, "");
 };

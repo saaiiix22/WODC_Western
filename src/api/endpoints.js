@@ -2,7 +2,9 @@ const endpoints = {
     auth: {
         login: '/login',
         logout: '/logout',
-        captcha:"/captcha"
+        captcha: "/captcha",
+        forgotOTP:"/forgot-password/send-otp",
+        resetPassword:"/forgot-password/reset"
     },
     menu: {
         getMenuList: '/admin/menu/list',
@@ -24,6 +26,22 @@ const endpoints = {
         editBlockData: "/mst/get-block-by-id",
         toggleBlockStatus: "/mst/toggle-status-block-by-blockId"
     },
+
+    head: {
+        saveUpdateHead: "/mst/save-or-update-head",
+        getAllHeadList: "/mst/get-head-list",
+        toggleHeadStatus: "/mst/toggle-status-head-by-headid",
+        getHeadById: "/mst/get-head-by-id",
+    },
+    
+    // SubHead Module Endpoints
+    subHead: {
+        saveUpdateSubHead: "/mst/save-or-update-sub-head",
+        getAllSubHeadList: "/mst/get-subhead-list-by-headid",
+        toggleSubHeadStatus: "/mst/toggle-subhead-status-by-subheadid",
+        getSubHeadById: "/mst/get-subhead-by-subheadid",
+    },
+
     gpEndpoints: {
         getBlockThroughDistrict: '/cmn/get-block-by-distid',
         saveUpdateGp: "/mst/save-n-update-gp-details",
@@ -143,7 +161,8 @@ const endpoints = {
         saveAgency: '/mst/manage-agency-bank-details',
         getAgencyDetails: '/mst/list-agency-bank-details',
         editAgency: '/mst/edit-agency-bank-details',
-        toggleAgencyStatus: '/mst/active-inactive-agency-bank-details'
+        toggleAgencyStatus: '/mst/active-inactive-agency-bank-details',
+        checkAgencyBankDetails:"/mst/check-agency-duplicate-bank-details"
     },
     beneficiary: {
         saveBeneficiary: '/mst/save-n-update-beneficiary-details',
@@ -152,6 +171,18 @@ const endpoints = {
         toggleBeneficiaryStatus: '/mst/toggle-status-beneficiary-by-id',
         getGender: "/cmn/get-gender-list",
         empType: "/cmn/get-emp-type-list",
+        benificiaryByEmpType: "/project/get-beneficiary-list-by-project-and-milestone",
+        paymentValue: "/project/get-payment-config-list",
+        saveBenTrack: "/mst/save-n-update-beneficiary-tracking",
+        listBenTrack: "/project/get-wodc-beneficiary-tracking-list",
+        listBenTrackDraft: "/project/get-wodc-beneficiary-tracking-list-draft",
+
+        empSkill:"/cmn/get-beneficiary-skill-list",
+        empEducation:"/cmn/get-beneficiary-education-list",
+        empIncome:"/cmn/get-beneficiary-income-list",
+
+        getBeneficiaryDetailsbyFilter: '/mst/get-filter-beneficiaries',
+        
     },
     sectorPage: {
         saveSector: '/mst/manage-sector-subsector',
@@ -163,7 +194,8 @@ const endpoints = {
         saveVendorDetails: '/mst/manage-vendor-bank-details',
         getVendorData: '/mst/list-vendor-bank-details',
         editVendor: '/mst/edit-vendor-bank-details',
-        toggleVendorStatus: '/mst/active-inactive-vendor-bank-details'
+        toggleVendorStatus: '/mst/active-inactive-vendor-bank-details',
+        checkVendorBankDetails:"/mst/check-vendor-duplicate-bank-details"
     },
     sectorMilestoneMap: {
         saveSectorMilestoneMap: '/mst/save-n-update-sector-milestone-map',
@@ -226,7 +258,9 @@ const endpoints = {
         getAllInspectionByCategory: "/inspection-scheduling/get-inspection-scheduling-list-by-iscomplete",
         getInspectionCalendarData: "/inspection-scheduling/get-inspection-calendar-information",
         getInspectionByDate: "/inspection-scheduling/get-inspection-calendar-by-date",
-        getInspectionById: "/inspection-scheduling/get-inspection-scheduling-by-id"
+        getInspectionById: "/inspection-scheduling/get-inspection-scheduling-by-id",
+        approveInspection:"/inspection-scheduling/update-inspection-status",
+        getByLookUpInspection:"/cmn/get-inspection-status-list"
     },
 
 
@@ -258,11 +292,47 @@ const endpoints = {
         getJurisdictionConfigByConsId: '/mst/get-jurisdiction-configuration-by-constituency-id'
 
     },
+    grievanceCategory: {
+        savegrievance: "/griv/config/save-update-grievance-category",
+        editgrievance: "/griv/config/get-grievance-category-by-id",
+        getAllgrievance: "/griv/config/get-grievance-category-list"
+
+    },
+    grievanceSubCategory: {
+        saveSubCategory: "/griv/config/save-update-grievance-sub-category",
+        editSubCategory: "/griv/config/get-grievance-sub-category-by-id",
+        getAllSubCategory: "/griv/config/get-grievance-sub-category-list",
+        getRoleTypeList: "/griv/config/get-all-active-role"
+
+
+    },
+    grievanceConfigSlot: {
+        saveGrievanceSlotConfig: "/griv/config/save-update-virtual-grievance-slot",
+        editGrievanceSlotConfig: "/griv/config/get-virtual-grievance-slot-by-id",
+        getAllGrievanceSlotConfig: "/griv/config/get-grievance-category-list-boolean",
+        getallConfigSlot: "/griv/config/get-all-active-virtual-grievance-slot-dtls-list",
+        checkSlotExist: "/griv/config/check-virtual-grievance-slot-exist-ornot-for-the-given-slot-dtls",
+
+
+    },
+    grievanceHearing: {
+
+        saveGrievanceHearing: "/griv/config/save-update-virtual-grievance-hearing",
+        getAllHearingList: "/griv/config/get-grievance-hearing-list",
+        getGrievanceHearingById: "/griv/config/get-grievance-hearing-by-id"
+    },
+    addGrievance: {
+        saveGrievance: "/grivance/save-update-add-grievance",
+        getAllGrievance: "/grivance/get-add-grievance-list",
+        getGrievanceByid: "/grivance/get-add-grievance-by-id"
+    },
 
     assetsTypeMaster: {
         saveUpdateAssetsType: '/assets/save-update-assets-type',
         getAssetsTypeList: '/assets/get-assets-type-list',
-        getAssetsTypeById: '/assets/get-assets-type-by-id'
+        getAssetsTypeById: '/assets/get-assets-type-by-id',
+        downloadExcel:'/assets/download-template',
+        uploadExcel:'/assets/upload'
     },
 
     assetsCategoryMaster: {
@@ -276,14 +346,14 @@ const endpoints = {
         saveUpdateAssetsMaster: '/assets/save-update-assets',
         getAssetsMasterList: '/assets/get-assets-list',
         getAssetsMasterById: '/assets/get-assets-by-id',
-        getAssetsLookupValues: '/assets/lookup-values'
+        getAssetsLookupValues: '/assets/lookup-values',
+        uploadExcel: '/assets/upload'
     },
-
-
     grievanceCategory: {
         savegrievance: "/griv/config/save-update-grievance-category",
         editgrievance: "/griv/config/get-grievance-category-by-id",
-        getAllgrievance: "/griv/config/get-grievance-category-list"
+        getAllgrievance: "/griv/config/get-grievance-category-list",
+        getVirtualHearing:"/griv/config/get-grievance-category-list-Virtual"
 
     },
     grievanceSubCategory: {
@@ -291,7 +361,6 @@ const endpoints = {
         editSubCategory: "/griv/config/get-grievance-sub-category-by-id",
         getAllSubCategory: "/griv/config/get-grievance-sub-category-list",
         getRoleTypeList: "/griv/config/get-all-active-role"
-
 
     },
     grievanceConfigSlot: {
@@ -342,6 +411,27 @@ const endpoints = {
             saveFeedbackStatus: "/feedback/save-feedback-status"
         }
     },
+    pms: {
+        getMonthList: '/cmn/get-month-list',
+        getQuarterlyList: '/cmn/active-quarters',
+        getPeriodTypeList: '/cmn/get-period-type-list',
+        getPerformanceKPIList: '/cmn/get-performance-kpi-list',
+        getProjectField: '/performance/get-project-list-by-filter',
+        pmsSaveAndUpdate: '/performance/get-prfmnc-data',
+        DistrictPerformanceRankingsSave:'/performance/district-performance-ranking'
+    },
+    fundReconciliationReport: {
+        fundReconciliationAccount: '/reports/accounts',
+        fundReconciliationSubmit: '/reports/fund-reconciliation'
+    },
+    benPayment:{
+        savebenPayment:'/mst/save-update-payment-config',
+        getListPayment:'/mst/get-payment-config-list',
+        getByIdPayment:'/mst/get-payment-config-by-id'
+    },
+    DMS:{
+        DMSModuleList:"/dms/list"
+    }
 
 }
 export default endpoints 

@@ -3,18 +3,12 @@ import { FiEdit, FiFileText } from "react-icons/fi";
 import { ResetBackBtn, SubmitBtn } from "../../components/common/CommonButtons";
 import InputField from "../../components/common/InputField";
 import { encryptPayload } from "../../crypto.js/encryption";
-import { width } from "@mui/system";
-import ReusableDataTable from "../../components/common/ReusableDataTable";
-import { enc } from "crypto-js";
 import ReusableDialog from "../../components/common/ReusableDialog";
-import { set } from "react-hook-form";
 import { toast } from "react-toastify";
-import { GoPencil } from "react-icons/go";
-import { MdCheck, MdClose, MdLockOutline } from "react-icons/md";
-import { MdLockOpen } from "react-icons/md";
 import SelectField from "../../components/common/SelectField";
 import { editGrievanceService, getCategoryListService, saveUpdateGrievanceService } from "../../services/grievanceService";
 import { DataGrid } from "@mui/x-data-grid";
+import { exportToExcel, exportToPDF } from "../../utils/exportUtils";
 
 const AddCategory = () => {
   const [formData, setFormData] = useState({
@@ -22,6 +16,7 @@ const AddCategory = () => {
     grievanceCategoryName: "",
     grvCtgCode: "",
     virtualGrv: "",
+    priority: "",
     active: "",
   });
 
@@ -30,19 +25,28 @@ const AddCategory = () => {
     grievanceCategoryName,
     grvCtgCode,
     virtualGrv,
+    priority,
     active,
   } = formData;
   const [errors, setErrors] = useState({});
   const [tableData, setTableData] = useState([]);
+  const priorityOptions = [
+    { value: "LOW", label: "Low" },
+    { value: "MID", label: "Mid" },
+    { value: "HIGH", label: "High" },
+  ];
 
-  
   const handleInp = (e) => {
     const { name, value } = e.target;
   
     let finalValue = value;
   
+    // Convert string to boolean for specific fields
     if (name === "virtualGrv" || name === "active") {
-      finalValue = value === "true" ? true : value === "false" ? false : "";
+      finalValue =
+        value === "true" ? true :
+        value === "false" ? false :
+        "";
     }
   
     setFormData((prev) => ({
@@ -50,6 +54,9 @@ const AddCategory = () => {
       [name]: finalValue,
       ...(name === "grievanceCategoryName" && {
         grvCtgCode: generategrvCtgCode(value),
+      }),
+      ...(name === "virtualGrv" && finalValue === true && {
+        priority: "",
       }),
     }));
   
@@ -73,13 +80,9 @@ const AddCategory = () => {
     return `${prefix}_${uniqueNumber}`;
   };
 
-  //
-
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState();
   const [gactive, setGactive] = useState("");
-
-
 
   const handleOnConfirm = (e) => {
     e.preventDefault();
@@ -97,12 +100,12 @@ const AddCategory = () => {
       setErrors(newErrors);
       return;
     }
-    if (!virtualGrv) {
+    if (virtualGrv=== "" || virtualGrv === null) {
       newErrors.virtualGrv = "Please Select virtualGrv";
       setErrors(newErrors);
       return;
     }
-    if (!active) {
+    if (active=== "" || active === null) {
       newErrors.active = "Please Select active";
       setErrors(newErrors);
       return;
@@ -120,6 +123,7 @@ const AddCategory = () => {
       grievanceCategoryName,
       grvCtgCode,
       virtualGrv,
+      priority,
       active,
     };
     const payload = encryptPayload(sendData);
@@ -133,6 +137,7 @@ const AddCategory = () => {
         grvCtgCode: "",
         virtualGrv: "",
         active: "",
+        priority:"",
       });
       setOpen(false);
       if (res?.data.outcome && res?.status === 200) {
@@ -152,22 +157,24 @@ const AddCategory = () => {
         grievanceCategoryName: "",
         grvCtgCode: "",
         virtualGrv: "",
+        priority: "",
         active: "",
+       
       });
     }
   };
 
   const columns = [
     {
-      field: "slno",
+      field: "slNo",
       headerName: "Sl No",
       width: 80,
       sortable: false,
       renderCell: (params) =>
-        paginationModel.page * paginationModel.pageSize + 
-        params.api.getRowIndexRelativeToVisibleRows(params.id) + 1,
+        paginationModel.page * paginationModel.pageSize +
+        params.api.getRowIndexRelativeToVisibleRows(params.id) +
+        1,
     },
-    
     {
       field: "grievanceCategoryName",
       headerName: "Category Name",
@@ -179,21 +186,22 @@ const AddCategory = () => {
       flex: 1,
     },
     {
-      field: "active",
+      field: "priority",
+      headerName: "Priority",
+      flex: 1,
+    },
+
+    {
+      field: "status",
       headerName: "Status",
-      width: 120,
-      renderCell: (params) =>
-        params.value ? (
-          <span >Active</span>
-        ) : (
-          <span className="text-red-600 font-semibold">Inactive</span>
-        ),
+      flex: 1,
     },
     {
       field: "action",
       headerName: "Action",
       width: 120,
       sortable: false,
+      disableExport: true,
       renderCell: (params) => (
         <button
           className="h-8 w-8 rounded-full bg-blue-500/20 text-blue-600 flex items-center justify-center"
@@ -221,8 +229,15 @@ const AddCategory = () => {
     try {
       
          const res = await getCategoryListService();
-      setTableData(res?.data.data || []);
-    } catch (error) {
+         const raw = res?.data.data || [];
+
+         const mapped = raw.map(row => ({
+           ...row,
+           status: row.active ? "Active" : "Inactive",
+           priority: row.priority || "N/A",
+         }));
+         
+         setTableData(mapped);    } catch (error) {
       throw error;
     }
   };
@@ -242,6 +257,7 @@ const AddCategory = () => {
         grievanceCategoryName: data?.grievanceCategoryName ?? "",
         grvCtgCode: data?.grvCtgCode ?? "",
         virtualGrv: data?.virtualGrv ?? "",
+        priority: data?.priority ?? "",
         active: data?.active ?? "",
       });
     } catch (error) {
@@ -255,7 +271,6 @@ const AddCategory = () => {
   });
   
   
-
     useEffect(() => {
       getTableData();
     }, []);
@@ -288,7 +303,7 @@ const AddCategory = () => {
               </div>
               <div className="col-span-2">
                 <InputField
-                  label="Grievance Category Code"
+                  label=" Category Code"
                   required
                   name="grvCtgCode"
                   value={grvCtgCode}
@@ -308,6 +323,23 @@ const AddCategory = () => {
                   error={errors.virtualGrv}
                 />
               </div>
+
+              {virtualGrv === false && (
+                <div className="col-span-2">
+                  <SelectField
+                    label="Priority"
+                    required={true}
+                    name="priority"
+                    value={priority}
+                    onChange={handleInp}
+                    options={priorityOptions}
+                    placeholder="Select Priority"
+                    error={errors.priority}
+                  />
+                </div>
+              )}
+
+
               <div className="col-span-2">
                 <SelectField
                   label="Is Active:"
@@ -346,6 +378,35 @@ const AddCategory = () => {
         {/* <h3 className="flex items-center gap-2 bg-light-dark text-white px-3 py-2">
           <FiFileText /> Category List
         </h3> */}
+   <div className="flex gap-3 mb-3">
+  <button
+    onClick={() =>
+      exportToExcel(
+        tableData,
+        columns,
+        columns.filter(col => col.field !== "action"),
+        "Category_List"
+      )
+    }
+    className="px-4 py-2 bg-emerald-100 text-emerald-700 rounded hover:bg-emerald-300 transition"
+    >
+    Export Excel
+  </button>
+
+  <button
+    onClick={() =>
+      exportToPDF(
+        tableData,
+        columns,
+        columns.filter(col => col.field !== "action"),
+        "Category_List"
+      )
+    }
+    className="px-4 py-2 bg-rose-100 text-rose-700 border border-rose-300 rounded hover:bg-rose-300 transition"
+    >
+    Export PDF
+  </button>
+</div>
 
         <div style={{ height: 420, width: "100%" }}>
         <DataGrid

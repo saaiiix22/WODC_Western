@@ -12,6 +12,8 @@ import { toast } from "react-toastify";
 import { encryptPayload } from "../../crypto.js/encryption";
 import { cleanContactNoUtil, cleanEmailUtil } from "../../utils/validationUtils";
 import { useLocation } from "react-router-dom";
+import { forwardListByMenuService } from "../../services/workflowService";
+import { GrSave } from "react-icons/gr";
 
 /* ================= INITIAL STATE ================= */
 const initialFormState = {
@@ -22,13 +24,16 @@ const initialFormState = {
   email: "",
   idProofPath: "",
   purpose: "",
+  petitionerName:"",
   grvRelatedDocPath: "",
 };
 
 const AddGrievance = () => {
   const location = useLocation()
-  console.log(location?.state);
-  const [formData, setFormData] = useState(initialFormState);
+  console.log("VIEW STATE FULL DATA:", location?.state);
+  console.log("ID BASE64:", location?.state?.idProofDocPathStr);
+  console.log("GRV BASE64:", location?.state?.grvRelatedDocPathStr);
+    const [formData, setFormData] = useState(initialFormState);
   const {
     addGrievanceId,
     grvCtgId,
@@ -36,9 +41,12 @@ const AddGrievance = () => {
     contactNo,
     email,
     idProofPath,
+    petitionerName,
     purpose,
     grvRelatedDocPath,
   } = formData;
+const [idProofPreview, setIdProofPreview] = useState(null);
+const [grvDocPreview, setGrvDocPreview] = useState(null);
 
   const [categoryList, setCategoryList] = useState([]);
   const [subCategoryList, setSubCategoryList] = useState([]);
@@ -46,6 +54,39 @@ const AddGrievance = () => {
   const [errors, setErrors] = useState({});
   const [openSubmit, setOpenSubmit] = useState(false);
   const [fileKey, setFileKey] = useState(Date.now()); // 👈 FILE RESET KEY
+//for  dynamic buttons-----
+
+const [forwardedId, setForwardedId] = useState(null)
+const [button, setButtons] = useState([])
+const [stageForwardedRuleStatus, setStageForwardedRuleStatus] = useState('')
+
+
+const getWorkFlow = async () => {
+  try {
+    const payload = encryptPayload({
+      appModuleUrl: location.pathname,
+      forwardedId: (forwardedId ? Number(forwardedId) : null)
+    })
+    const res = await forwardListByMenuService(payload)
+
+    if (res?.status === 200 && res?.data.outcome) {
+      const filteredButtons = res?.data.data.filter(button =>
+        button.actionType.actionCode !== stageForwardedRuleStatus
+      )
+
+      setButtons(filteredButtons)
+    } else {
+      setButtons([])
+    }
+  } catch (error) {
+    console.log(error)
+    setButtons([])
+  }
+}
+
+useEffect(() => {
+  getWorkFlow()
+}, [forwardedId])
 
   /* ================= API CALLS ================= */
   useEffect(() => {
@@ -56,6 +97,7 @@ const AddGrievance = () => {
       setAllSubCategories(res?.data?.data || [])
     );
   }, []);
+  const [zoomImage, setZoomImage] = useState(null);
 
   const handleChangeInput = (e) => {
     if (isViewMode) return; 
@@ -111,6 +153,10 @@ const AddGrievance = () => {
       setErrors({ grvSubCtgId: "Grievance Sub Category is required" });
       return;
     }
+    if (!petitionerName) {
+      setErrors({ petitionerName: "Name is required" });
+      return;
+    }
   
     if (!contactNo) {
       setErrors({ contactNo: "Contact No is required" });
@@ -152,6 +198,7 @@ const AddGrievance = () => {
         grievanceCategory: grvCtgId,
         grievanceSubCategory: grvSubCtgId,
         contactNo,
+        petitionerName,
         email: email,
         purpose,
       };
@@ -185,9 +232,13 @@ const AddGrievance = () => {
         contactNo: location.state.contactNo,
         email: location.state.email,
         purpose: location.state.purpose || "",
+        petitionerName: location.state.petitionerName,
         idProofPath: "",
         grvRelatedDocPath: "",
       });
+
+      setIdProofPreview(location.state.idProofDocPathStr);
+    setGrvDocPreview(location.state.grvRelatedDocPathStr);
     }
   }, [location.state]);
   useEffect(() => {
@@ -206,8 +257,8 @@ const AddGrievance = () => {
       <form onSubmit={handleSubmitConfirmModal}>
         <div className="mt-3 bg-white rounded-md border shadow-md">
           <h3 className="text-white px-4 py-2 bg-light-dark rounded-t-md">
-            Add Grievance
-          </h3>
+          {isViewMode ? "View Grievance " : "Add  Grievance "}    
+                </h3>          
 
           <div className="py-6 px-5 grid grid-cols-12 gap-6">
             <div className="col-span-2">
@@ -229,8 +280,7 @@ const AddGrievance = () => {
               <SelectField
                 label="Grievance Sub Category"
                 required
-                name="grvSubCtgId"
-                
+                name="grvSubCtgId"               
                 value={grvSubCtgId}
                 onChange={handleChangeInput}
                 options={subCategoryList.map((d) => ({
@@ -241,6 +291,20 @@ const AddGrievance = () => {
                 error={errors.grvSubCtgId}
               />
             </div>
+
+
+                            
+            <div className="col-span-2">
+              <InputField
+                  label="Petitioner Name"
+                  required={true}
+                  name="petitionerName"
+                  maxLength={255}
+                   value={petitionerName}
+                   error={errors.petitionerName}
+                  onChange={handleChangeInput}
+                />
+              </div>
 
             <div className="col-span-2">
               <InputField
@@ -254,7 +318,7 @@ const AddGrievance = () => {
               />
             </div>
 
-            <div className="col-span-2">
+            <div className="col-span-4">
               <InputField
                 label="Email"
                 type='email'
@@ -302,9 +366,47 @@ const AddGrievance = () => {
               />
             </div>)}
 
+            {isViewMode && idProofPreview && (
+  <div className="col-span-3">
+    <label className="block text-sm mb-1">Identity Proof</label>
+    <img
+      src={`data:image/*;base64,${idProofPreview}`}
+      alt="ID Proof"
+      onClick={() => setZoomImage(`data:image/*;base64,${idProofPreview}`)}
+      className="h-20 w-20 object-cover rounded-lg border shadow"
+    />
+  </div>
+)}
+
+{isViewMode && grvDocPreview && (
+  <div className="col-span-3">
+    <label className="block text-sm mb-1">Grievance Related Document</label>
+    <img
+      src={`data:image/*;base64,${grvDocPreview}`}
+      alt="Grievance Doc"
+      onClick={() => setZoomImage(`data:image/*;base64,${grvDocPreview}`)}
+      className="h-20 w-45 object-cover rounded-lg border shadow"
+    />
+    {zoomImage && (
+  <div
+    className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50"
+    onClick={() => setZoomImage(null)}
+  >
+    <img
+      src={zoomImage}
+      alt="Zoomed"
+      className="max-h-[90%] max-w-[90%] rounded-lg shadow-lg"
+    />
+  </div>
+)}
+
+  </div>
+)}
+
+
             <div className="col-span-4">
                 <label className="block text-sm font-small mb-1">
-                  Purpose <span className="text-red-500">*</span>
+                  Grievance In Brief<span className="text-red-500">*</span>
                 </label>
 
                 <textarea
@@ -326,11 +428,37 @@ const AddGrievance = () => {
 
           <div className="flex justify-center gap-3 border-t px-4 py-3">
             <ResetBackBtn onClick={resetForm} />
+            {
+                  button?.map((i, index) => {
+                    return (
+                      <button
+                        type={'button'}
+                        key={index}
+                        className={i?.actionType.color}
+                        onClick={() => {
+                          if (
+                            i?.actionType.actionCode === "REVERTED" ||
+                            i?.actionType.actionCode === "REJECTED"
+                          ) {
+                            setPendingAction(i);
+                            setRejectionModal(true);
+                          } else {
+                            setForwardedId(i.forwardedId);
+                            setOpenSubmit(true);
+                          }
+                        }}
+                      >
+
+                        <GrSave /> {i?.actionType.actionNameEn}
+                      </button>
+                    )
+                  })
+                }
             {!isViewMode && <SubmitBtn type="submit" />}
           </div>
         </div>
       </form>
-
+ 
       <ReusableDialog
         open={openSubmit}
         description="Are you sure you want submit?"

@@ -15,21 +15,14 @@ import {
   AccordionSummary,
 } from "../../components/common/CommonAccordion";
 import { ResetBackBtn, SubmitBtn } from "../../components/common/CommonButtons";
-import {
-  editMilestoneService,
-  getMilesStoneListService,
-  saveMilesStoneService,
-  toggleMilestoneStatusService,
-} from "../../services/milesStoneService";
+
 import SelectField from "../../components/common/SelectField";
 import { districtList } from "../../services/demographyService";
 import { FaMinusCircle } from "react-icons/fa";
 import { getBankNamesService } from "../../services/budgetService";
+
 import {
-  getAgencyDetailsService,
-  saveAgencySerice,
-} from "../../services/agencyService";
-import {
+  checkVendorBankDetailsService,
   editVendorService,
   getVendorDataService,
   saveVendorDetailsService,
@@ -45,7 +38,6 @@ import {
   validateContactNoUtil,
   validateEmailUtil,
   validateIfscUtil,
-  onlyNumberUtil,
   ifscUtil,
   accountNumberUtil,
 } from "../../utils/validationUtils";
@@ -78,23 +70,12 @@ const VendorPage = () => {
     aadhaarNo,
     districtId,
   } = formData;
-  
-  const formatDateToDDMMYYYY = (dateStr) => {
-    if (!dateStr) return "";
-    const [yyyy, mm, dd] = dateStr.split("-");
-    return `${dd}/${mm}/${yyyy}`;
-  };
-  
-  const formatDateMMDDYY = (dateStr) => {
-    if (!dateStr) return "";
-    const [dd, mm, yyyy] = dateStr.split("/");
-    return `${yyyy}-${mm}-${dd}`;
-  };
-  
+
+
   const handleChangeInput = (e) => {
     const { name, value } = e.target;
     let updatedValue = value;
-    
+
     if (name === "aadhaarNo") {
       updatedValue = cleanAadhaarUtil(updatedValue);
     }
@@ -104,7 +85,6 @@ const VendorPage = () => {
     if (name === "email") {
       updatedValue = cleanEmailUtil(updatedValue);
     }
-    // CLEAR ERROR WHEN USER TYPES
     setErrors((prev) => ({ ...prev, [name]: "" }));
     setFormData({ ...formData, [name]: updatedValue });
   };
@@ -120,7 +100,7 @@ const VendorPage = () => {
       throw error;
     }
   };
-  
+
   const [bankNameOptions, setBankNameOptions] = useState([]);
   const getAllBankOptions = async () => {
     try {
@@ -135,12 +115,13 @@ const VendorPage = () => {
 
   const [rows, setRows] = useState([
     {
-      bankId: "",
+      bankId: null,
       branchName: "",
       accountNo: "",
       ifscCode: "",
       bankName: "",
       vendorBankId: null,
+      isBankVerified: null,
     },
   ]);
 
@@ -153,55 +134,92 @@ const VendorPage = () => {
       !lastRow.accountNo.trim() ||
       !lastRow.ifscCode.trim()
     ) {
-      toast.error(
-        "Please fill all fields in the previous row before adding a new one"
-      );
+      toast.error("Please fill all fields in the previous row");
       return;
     }
 
-    // Add new row
+    if (lastRow.isBankVerified === false) {
+      toast.error("Please enter valid bank details before adding a new row");
+      return;
+    }
+
     setRows([
       ...rows,
       {
-        bankId: "",
+        bankId: null,
         branchName: "",
         accountNo: "",
         ifscCode: "",
         bankName: "",
         vendorBankId: null,
+        isBankVerified: null,
       },
     ]);
   };
-  
+
   const handleRemoveRow = (index) => {
     const updated = [...rows];
     updated.splice(index, 1);
     setRows(updated);
   };
- const handleInput = (index, name, value) => {
-  const updated = [...rows];
+  const handleInput = async (index, name, value) => {
+    const updated = [...rows];
 
-  if (name === "accountNo") {
-    value = accountNumberUtil(value); // digits only
-  }
+    if (name === "accountNo") {
+      value = accountNumberUtil(value);
+    }
 
-  if (name === "ifscCode") {
-    value = ifscUtil(value); // uppercase + format
-  }
+    if (name === "ifscCode") {
+      value = ifscUtil(value);
+    }
 
-  updated[index][name] = value;
-  setRows(updated);
-};
-  
+    updated[index] = {
+      ...updated[index],
+      [name]: value,
+    };
+
+    const { accountNo, ifscCode, bankId } = updated[index];
+
+    if (
+      accountNo &&
+      ifscCode &&
+      accountNo.length >= 9 &&
+      accountNo.length <= 18 &&
+      ifscCode.length === 11
+    ) {
+      try {
+        const payload = encryptPayload({ accountNo, ifscCode, bankId });
+        const res = await checkVendorBankDetailsService(payload);
+
+        updated[index].isBankVerified = res?.data?.outcome ?? false;
+
+        if (!res?.data?.outcome) {
+          toast.error(res?.data?.message);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    }
+
+    setRows(updated);
+  };
+
   const [errors, setErrors] = useState({});
   const [openSubmit, setOpenSubmit] = useState(false);
-  
+
   const handleSubmitConfirmModal = (e) => {
     e.preventDefault();
     let newErrors = {};
-    
-    
-    
+
+    const hasInvalidBank = rows.some(
+      (row) => row.isBankVerified === false
+    );
+
+    if (hasInvalidBank) {
+      toast.error("One or more bank details are invalid");
+      return;
+    }
+
     if (!districtId) {
       newErrors.districtId = "District name is required";
       setErrors(newErrors);
@@ -213,20 +231,20 @@ const VendorPage = () => {
       setErrors(newErrors);
       return;
     }
-    
+
     if (!aadhaarNo || !aadhaarNo.trim()) {
       newErrors.aadhaarNo = "Aadhar number is required";
       setErrors(newErrors);
       return;
     }
-    
+
     if (!validateAadhaarUtil(aadhaarNo)) {
       newErrors.aadhaarNo =
         "Invalid Aadhaar number (must be 12 digits and cannot start with 0 or 1)";
       setErrors(newErrors);
       return;
     }
-    
+
     const contactError = validateContactNoUtil(contactNo);
     if (contactError) {
       setErrors((prev) => ({ ...prev, contactNo: contactError }));
@@ -265,14 +283,14 @@ const VendorPage = () => {
         return;
       }
     }
-    
+
     if (Object.keys(newErrors).length === 0) {
       setOpenSubmit(true);
     } else {
       setOpenSubmit(false);
     }
   };
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -287,7 +305,7 @@ const VendorPage = () => {
       vendorBankDetailsDtoList: rows,
     };
     console.log(sendData);
-    
+
     try {
       const payload = encryptPayload(sendData);
       const res = await saveVendorDetailsService(payload);
@@ -348,7 +366,7 @@ const VendorPage = () => {
     try {
       const payload = encryptPayload({ isActive: false });
       const res = await getVendorDataService(payload);
-      console.log(res);
+      // console.log(res);
       if (res?.status === 200 && res?.data.outcome) {
         setTableData(res?.data.data || []);
       } else {
@@ -440,37 +458,36 @@ const VendorPage = () => {
         <div className="flex items-center gap-2">
           {/* EDIT BUTTON */}
           <Tooltip title="Edit" arrow>
-          <button
-            type="button"
-            className="flex items-center justify-center h-8 w-8 bg-blue-500/25 text-blue-500 rounded-full"
-            onClick={() => {
-              editMilestone(row?.vendorId);
-            }}
-          >
-            <GoPencil className="w-4 h-4" />
-          </button>
+            <button
+              type="button"
+              className="flex items-center justify-center h-8 w-8 bg-blue-500/25 text-blue-500 rounded-full"
+              onClick={() => {
+                editMilestone(row?.vendorId);
+              }}
+            >
+              <GoPencil className="w-4 h-4" />
+            </button>
           </Tooltip>
 
           {/* ACTIVE / INACTIVE BUTTON */}
-          <Tooltip title={row.isActive?"Active" : "Inactive"} arrow>
-          <button
-            className={`flex items-center justify-center h-8 w-8 rounded-full 
-            ${
-              row.isActive
-                ? "bg-green-600/25 hover:bg-green-700/25 text-green-600"
-                : "bg-red-500/25 hover:bg-red-600/25 text-red-500 "
-            }`}
-            onClick={() => {
-              setVendorId(row?.vendorId);
-              setOpenModal(true);
-            }}
-          >
-            {row.isActive ? (
-              <MdLockOutline className="w-4 h-4" />
-            ) : (
-              <MdLockOpen className="w-4 h-4" />
-            )}
-          </button>
+          <Tooltip title={row.isActive ? "Active" : "Inactive"} arrow>
+            <button
+              className={`flex items-center justify-center h-8 w-8 rounded-full 
+            ${row.isActive
+                  ? "bg-green-600/25 hover:bg-green-700/25 text-green-600"
+                  : "bg-red-500/25 hover:bg-red-600/25 text-red-500 "
+                }`}
+              onClick={() => {
+                setVendorId(row?.vendorId);
+                setOpenModal(true);
+              }}
+            >
+              {row.isActive ? (
+                <MdLockOutline className="w-4 h-4" />
+              ) : (
+                <MdLockOpen className="w-4 h-4" />
+              )}
+            </button>
           </Tooltip>
         </div>
       ),

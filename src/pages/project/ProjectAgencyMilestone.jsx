@@ -15,6 +15,7 @@ import {
 import { MdOutlineAddCircle } from "react-icons/md";
 import { getAgencyDetailsService } from "../../services/agencyService";
 import { FaMinusCircle } from "react-icons/fa";
+import { IoMdAdd } from "react-icons/io";
 import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
 import { getVendorDataService } from "../../services/vendorService";
@@ -195,7 +196,7 @@ const ProjectAgencyMilestone = () => {
     const currentRow = updated[index];
 
     if (name === "order") {
-
+    
       if (value === "") {
         updated[index].order = "";
         setRows(updated);
@@ -237,7 +238,7 @@ const ProjectAgencyMilestone = () => {
       const isDuplicateCombo = rows.some(
         (row, idx) =>
           idx !== index &&
-          // Number(row.agencyId) === newAgencyId &&
+        
           Number(row.milestoneId) === newMilestoneId
       );
 
@@ -267,16 +268,9 @@ const ProjectAgencyMilestone = () => {
         toast.error("Percentage cannot exceed 100%");
         return;
       }
-
-      // const totalPercentExceptCurrent = rows.reduce((sum, row, idx) => {
-      //   if (idx === index) return sum;
-      //   return sum + (parseFloat(row.budgetPercentage) || 0);
-      // }, 0);
-
-      // if (totalPercentExceptCurrent + percent > 100) {
-      //   toast.error("Total budget percentage cannot exceed 100%");
-      //   return;
-      // }
+     
+      
+ 
 
       const usedAmountExceptCurrent = rows.reduce((sum, row, idx) => {
         if (idx === index) return sum;
@@ -333,7 +327,6 @@ const ProjectAgencyMilestone = () => {
 
       updated[index].amount = enteredAmount;
       updated[index].budgetPercentage = calculatedPercent;
-
       setRows(updated);
       return;
     }
@@ -462,6 +455,22 @@ const ProjectAgencyMilestone = () => {
         toast.error(`Start Date and End Date are required in row ${i + 1}`);
         return;
       }
+
+      if (userSelection.roleCode === "ROLE_AGENCY") {
+        if (!row.actualStartDate || !row.actualEndDate) {
+          toast.error(`Actual Start Date and Actual End Date are required in row ${i + 1}`);
+          return;
+        }
+        if (!row.vendorId) {
+          toast.error(`Vendor are required in row ${i + 1}`);
+          return;
+        }
+        if (!row.milestoneStatus) {
+          toast.error(`Milestone Status are required in row ${i + 1}`);
+          return;
+        }
+      }
+
     }
 
     const isAdmin = userSelection.roleCode === "ROLE_WODC_ADMIN";
@@ -592,19 +601,19 @@ const ProjectAgencyMilestone = () => {
       }));
     }
   }, [formData.finYear]);
-  useEffect(() => {
-    if (!budgetAmount) return;
+  // useEffect(() => {
+  //   if (!budgetAmount) return;
 
-    setRows((prev) =>
-      prev.map((row) => {
-        const percent = parseFloat(row.budgetPercentage) || 0;
-        return {
-          ...row,
-          amount: ((budgetAmount * percent) / 100).toFixed(2),
-        };
-      })
-    );
-  }, [budgetAmount]);
+  //   setRows((prev) =>
+  //     prev.map((row) => {
+  //       const percent = parseFloat(row.budgetPercentage) || 0;
+  //       return {
+  //         ...row,
+  //         amount: ((budgetAmount * percent) / 100).toFixed(2),
+  //       };
+  //     })
+  //   );
+  // }, [budgetAmount]);
 
  
   return (
@@ -1052,7 +1061,7 @@ const ProjectAgencyMilestone = () => {
                         <div className="col-span-12">
                           <div className="grid grid-cols-12 gap-6">
                             {
-                              i.allGeoTagDocument.map((image, imgIdx) => {
+                              i.allGeoTagDocument?.map((image, imgIdx) => {
                                 return (
                                   <div className="col-span-2 max-h-40" key={imgIdx + 1}>
                                     <Magnifier src={`data:image/${image.documentName};base64,${image.documentBase64}`} />
@@ -1071,15 +1080,12 @@ const ProjectAgencyMilestone = () => {
                         className="p-1 rounded-sm text-white bg-green-600 text-md"
                         type="button"
                         onClick={handleAddRow}
-                        title="Add Fund Release Informations"
-                      >
-                        <IoMdAddCircle />
+                        title="Add Fund Release Informations">
+                        <IoMdAdd  />
                       </button>
                     </div>
                   )}
                 </div>
-
-
               </>
             )}
           </div>

@@ -35,11 +35,7 @@ const GisFilter = ({ onFilter, isVertical = false }) => {
     villages: [],
     municipalities: [],
     wards: [],
-    // statuses: [
-    //   { value: "APPROVED", label: "Approved" },
-    //   { value: "IN PROGRESS", label: "In Progress" },
-    //   { value: "COMPLETED", label: "Completed" },
-    // ],
+
     statuses: [
          { value: "Created", label: "Planned" },
          { value: "InProgress", label: "In Progress" },
@@ -216,7 +212,7 @@ const GisFilter = ({ onFilter, isVertical = false }) => {
     }
   }, []);
 
-  // Grid class logic
+
   const gridColClass = isVertical ? "col-span-12" : "col-span-12 md:col-span-6 lg:col-span-3";
 
   return (
@@ -284,7 +280,7 @@ const GisFilter = ({ onFilter, isVertical = false }) => {
 
               <div className={gridColClass}>
                 <label className="text-[13px] font-medium text-gray-700 block mb-2">
-                  Select Area Type
+                  Select Area Type 
                 </label>
                 <div className="flex gap-5 items-center mt-3 text-sm">
                   <div className="flex gap-2 items-center cursor-pointer">
@@ -321,7 +317,7 @@ const GisFilter = ({ onFilter, isVertical = false }) => {
               {formData.areaType === "BLOCK" && (
                 <>
                   <div className={gridColClass}>
-                    <SelectField
+                    <SelectField 
                       label="Block Name"
                       required={false}
                       name="blockId"
@@ -384,7 +380,7 @@ const GisFilter = ({ onFilter, isVertical = false }) => {
                       disabled={!formData.municipalityId}
                       placeholder="Select"
                     />
-                  </div>
+                  </div> 
                 </>
               )}
             </>

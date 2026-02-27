@@ -67,7 +67,6 @@ const Navbar = () => {
     0
   );
 
-
   useEffect(() => {
     const close = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -98,249 +97,140 @@ const Navbar = () => {
 
   return (
     <>
-      <header
-        className="
-          w-full h-20 flex items-center justify-between
-          px-5 shadow-lg border-b border-orange-400
-           backdrop-blur-md
-          text-white transition-all duration-300
-        "
-        style={{ background: "whitesmoke" }}
-      >
-        <div className="flex items-center gap-3">
-          <img
-            src={images.emblem}
-            alt="Odisha"
-            // style={{ filter: "invert(1)" }}
-            className="w-12 opacity-90"
-          />
-          <div className="p-[0.5px] h-10 bg-[#ccc]" />
-          <img
-            src={images.wodc}
-            alt="WODC"
-            className="w-12 opacity-90"
-          />
+      <header className="sticky top-0 z-40 w-full h-20 bg-white backdrop-blur-md border-b border-orange-400 px-4 md:px-8 flex items-center justify-between">
 
-          <div className="leading-tight ml-1 hidden sm:block">
-            <h1 className="text-[20px] font-semibold text-light-dark">
-              {t("projectName")} (WODC)
+        {/* ================= LEFT BRAND: Refined Spacing ================= */}
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2.5 group cursor-pointer">
+            <img src={images.emblem} alt="Odisha" className="w-11 drop-shadow-sm transition-transform group-hover:scale-105" />
+            <div className="h-6 w-[1.5px] bg-slate-200 rounded-full" />
+            <img src={images.wodc} alt="WODC" className="w-11 transition-transform group-hover:scale-105" />
+          </div>
+
+          <div className="hidden lg:block ml-2">
+            <h1 className="text-lg font-bold tracking-tight text-slate-900 leading-tight">
+              {t("projectName")} <span className="text-[#fe8b00] font-bold">(WODC)</span>
             </h1>
-            <p className="text-[14px] text-light-dark mt-1">
+            <p className="text-[11px] mt-1 font-medium uppercase tracking-wider text-slate-400">
               {t("dept")}
             </p>
           </div>
         </div>
 
-        {/* ================= RIGHT SIDE ================= */}
-        <div className="flex items-center gap-4">
+        {/* ================= RIGHT ACTIONS: Modern UI Elements ================= */}
+        <div className="flex items-center gap-2 sm:gap-3">
 
-          {/* ===== LANGUAGE TOGGLE SWITCH ===== */}
+          {/* ---------- NOTIFICATION: Sleek Badge ---------- */}
           <div className="relative" ref={notifRef}>
             <button
               onClick={() => setOpenNotif(!openNotif)}
-              className="
-                relative p-2 bg-[#ccc] rounded-full
-                transition-all
-              "
+              className="group relative w-10 h-10 flex items-center justify-center rounded-xl hover:bg-orange-50 transition-all duration-200"
             >
-              <FiBell size={20} className="text-slate-800" />
+              <FiBell size={20} className="text-slate-600 group-hover:text-orange-600 transition-colors" />
               {totalNotifCount > 0 && (
-                <span
-                  className="
-        absolute -top-1 -right-1
-        min-w-[20px] h-5 px-1
-        flex items-center justify-center
-        text-[10px] font-bold
-        text-white
-        bg-orange-500
-        rounded-full
-        shadow-md
-      "
-                >
-                  {totalNotifCount}
+                <span className="absolute top-2 right-2 flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-orange-500 border-2 border-white"></span>
                 </span>
               )}
-
             </button>
 
             {openNotif && (
-              <div
-                className="
-        absolute right-0 mt-2 w-72 z-50
-        rounded-xl border border-white/10
-        bg-[#f5f5f5] shadow-2xl
-        animate-slideFade overflow-hidden
-      "
-              >
-                {/* HEADER */}
-                <div className="px-4 py-3 border-b border-white/10 flex justify-between items-center">
-                  <p className="text-sm font-semibold text-slate-600">Notifications</p>
-                  <button className="text-xs text-orange-400 hover:underline">
-                    Mark all as read
-                  </button>
+              <div className="absolute right-0 mt-3 w-80 bg-white border border-slate-100 rounded-2xl shadow-2xl shadow-slate-200/50 overflow-hidden z-50 animate-in fade-in zoom-in duration-200">
+                <div className="px-5 py-4 bg-slate-50/50 border-b border-slate-100 flex justify-between items-center">
+                  <p className="text-sm font-bold text-slate-800">Notifications</p>
+                  <button className="text-[11px] font-bold text-orange-600 uppercase tracking-wide hover:opacity-70">Mark all read</button>
                 </div>
 
-                {/* LIST */}
-                <div className="max-h-80 overflow-y-auto">
-                  {notifications?.length === 0 ? (
-                    <p className="text-sm text-center py-6 opacity-70">
-                      No notifications
-                    </p>
+                <div className="max-h-[320px] overflow-y-auto">
+                  {notifications.length === 0 ? (
+                    <div className="py-10 text-center">
+                      <FiBell className="mx-auto text-slate-200 mb-2" size={32} />
+                      <p className="text-sm text-slate-400">All caught up!</p>
+                    </div>
                   ) : (
-                    notifications?.map((item, idx) => (
-
-                      <div
-                        key={idx}
-                        className={`
-                          px-4 py-3 cursor-pointer
-                          border-b border-white/5
-                          hover:bg-white/5
-                          flex justify-between items-center
-                        `}
-                      >
-
-                        <div className="flex justify-between items-start gap-2">
-                          <p className="text-[12px] font-medium text-slate-600">
-                            {item.title}
-                          </p>
+                    notifications.map((item, i) => (
+                      <div key={i} className="px-5 py-3.5 flex justify-between items-start hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0 cursor-pointer">
+                        <div>
+                          <p className="text-[13px] font-medium text-slate-700 leading-snug">{item.title}</p>
+                          <p className="text-[10px] text-slate-400 mt-1">2 mins ago</p>
                         </div>
-
-                        <p className="text-[11px] px-3 py-1 bg-orange-300/25 rounded-sm mt-1 text-orange-600 font-bold">
+                        <span className="text-[10px] font-bold text-orange-600 bg-orange-50 ring-1 ring-inset ring-orange-200/50 px-2 py-0.5 rounded-full">
                           {item.count}
-                        </p>
+                        </span>
                       </div>
                     ))
                   )}
                 </div>
-
-                {/* FOOTER */}
-                <div className="px-4 py-2 text-center border-t border-white/10">
-                  <Link
-                    to="/dashboard"
-                    className="text-sm text-orange-400 hover:underline"
-                  >
-                    View all notifications
-                  </Link>
-                </div>
+                <Link to="/dashboard" className="block text-center text-[13px] font-semibold py-3 text-slate-600 hover:text-orange-600 bg-slate-50/30 border-t border-slate-100 transition-colors">
+                  View all notifications
+                </Link>
               </div>
             )}
           </div>
+
+          {/* ---------- LANGUAGE: Capsule Style ---------- */}
           <button
             onClick={toggleLang}
-            className="
-              relative w-24 h-9 flex items-center cursor-pointer
-              bg-[#ccc] border border-white/10
-              rounded-sm transition-all
-            "
+            className="px-4 py-1.5 bg-slate-50 border border-slate-200 rounded-full text-[11px] font-bold text-slate-600 hover:border-orange-200 hover:text-orange-600 transition-all active:scale-95"
           >
-            {/* SLIDER */}
-            <span
-              className={`
-                absolute top-1 left-1 w-10 h-7 rounded-sm
-                bg-orange-400 shadow-md
-                transition-transform duration-300
-                ${lang === "od" ? "translate-x-[44px]" : "translate-x-0"}
-              `}
-            />
-
-            {/* LABELS */}
-            <span
-              className={`
-                relative z-10 w-1/2 text-xs text-center
-                ${lang === "en" ? "text-light-dark font-semibold" : "text-slate-800"}
-              `}
-            >
-              EN
-            </span>
-
-            <span
-              className={`
-                relative z-10 w-1/2 text-xs text-center
-                ${lang === "od" ? "text-light-dark font-semibold" : "text-slate-800"}
-              `}
-            >
-              ଓଡ଼ିଆ
-            </span>
+            {lang === "en" ? "EN • ଓଡ଼ିଆ" : "ଓଡ଼ିଆ • EN"}
           </button>
 
+          <div className="h-6 w-px bg-slate-200 mx-1 hidden sm:block" />
+
+          {/* ---------- USER: Elevated Profile ---------- */}
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setOpen(!open)}
-              className="
-                flex items-center gap-2 px-3 py-2
-                bg-[#2a2e34] hover:bg-[#34383f]
-                border border-white/10 rounded-lg
-                transition-all relative
-              "
+              className="group flex items-center gap-2.5 p-1 pr-3 rounded-full hover:bg-slate-50 transition-all"
             >
-              <span className="p-1 bg-green-400 rounded-full absolute bottom-2.5 left-10" />
-              <img
-                src={images.profileImage}
-                className="w-9 h-9 rounded-full border border-white/20"
-                alt="Profile"
-              />
-              <span className="text-sm">{selectState?.description}</span>
-              <FiChevronDown
-                size={16}
-                className={`transition-transform ${open ? "rotate-180" : ""}`}
-              />
+              <div className="relative">
+                <img src={images.profileImage} alt="profile" className="w-8 h-8 rounded-full object-cover ring-2 ring-white shadow-sm" />
+                <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-white rounded-full"></div>
+              </div>
+              <div className="hidden sm:block text-left">
+                <p className="text-[13px] font-bold text-slate-800 leading-none">{selectState?.description}</p>
+                <p className="text-[10px] font-medium text-slate-400 mt-0.5 capitalize">{selectState?.roleCode?.toLowerCase()}</p>
+              </div>
+              <FiChevronDown size={14} className={`text-slate-400 transition-transform duration-300 ${open ? 'rotate-180' : ''}`} />
             </button>
 
             {open && (
-              <div
-                className="
-                  absolute right-0 mt-2 w-60 z-50
-                  rounded-xl border border-white/10
-                  bg-[#2b2f36] shadow-2xl animate-slideFade
-                  overflow-hidden
-                "
-              >
-                <div className="px-4 py-3 bg-light-dark">
-                  <p className="text-sm font-semibold">
-                    {selectState?.description}
-                  </p>
-                  <p className="text-xs opacity-80">
-                    {selectState?.roleCode}
-                  </p>
+              <div className="absolute right-0 mt-3 w-60 bg-white border border-slate-100 rounded-2xl shadow-2xl z-50 overflow-hidden animate-in slide-in-from-top-2 duration-200">
+                <div className="px-5 py-4 bg-slate-50/50 border-b border-slate-100">
+                  <p className="text-[13px] font-bold text-slate-900 line-clamp-1">{selectState?.description}</p>
+                  <p className="text-[11px] text-slate-500 font-medium">{selectState?.roleCode}</p>
                 </div>
 
-                <ul className="py-1">
-                  <li>
-                    <p
-                      onClick={() => {
-                        dispatch(addAllowedPath("/userProfile"))
-                        navigate("/userProfile")
-                      }}
-                      className="flex items-center gap-3 px-4 py-3 hover:bg-white/10 text-sm"
-                    >
-                      <FiUser size={18} className="text-[#feca57]" />
-                      View Profile
-                    </p>
+                <ul className="p-2 space-y-0.5">
+                  <li
+                    onClick={() => { dispatch(addAllowedPath("/userProfile")); navigate("/userProfile"); }}
+                    className="px-3 py-2.5 rounded-lg hover:bg-slate-100 cursor-pointer flex items-center gap-3 text-[13px] font-medium text-slate-700 transition-colors"
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center">
+                      <FiUser className="text-orange-600" size={16} />
+                    </div>
+                    My Profile
                   </li>
-
-                  <li>
-                    <p
-                      onClick={() => {
-                        dispatch(addAllowedPath("/changePassword"))
-                        navigate("/changePassword")
-                      }}
-                      className="flex items-center gap-3 px-4 py-3 hover:bg-white/10 text-sm"
-                    >
-                      <FiKey size={18} className="text-[#4ecdc4]" />
-                      Change Password
-                    </p>
+                  <li
+                    onClick={() => { dispatch(addAllowedPath("/changePassword")); navigate("/changePassword"); }}
+                    className="px-3 py-2.5 rounded-lg hover:bg-slate-100 cursor-pointer flex items-center gap-3 text-[13px] font-medium text-slate-700 transition-colors"
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-teal-50 flex items-center justify-center">
+                      <FiKey className="text-teal-600" size={16} />
+                    </div>
+                    Security
                   </li>
-
-                  <div className="border-t border-white/10 my-1" />
-
-                  <li>
-                    <button
-                      onClick={() => setOpenLogoutModal(true)}
-                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/10 text-sm text-red-400 font-medium"
-                    >
-                      <FiLogOut size={18} />
-                      Logout
-                    </button>
+                  <div className="my-1.5 border-t border-slate-100" />
+                  <li
+                    onClick={() => setOpenLogoutModal(true)}
+                    className="px-3 py-2.5 rounded-lg hover:bg-red-50 text-red-600 cursor-pointer flex items-center gap-3 text-[13px] font-bold transition-colors"
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center">
+                      <FiLogOut size={16} />
+                    </div>
+                    Sign Out
                   </li>
                 </ul>
               </div>
@@ -353,21 +243,8 @@ const Navbar = () => {
         open={openLogoutModal}
         onClose={() => setOpenLogoutModal(false)}
         onConfirm={logout}
-        description={"Do you want to logout ?"}
+        description="Are you sure you want to sign out ?"
       />
-
-      {/* ================= ANIMATION ================= */}
-      <style>
-        {`
-          .animate-slideFade {
-            animation: slideFade 0.18s ease-out;
-          }
-          @keyframes slideFade {
-            from { opacity: 0; transform: translateY(-5px); }
-            to { opacity: 1; transform: translateY(0); }
-          }
-        `}
-      </style>
     </>
   );
 };

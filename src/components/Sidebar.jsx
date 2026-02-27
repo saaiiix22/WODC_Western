@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { RiMenu2Fill } from "react-icons/ri";
 import { FaChevronDown } from "react-icons/fa";
+import { MdMenuOpen } from "react-icons/md";
 import { RxCross2 } from "react-icons/rx";
 import { images } from "../assets/images";
 import "@fortawesome/fontawesome-free/css/all.min.css";
@@ -38,25 +39,6 @@ const Sidebar = ({ collapse, setCollapse }) => {
       throw error;
     }
   };
-  // console.log(menuList);
-  // const getAllowedRoutesArr = (menus = []) => {
-  //   const arr = [];
-
-  //   menus.forEach(menu => {
-  //     if (menu?.link && menu.link !== "#") {
-  //       arr.push(menu.link);
-  //     }
-
-  //     menu?.subMenu?.forEach(sub => {
-  //       if (sub?.link) {
-  //         arr.push(sub.link);
-  //       }
-  //     });
-  //   });
-
-  //   return arr;
-  // };
-
   useEffect(() => {
     getAllMenu()
   }, [])
@@ -94,7 +76,7 @@ const Sidebar = ({ collapse, setCollapse }) => {
         {!collapse && (
           <div className="flex flex-col ">
             <span className="text-white text-lg font-semibold tracking-wide">
-              WODC Portal
+              IFPMS Portal
             </span>
             <span className="text-white text-[11px] opacity-70 tracking-wider">
               Administration
@@ -106,7 +88,7 @@ const Sidebar = ({ collapse, setCollapse }) => {
           onClick={() => setCollapse(!collapse)}
           className="p-1.5 bg-[#fe8b00]  rounded-sm transition"
         >
-          {collapse ? <RiMenu2Fill className="text-white text-lg" /> : <RxCross2 className="text-white text-lg" />}
+          {collapse ? <RiMenu2Fill className="text-white text-lg" /> : <MdMenuOpen className="text-white text-lg" />}
         </button>
       </div>
 
@@ -185,17 +167,17 @@ const Sidebar = ({ collapse, setCollapse }) => {
               {!collapse && hasSubMenu && (
                 <div
                   className={`
-            ml-8 mt-1 bg-white/5 border border-white/10 rounded-lg
+            ml-8 mt-1 border-l border-white/10
             overflow-hidden w-[calc(100%-2rem)]
             transition-all duration-500 ease-in-out
-            ${isOpen ? "max-h-[500px] opacity-100 py-2" : "max-h-0 opacity-0 py-0"}
+            ${isOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0 py-0"}
           `}
                 >
                   {item.subMenu.map((sub, i) => (
                     <NavLink
                       key={i}
                       to={sub.link}
-                      className="block px-3 py-1.5 text-white/90 text-[11px] hover:bg-white/10 transition"
+                      className="block px-3 py-1.5  text-white/90 text-[11px] hover:bg-white/5   transform transition-all duration-300 hover:translate-x-2 hover:text-white"
                     >
                       {sub.title}
                     </NavLink>

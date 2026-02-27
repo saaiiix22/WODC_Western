@@ -361,41 +361,38 @@ const WorkflowConfig = () => {
     })) || []
   , [statuses]);
 
-
-
   /* ================= RENDER FUNCTIONS ================= */
 const renderTableHeader = () => (
   <thead className="bg-slate-100">
     <tr>
-      <th className="w-[60px] text-center text-sm font-semibold px-2 py-1 border-r border-slate-200">
+      <th className="w-[60px] text-center text-xs font-semibold px-1 py-1 border-r border-slate-200">
         SL No
       </th>
-      <th className="text-center text-sm font-semibold px-4 py-1 border-r border-slate-200">
+      <th className="text-center text-xs font-semibold px-2 py-1 border-r border-slate-200">
         From Stage <span className="text-red-500">*</span>
       </th>
-      <th className="text-center text-sm font-semibold px-4 py-1 border-r border-slate-200">
+      <th className="text-center text-xs font-semibold px-2 py-1 border-r border-slate-200">
         To Stage <span className="text-red-500">*</span>
       </th>
-      <th className="text-center text-sm font-semibold px-4 py-1 border-r border-slate-200">
+      <th className="text-center text-xs font-semibold px-2 py-1 border-r border-slate-200">
         Action Type <span className="text-red-500">*</span>
       </th>
-      <th className="text-center text-sm font-semibold px-4 py-1 border-r border-slate-200">
+      <th className="text-center text-xs font-semibold px-2 py-1 border-r border-slate-200">
         Status <span className="text-red-500">*</span>
       </th>
-      <th className="min-w-[150px] text-center text-sm font-semibold px-4 py-1 border-r border-slate-200">
+      <th className="min-w-[150px] text-center text-xs font-semibold px-2 py-1 border-r border-slate-200">
         Forwarded Code <span className="text-red-500">*</span>
       </th>
-      <th className="min-w-[150px] text-center text-sm font-semibold px-4 py-1 border-r border-slate-200">
+      <th className="min-w-[150px] text-center text-xs font-semibold px-2 py-1 border-r border-slate-200">
         Route Type <span className="text-red-500">*</span>
       </th>
-      <th className="w-[140px] text-center text-sm font-semibold px-4 py-1 border-r border-slate-200">
+      <th className="w-[140px] text-center text-xs font-semibold px-2 py-1 border-r border-slate-200">
         Stage Flags
       </th>
-      {/* ADDED: Show in Page column */}
-      <th className="w-[140px] text-center text-sm font-semibold px-4 py-1 border-r border-slate-200">
+      <th className="w-[140px] text-center text-xs font-semibold px-2 py-1 border-r border-slate-200">
         Show in Page
       </th>
-      <th className="w-[70px] text-center text-sm px-3 py-1 border-r border-slate-200">
+      <th className="w-[70px] text-center text-xs px-1 py-1 border-r border-slate-200">
         Actions
       </th>
     </tr>
@@ -405,66 +402,82 @@ const renderTableHeader = () => (
 const renderTableRow = (row, index) => (
   <tr key={index} className="border-b border-slate-200 hover:bg-slate-50 transition-colors">
     <td className="border-r border-slate-200 text-center align-top">
-      <div className="flex flex-col items-center justify-center h-full py-2">
-        <span className="font-medium text-gray-800">{index + 1}</span>
+      <div className="flex flex-col items-center justify-center h-full py-1">
+        <span className="text-xs font-medium text-gray-800">{index + 1}</span>
       </div>
     </td>
 
-    <td className="border-r border-slate-200 px-2 py-2 align-top">
-      <SelectField
-        name="fromStageId"
-        value={row.fromStageId}
-        onChange={(e) => handleInput(index, "fromStageId", e.target.value)}
-        options={roleOptions}
-        placeholder="Select"
-        error={errors[`fromStageId_${index}`]}
-        size="small"
-      />
+    <td className="border-r border-slate-200 px-1 py-0.5 align-top">
+      <div className="h-6 flex items-center">
+        <SelectField
+          name="fromStageId"
+          value={row.fromStageId}
+          onChange={(e) => handleInput(index, "fromStageId", e.target.value)}
+          options={roleOptions}
+          placeholder="Select"
+          error={errors[`fromStageId_${index}`]}
+          size="small"
+          className="w-full"
+          style={{ fontSize: '10px' }}
+        />
+      </div>
     </td>
     
-    <td className="border-r border-slate-200 px-2 py-2 align-top">
-      <SelectField
-        name="toStageId"
-        value={row.toStageId}
-        onChange={(e) => handleInput(index, "toStageId", e.target.value)}
-        options={roleOptions}
-        placeholder="Select"
-        error={errors[`toStageId_${index}`]}
-        size="small"
-      />
+    <td className="border-r border-slate-200 px-1 py-0.5 align-top">
+      <div className="h-6 flex items-center">
+        <SelectField
+          name="toStageId"
+          value={row.toStageId}
+          onChange={(e) => handleInput(index, "toStageId", e.target.value)}
+          options={roleOptions}
+          placeholder="Select"
+          error={errors[`toStageId_${index}`]}
+          size="small"
+          className="w-full"
+          style={{ fontSize: '10px' }}
+        />
+      </div>
     </td>
     
-    <td className="border-r border-slate-200 px-2 py-2 align-top">
-      <SelectField
-        name="actionTypeId"
-        value={row.actionTypeId}
-        onChange={(e) => handleInput(index, "actionTypeId", e.target.value)}
-        options={actionOptions}
-        placeholder="Select"
-        error={errors[`actionTypeId_${index}`]}
-        size="small"
-      />
+    <td className="border-r border-slate-200 px-1 py-0.5 align-top">
+      <div className="h-6 flex items-center">
+        <SelectField
+          name="actionTypeId"
+          value={row.actionTypeId}
+          onChange={(e) => handleInput(index, "actionTypeId", e.target.value)}
+          options={actionOptions}
+          placeholder="Select"
+          error={errors[`actionTypeId_${index}`]}
+          size="small"
+          className="w-full"
+          style={{ fontSize: '10px' }}
+        />
+      </div>
     </td>
     
-    <td className="border-r border-slate-200 px-2 py-2 align-top">
-      <SelectField
-        name="statusId"
-        value={row.statusId}
-        onChange={(e) => handleInput(index, "statusId", e.target.value)}
-        options={statusOptions}
-        placeholder="Select"
-        error={errors[`statusId_${index}`]}
-        size="small"
-      />
+    <td className="border-r border-slate-200 px-1 py-0.5 align-top">
+      <div className="h-6 flex items-center">
+        <SelectField
+          name="statusId"
+          value={row.statusId}
+          onChange={(e) => handleInput(index, "statusId", e.target.value)}
+          options={statusOptions}
+          placeholder="Select"
+          error={errors[`statusId_${index}`]}
+          size="small"
+          className="w-full"
+          style={{ fontSize: '10px' }}
+        />
+      </div>
     </td>
     
-    <td className="border-r border-slate-200 px-2 py-2 align-top">
+    <td className="border-r border-slate-200 px-1 py-0.5 align-top">
       <Tooltip 
         title={row.fwdRuleCode || ""} 
         arrow 
         disableHoverListener={!row.fwdRuleCode || row.fwdRuleCode.length <= 20}
       >
-        <div>
+        <div className="h-6 flex items-center">
           <InputField
             name="fwdRuleCode"
             value={row.fwdRuleCode}
@@ -472,18 +485,26 @@ const renderTableRow = (row, index) => (
             placeholder="Enter code"
             error={errors[`fwdRuleCode_${index}`]}
             size="small"
+            className="w-full"
+            inputProps={{
+              style: { 
+                fontSize: '10px',
+                padding: '2px 4px',
+                height: '20px'
+              }
+            }}
           />
         </div>
       </Tooltip>
     </td>
 
-    <td className="border-r border-slate-200 px-2 py-2 align-top">
+    <td className="border-r border-slate-200 px-1 py-0.5 align-top">
       <Tooltip 
         title={row.routeType || ""} 
         arrow 
         disableHoverListener={!row.routeType || row.routeType.length <= 20}
       >
-        <div>
+        <div className="h-6 flex items-center">
           <InputField
             name="routeType"
             value={row.routeType}
@@ -491,16 +512,24 @@ const renderTableRow = (row, index) => (
             placeholder="Enter route type"
             error={errors[`routeType_${index}`]}
             size="small"
+            className="w-full"
+            inputProps={{
+              style: { 
+                fontSize: '10px',
+                padding: '2px 4px',
+                height: '20px'
+              }
+            }}
           />
         </div>
       </Tooltip>
     </td>
     
-    <td className="border-r border-slate-200 px-2 py-2 align-top">
-      <div className="flex flex-col items-center space-y-1.5">
-        <div className="flex items-center justify-between w-full px-2">
+    <td className="border-r border-slate-200 px-1 py-0.5 align-top">
+      <div className="flex flex-col items-center space-y-1">
+        <div className="flex items-center gap-2 px-1">
           <span className="text-xs font-medium text-gray-600">First:</span>
-          <span className={`px-2 py-0.5 text-xs rounded-full font-medium ${
+          <span className={`px-1 py-0.5 text-[10px] rounded-full font-medium ${
             row.isFirstStage 
               ? 'bg-green-50 text-green-700 border border-green-200' 
               : 'bg-red-50 text-red-700 border border-red-200'
@@ -509,9 +538,9 @@ const renderTableRow = (row, index) => (
           </span>
         </div>
         
-        <div className="flex items-center justify-between w-full px-2">
+        <div className="flex items-center gap-2 px-1">
           <span className="text-xs font-medium text-gray-600">Last:</span>
-          <span className={`px-2 py-0.5 text-xs rounded-full font-medium ${
+          <span className={`px-1 py-0.5 text-[10px] rounded-full font-medium ${
             row.isLastStage 
               ? 'bg-green-50 text-green-700 border border-green-200' 
               : 'bg-red-50 text-red-700 border border-red-200'
@@ -522,21 +551,20 @@ const renderTableRow = (row, index) => (
       </div>
     </td>
     
-    {/* ADDED: Show in Page toggle */}
-    <td className="border-r border-slate-200 px-2 py-2 align-middle">
+    <td className="border-r border-slate-200 px-1 py-0.5 align-middle">
       <div className="flex items-center justify-center h-full">
         <Tooltip title={row.showInPage ? "Showing in page" : "Hidden from page"} arrow>
           <button
             type="button"
             onClick={() => handleInput(index, "showInPage", !row.showInPage)}
-            className={`relative inline-flex h-5 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+            className={`relative inline-flex h-4 w-8 items-center rounded-full transition-colors focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-blue-500 ${
               row.showInPage ? 'bg-green-600' : 'bg-red-500'
             }`}
             aria-label={`Toggle show in page - currently ${row.showInPage ? 'shown' : 'hidden'}`}
           >
             <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                row.showInPage ? 'translate-x-6' : 'translate-x-1'
+              className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+                row.showInPage ? 'translate-x-4' : 'translate-x-0.5'
               }`}
             />
           </button>
@@ -549,19 +577,17 @@ const renderTableRow = (row, index) => (
         <Tooltip title="Delete Row" arrow>
           <button
             type="button"
-            className="text-red-500 hover:text-red-700 p-1.5 rounded-full hover:bg-red-50 transition-colors"
+            className="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-50 transition-colors"
             onClick={() => deleteRow(index)}
             aria-label="Delete row"
           >
-            <FaTrash className="w-4 h-10" />
+            <FaTrash className="w-3 h-3" />
           </button>
         </Tooltip>
       </div>
     </td>
-
   </tr>
 );
-
   
   /* ================= MAIN RENDER ================= */
   return (
@@ -583,7 +609,7 @@ const renderTableRow = (row, index) => (
         </AccordionSummary>
 
         <AccordionDetails className="p-0">
-          <div className="p-4">
+          <div>
             <form className="space-y-6" onSubmit={handleSubmit}>
               {/* Module Selection */}
               <div className="grid grid-cols-12 gap-6">

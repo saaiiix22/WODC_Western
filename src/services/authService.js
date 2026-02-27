@@ -8,3 +8,6 @@ export const MenuList = (data) =>  Api.get(endpoints.menu.getMenuList,{params:{c
 
 export const UserProfileDetails= () => Api.get(endpoints.menu.UserDetails)
 export const getCaptchaService =(data) => Api.get(endpoints.auth.captcha,{params:{size:data}})
+
+export const verifyUserAndCaptcha = (data) => Api.post(endpoints.auth.forgotOTP,{obj:data})
+export const resetPasswordService = (data) => Api.post(endpoints.auth.resetPassword,{obj:data})

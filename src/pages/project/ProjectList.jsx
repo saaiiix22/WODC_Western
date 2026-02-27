@@ -17,6 +17,7 @@ import Box from "@mui/material/Box";
 import TabContext from "@mui/lab/TabContext";
 import TabPanel from "@mui/lab/TabPanel";
 import { DataGrid } from "@mui/x-data-grid";
+import { addAllowedPath } from "../../redux/slices/menuSlice";
 
 const ProjectList = () => {
   const [tableData, setTableData] = useState([]);
@@ -69,6 +70,7 @@ const ProjectList = () => {
 
       if (res?.status === 200 && res?.data.outcome) {
         dispatch(setSelectedProject(res?.data.data));
+        dispatch(addAllowedPath("/project"))
         navigate("/project");
       }
     } catch (error) {
@@ -102,6 +104,7 @@ const ProjectList = () => {
       renderCell: (params) =>
         params.api.getRowIndexRelativeToVisibleRows(params.id) + 1,
     },
+    
     {
       field: "projectName",
       headerName: "Project Name",

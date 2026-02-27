@@ -165,7 +165,7 @@ const WorkOrderGeneration = () => {
 
   const toDDMMYYYY = (str = "") => {
     if (!str) return;
-    return str.split("-").join("/");
+    return str.split("-").reverse().join("/");
   };
 
   const openDocument = (base64Data, mimeType = "application/pdf") => {
@@ -256,7 +256,7 @@ const WorkOrderGeneration = () => {
           workOrderNo: "",
           workOrderDate: "",
         });
-        setMilestoneOpts({});
+        setMilestoneOpts([]);
         setOpen(false)
       }
     } catch (error) {
@@ -600,6 +600,7 @@ const WorkOrderGeneration = () => {
                           value={workOrderNo}
                           type="text"
                           onChange={handleChangeInput}
+                          disabled
                           error={errors.workOrderNo}
                         />
                       </div>
@@ -646,11 +647,14 @@ const WorkOrderGeneration = () => {
         {/* Footer (Optional) */}
         <div className="flex justify-center gap-2 text-[13px] bg-[#42001d0f] border-t border-[#ebbea6] px-4 py-3 rounded-b-md">
           <ResetBackBtn />
-          <SubmitBtn type={'submit'} />
+          {/* <SubmitBtn type={'submit'} /> */}
           {/* {userSelect?.menu.userDetails.roleCode !== "ROLE_WODC_ADMIN" &&
             !wordOrderDetails?.workOrderDate && (
               <SubmitBtn type="submit" />
             )} */}
+          {!wordOrderDetails?.workOrderId && (
+            <SubmitBtn type={'submit'} />
+          )}
 
         </div>
       </div>

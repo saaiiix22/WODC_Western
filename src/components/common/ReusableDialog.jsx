@@ -16,6 +16,12 @@ const ReusableDialog = ({ open, title, description, onClose, onConfirm }) => {
       open={open}
       onClose={onClose}
       disableEscapeKeyDown
+      BackdropProps={{
+        sx: {
+          backdropFilter: "blur(6px)",
+          backgroundColor: "rgba(0,0,0,0.3)",
+        },
+      }}
       PaperProps={{
         sx: {
           width: 480,
@@ -118,7 +124,7 @@ const ReusableDialog = ({ open, title, description, onClose, onConfirm }) => {
           Confirm
         </Button>
       </DialogActions>
-    </Dialog>
+    </Dialog >
   );
 };
 

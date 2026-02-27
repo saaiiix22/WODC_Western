@@ -15,23 +15,24 @@ import {
   saveFundReleasInfoServicePrimary,
 } from "../../services/workOrderGenerationService";
 import { toast } from "react-toastify";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import Magnifier from "../../components/common/Magnifier";
 import ReusableDialog from "../../components/common/ReusableDialog";
 import { openDocument } from "../../utils/openDocument";
 import { forwardListByMenuService } from "../../services/workflowService";
 import { GrSave } from "react-icons/gr";
+import { addAllowedPath } from "../../redux/slices/menuSlice";
+import { avoidSpecialCharUtil } from "../../utils/validationUtils";
 
 const FundReleaseInfo = () => {
   const userSelect = useSelector((state) => state);
-  console.log(userSelect?.menu.userDetails);
+  const dispatch = useDispatch()
 
   const [button, setButtons] = useState([])
 
 
   const location = useLocation()
-  // console.log(location.pathname);
 
   const getWorkFlow = async () => {
     try {
@@ -45,7 +46,6 @@ const FundReleaseInfo = () => {
       console.log(error);
     }
   }
-
 
   const [formData, setFormData] = useState({
     finYear: "",
@@ -61,6 +61,7 @@ const FundReleaseInfo = () => {
     releaseLetterDate: "",
     agencyBankId: "",
   });
+
   const {
     finYear,
     projectId,
@@ -73,6 +74,7 @@ const FundReleaseInfo = () => {
     releaseLetterNo,
     agencyBankId,
   } = formData;
+
   const [errors, setErrors] = useState({});
 
   const [finOpts, setFinOpts] = useState([]);
@@ -93,7 +95,6 @@ const FundReleaseInfo = () => {
     try {
       const payload = encryptPayload({ isActive: true });
       const res = await getFinancialYearService(payload);
-      // console.log(res);
       if (res?.status === 200 && res?.data.outcome) {
         setFinOpts(res?.data.data);
       }
@@ -101,6 +102,7 @@ const FundReleaseInfo = () => {
       throw error;
     }
   };
+
   const getProjectOptsByFinYear = async () => {
     try {
       if (finYear) {
@@ -109,7 +111,6 @@ const FundReleaseInfo = () => {
           finyearId: parseInt(finYear),
         });
         const res = await getProjectByFinYearService(payload);
-        // console.log(res);
         if (res?.status === 200 && res?.data.outcome) {
           setProjectOpts(res?.data.data);
         } else {
@@ -129,7 +130,6 @@ const FundReleaseInfo = () => {
           projectId: projectId,
         });
         const res = await getCompleteMilestoneService(payload);
-        // console.log(res);
         if (res?.status === 200 && res?.data.outcome) {
           setMilestoneOpts(res?.data.data);
         } else {
@@ -141,18 +141,19 @@ const FundReleaseInfo = () => {
       throw error;
     }
   };
+
   const getDateDiff = (date1, date2) => {
-    if (!date1 || !date2) return "N/A";
+    if (!date1 || !date2) return 0;
 
     const d1 = new Date(date1.split("/").reverse().join("-"));
     const d2 = new Date(date2.split("/").reverse().join("-"));
 
-    return Math.round((d1 - d2) / (1000 * 60 * 60 * 24));
+    const diff = Math.round((d1 - d2) / (1000 * 60 * 60 * 24));
+    return isNaN(diff) ? 0 : diff;
   };
 
-
-
   const [wordOrderDetails, setWorkOrderDetails] = useState({});
+
   const getDeatilsByProjectMilestone = async () => {
     try {
       if (milestoneId && projectId) {
@@ -161,7 +162,6 @@ const FundReleaseInfo = () => {
           milestoneId: milestoneId,
         });
         const res = await getDetailsByProjectAndMilestoneIdService(payload);
-        // console.log(res);
         if (res?.status === 200 && res?.data.outcome) {
           setWorkOrderDetails(res?.data.data.workOrderDto);
           setWorkOrderIdDetails(res?.data.data.workOrderDto?.fundReleaseDto);
@@ -181,40 +181,84 @@ const FundReleaseInfo = () => {
     const { name, value } = e.target;
 
     let updatedForm = { ...formData };
+    let updatedVal = value;
+
     const milestoneAmount = Number(milestoneDetails?.amount) || 0;
+    const workOrderDate = wordOrderDetails?.workOrderDate;
 
-    if (name === "penaltyPercentage") {
-      let percent = Number(value);
+    // 🔒 Prevent bank change if already saved
+    if (name === "agencyBankId" && workOrderIdDetails?.agencyBankId) {
+      return;
+    }
 
-      if (isNaN(percent) || percent < 0) percent = 0;
-      if (percent > 100) percent = 100;
+    // ✂️ Remove special characters where required
+    if (name === "releaseLetterNo" || name === "sanctionOrderNo") {
+      updatedVal = avoidSpecialCharUtil(value);
+    }
 
-      const amount =
-        milestoneAmount > 0
-          ? (milestoneAmount * percent) / 100
-          : 0;
+    if (name === "releaseLetterDate") {
+      if (updatedVal && workOrderDate) {
+        const [dd, mm, yyyy] = workOrderDate.split("/");
+        const woDate = new Date(`${yyyy}-${mm}-${dd}`);
 
-      updatedForm.penaltyPercentage = percent;
-      updatedForm.penaltyAmount = amount;
+        const releaseDate = new Date(updatedVal);
+
+        if (
+          !isNaN(woDate.getTime()) &&
+          !isNaN(releaseDate.getTime()) &&
+          releaseDate.getTime() <= woDate.getTime()
+        ) {
+          setErrors((prev) => ({
+            ...prev,
+            releaseLetterDate: `Release Letter Date must be after Work Order Date i.e. ${workOrderDate}`,
+          }));
+          return;
+        }
+      }
+
+      updatedForm.releaseLetterDate = updatedVal;
+    }
+
+    else if (name === "penaltyPercentage") {
+      if (updatedVal === "") {
+        updatedForm.penaltyPercentage = "";
+        updatedForm.penaltyAmount = "";
+      } else {
+        let percent = Number(updatedVal);
+        if (isNaN(percent) || percent < 0) percent = 0;
+        if (percent > 100) percent = 100;
+
+        const amount =
+          milestoneAmount > 0
+            ? (milestoneAmount * percent) / 100
+            : 0;
+
+        updatedForm.penaltyPercentage = percent;
+        updatedForm.penaltyAmount = amount;
+      }
     }
 
     else if (name === "penaltyAmount") {
-      let amount = Number(value);
+      if (updatedVal === "") {
+        updatedForm.penaltyAmount = "";
+        updatedForm.penaltyPercentage = "";
+      } else {
+        let amount = Number(updatedVal);
+        if (isNaN(amount) || amount < 0) amount = 0;
+        if (amount > milestoneAmount) amount = milestoneAmount;
 
-      if (isNaN(amount) || amount < 0) amount = 0;
-      if (amount > milestoneAmount) amount = milestoneAmount;
+        const percent =
+          milestoneAmount > 0
+            ? (amount / milestoneAmount) * 100
+            : 0;
 
-      const percent =
-        milestoneAmount > 0
-          ? (amount / milestoneAmount) * 100
-          : 0;
-
-      updatedForm.penaltyAmount = amount;
-      updatedForm.penaltyPercentage = Math.min(percent, 100);
+        updatedForm.penaltyAmount = amount;
+        updatedForm.penaltyPercentage = Math.min(percent, 100);
+      }
     }
 
     else {
-      updatedForm[name] = value;
+      updatedForm[name] = updatedVal;
     }
 
     setErrors((prev) => ({ ...prev, [name]: "" }));
@@ -222,25 +266,32 @@ const FundReleaseInfo = () => {
   };
 
   const [open, setOpen] = useState(false)
+
   const confirmSubmit = (e) => {
     e.preventDefault()
     let newErrors = {};
+
     if (!finYear) {
       newErrors.finYear = "Financial Year is required";
       setErrors(newErrors);
       return;
     }
+
     if (!projectId) {
       newErrors.projectId = "Project Name is required";
       setErrors(newErrors);
       return;
     }
     if (!milestoneId) {
-      newErrors.projectId = "Milestone Name is required";
+      newErrors.milestoneId = "Milestone Name is required";
       setErrors(newErrors);
       return;
     }
     if (finYear && projectId && milestoneId) {
+      if (!agencyBankId || agencyBankId === "") {
+        toast.error("Kindly select the bank for fund release");
+        return;
+      }
       if (!sanctionOrderNo) {
         newErrors.sanctionOrderNo = "Sanction Order Number is required";
         setErrors(newErrors);
@@ -262,54 +313,70 @@ const FundReleaseInfo = () => {
         return;
       }
     }
+
     setErrors(newErrors);
     if (Object.keys(newErrors).length === 0) {
       setOpen(true)
     }
   }
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setOpen(false);
 
     try {
+      // Convert empty strings to null for numeric fields
       const sendData = {
-        fundReleaseId: null,
+        fundReleaseId: workOrderIdDetails?.fundReleaseId || null,
         sanctionOrderNo,
-        sanctionOrderDate: sanctionOrderDate.split("-").reverse().join("/"),
-        releaseLetterDate: releaseLetterDate.split("-").reverse().join("/"),
+        sanctionOrderDate: sanctionOrderDate ? sanctionOrderDate.split("-").reverse().join("/") : null,
+        releaseLetterDate: releaseLetterDate ? releaseLetterDate.split("-").reverse().join("/") : null,
         releaseLetterNo,
         workOrderId: wordOrderDetails?.workOrderId,
-        projectAgencyMilestoneMapId:
-          milestoneDetails?.projectAgencyMilestoneMapId,
-        penaltyAmount,
-        penaltyPercentage,
-        agencyBankId,
+        projectAgencyMilestoneMapId: milestoneDetails?.projectAgencyMilestoneMapId,
+        penaltyAmount: penaltyAmount === "" || penaltyAmount === null ? null : parseFloat(penaltyAmount),
+        penaltyPercentage: penaltyPercentage === "" || penaltyPercentage === null ? null : parseInt(penaltyPercentage, 10),
+        agencyBankId: agencyBankId === "" || agencyBankId === null ? null : parseInt(agencyBankId, 10),
       };
-      console.log(sendData);
+
+      console.log("Sending data:", sendData);
 
       const payload = encryptPayload(sendData);
       const res = await saveFundReleasInfoServicePrimary(payload);
-      console.log(res);
-    } catch (error) {
-      throw error;
-    }
+      console.log("Response:", res);
 
-    // console.log(formData);
+      if (res?.status === 200 && res?.data?.outcome) {
+        toast.success("Fund release information saved successfully");
+        // Refresh data after save
+        if (projectId && milestoneId) {
+          getDeatilsByProjectMilestone();
+        }
+      } else {
+        toast.error(res?.data?.message || "Something went wrong");
+      }
+    } catch (error) {
+      console.error("Error saving fund release:", error);
+      toast.error("Failed to save fund release information");
+    }
   };
 
   useEffect(() => {
     getWorkFlow();
     getAllFinOpts();
   }, []);
+
   useEffect(() => {
     if (finYear) {
       getProjectOptsByFinYear();
     }
   }, [finYear]);
+
   useEffect(() => {
     if (projectId) {
       getAllMistoneOpts();
     }
   }, [projectId]);
+
   useEffect(() => {
     if (projectId && milestoneId) {
       getDeatilsByProjectMilestone();
@@ -325,22 +392,20 @@ const FundReleaseInfo = () => {
         penaltyAmount: workOrderIdDetails?.penaltyAmount,
         sanctionOrderNo: workOrderIdDetails?.sanctionOrderNo,
         sanctionOrderDate: workOrderIdDetails?.sanctionOrderDate
-          .split("/")
-          .reverse()
-          .join("-"),
+          ?.split("/")
+          ?.reverse()
+          ?.join("-") || "",
         releaseLetterNo: workOrderIdDetails?.releaseLetterNo,
         releaseLetterDate: workOrderIdDetails?.releaseLetterDate
-          .split("/")
-          .reverse()
-          .join("-"),
+          ?.split("/")
+          ?.reverse()
+          ?.join("-") || "",
       }));
     }
   }, [workOrderIdDetails]);
 
-  console.log(workOrderIdDetails?.fundReleaseId);
-
   return (
-    <form action="" onSubmit={confirmSubmit}>
+    <form onSubmit={confirmSubmit}>
       <div
         className="
             mt-3 p-2 bg-white rounded-sm border border-[#f1f1f1]
@@ -398,7 +463,6 @@ const FundReleaseInfo = () => {
                   label: i.projectName,
                 }))}
                 error={errors.projectId}
-
               />
             </div>
             <div className="col-span-2">
@@ -406,6 +470,7 @@ const FundReleaseInfo = () => {
                 label={"Milestone Name"}
                 required={true}
                 name="milestoneId"
+                value={milestoneId}
                 placeholder="Select"
                 disabled={projectId ? false : true}
                 options={milestoneOpts?.map((i) => ({
@@ -417,29 +482,8 @@ const FundReleaseInfo = () => {
               />
             </div>
 
-            {milestoneId && projectId && milestoneId && (
+            {milestoneId && projectId && (
               <>
-                <div className="col-span-12">
-                  <div className="grid grid-cols-12">
-                    {/* <div className="col-span-3">
-                      <div
-                        onClick={() =>
-                          navigate("/beneficiaryList", {
-                            state: { projectId, milestoneId },
-                          })
-                        }
-                        className="inline-flex items-center gap-2 rounded-sm cursor-pointer bg-[#fffaf6] border border-orange-300 px-4 py-2"
-                      >
-                        <span className="text-sm text-orange-600 font-medium">
-                          Beneficiaries
-                        </span>
-                        <span className="text-lg font-bold text-slate-600">
-                          {beneficiaryDetails.length}
-                        </span>
-                      </div>
-                    </div> */}
-                  </div>
-                </div>
                 <div className="col-span-12">
                   <div className="relative border border-dashed border-orange-300 bg-[#fffaf6] p-4 rounded-md mb-3">
                     {/* Floating Title */}
@@ -449,7 +493,6 @@ const FundReleaseInfo = () => {
 
                     {/* GRID */}
                     <div className="grid grid-cols-12 gap-y-3 gap-x-6 text-sm">
-                      {/* ---------- MILESTONE DETAILS ---------- */}
                       <div className="col-span-3 flex gap-1">
                         <span className="font-normal text-gray-700">
                           Milestone Name
@@ -500,10 +543,13 @@ const FundReleaseInfo = () => {
                         <span className="font-normal text-gray-700">Delay</span>
                         :
                         <span className="text-slate-900 font-semibold">
-                          {getDateDiff(
-                            milestoneDetails?.actualEndDate,
-                            milestoneDetails?.endDate
-                          ) || "0"}{" "}
+                          {
+                            Math.max(
+                              0,
+                              getDateDiff(milestoneDetails?.actualEndDate, milestoneDetails?.actualStartDate) -
+                              getDateDiff(milestoneDetails?.endDate, milestoneDetails?.startDate)
+                            )
+                          }{" "}
                           days
                         </span>
                       </div>
@@ -525,11 +571,12 @@ const FundReleaseInfo = () => {
                       </div>
                       <div
                         className="col-span-3 flex gap-1 cursor-pointer"
-                        onClick={() =>
+                        onClick={() => {
+                          dispatch(addAllowedPath("/beneficiaryList"))
                           navigate("/beneficiaryList", {
                             state: { projectId, milestoneId },
                           })
-                        }
+                        }}
                       >
                         <span className="font-normal text-gray-700">
                           Beneficary Count
@@ -542,35 +589,6 @@ const FundReleaseInfo = () => {
 
                       <div className="col-span-12">
                         <div className="grid grid-cols-12 gap-6">
-                          {/* {penaltyPercentage && penaltyAmount && <></>} */}
-
-                          <div className="col-span-3 flex gap-1 mt-2">
-                            <span className="font-normal text-gray-700">
-                              Penalty Amount
-                            </span>
-                            :
-                            <span className="text-slate-900 font-semibold">
-                              ₹{" "}
-                              {penaltyAmount.toLocaleString("en-IN", {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                              }) || 0}
-                            </span>
-                          </div>
-                          <div className="col-span-3 flex gap-1 mt-2">
-                            <span className="font-normal text-gray-700">
-                              Penalty Percent
-                            </span>
-                            :
-                            <span className="text-slate-900 font-semibold">
-                              {penaltyPercentage.toLocaleString("en-IN", {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                              }) || 0}{" "}
-                              %
-                            </span>
-                          </div>
-
                           <div className="col-span-3 flex gap-1 items-center">
                             <label
                               htmlFor=""
@@ -580,11 +598,12 @@ const FundReleaseInfo = () => {
                             </label>
                             :
                             <input
-                              className="w-1/2  border border-dashed border-orange-300 
+                              className="w-1/2 border border-dashed border-orange-300 
             px-2.5 py-1.5 text-sm text-slate-900 font-semibold
             outline-none transition-all duration-200"
                               name="penaltyPercentage"
                               value={penaltyPercentage}
+                              disabled={!!wordOrderDetails?.fundReleaseDto?.fundReleaseId}
                               max={100}
                               onChange={handleChangeInput}
                             />
@@ -598,11 +617,11 @@ const FundReleaseInfo = () => {
                             </label>
                             :
                             <input
-                              className="w-1/2  border border-dashed border-orange-300 
+                              className="w-1/2 border border-dashed border-orange-300 
             px-2.5 py-1.5 text-sm text-slate-900 font-semibold
             outline-none transition-all duration-200"
                               name="penaltyAmount"
-                              // disabled={true}
+                              disabled={!!wordOrderDetails?.fundReleaseDto?.fundReleaseId}
                               value={penaltyAmount}
                               onChange={handleChangeInput}
                             />
@@ -616,7 +635,8 @@ const FundReleaseInfo = () => {
                             <span className="text-slate-900 font-semibold">
                               ₹{" "}
                               {(
-                                milestoneDetails?.amount - penaltyAmount
+                                (milestoneDetails?.amount || 0) -
+                                (parseFloat(penaltyAmount) || 0)
                               ).toLocaleString("en-IN", {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2,
@@ -628,6 +648,7 @@ const FundReleaseInfo = () => {
                     </div>
                   </div>
                 </div>
+
                 {userSelect?.menu.userDetails.roleCode !== "ROLE_AGENCY" && (
                   <div className="col-span-12">
                     <div className="relative border border-dashed border-orange-300 bg-[#fffaf6] p-4 rounded-md mb-3">
@@ -638,7 +659,6 @@ const FundReleaseInfo = () => {
 
                       {/* GRID */}
                       <div className="grid grid-cols-12 gap-y-3 gap-x-6 text-sm">
-                        {/* ---------- MILESTONE DETAILS ---------- */}
                         <div className="col-span-3 flex gap-1">
                           <span className="font-normal text-gray-700">
                             Agency Name
@@ -718,7 +738,6 @@ const FundReleaseInfo = () => {
                                           <td className="border-r py-2 text-sm border-orange-300 text-center">
                                             {i.accountNo}
                                           </td>
-
                                           <td className="border-r py-2 text-sm border-orange-300 text-center">
                                             {i.ifscCode}
                                           </td>
@@ -728,8 +747,9 @@ const FundReleaseInfo = () => {
                                               name="agencyBankId"
                                               id={i.bankName}
                                               value={i.agencyBankId}
-                                              // checked={agencyBankId}
+                                              checked={String(agencyBankId) === String(i.agencyBankId)}
                                               onChange={handleChangeInput}
+                                              disabled={!!wordOrderDetails?.fundReleaseDto?.fundReleaseId}
                                             />
                                           </td>
                                         </tr>
@@ -754,7 +774,6 @@ const FundReleaseInfo = () => {
                         Vendor Details
                       </span>
                       <div className="grid grid-cols-12 gap-y-3 gap-x-6 text-sm">
-                        {/* ---------- VENDOR DETAILS ---------- */}
                         <div className="col-span-3 flex gap-1">
                           <span className="font-normal text-gray-700">
                             Vendor Name
@@ -798,14 +817,14 @@ const FundReleaseInfo = () => {
                     </div>
                   </div>
                 )}
+
                 <div className="col-span-12">
                   <div className="relative border border-dashed border-orange-300 bg-[#fffaf6] p-4 rounded-md mb-3">
                     {/* Floating Title */}
                     <span className="absolute -top-3 left-4 bg-[#fffaf6] px-3 text-sm font-semibold text-orange-600">
-                      Work Order Genaration Details
+                      Work Order Generation Details
                     </span>
                     <div className="grid grid-cols-12 gap-y-3 gap-x-6 text-sm">
-                      {/* ---------- VENDOR DETAILS ---------- */}
                       <div className="col-span-3 flex gap-1">
                         <span className="font-normal text-gray-700">
                           Work Order No
@@ -846,6 +865,7 @@ const FundReleaseInfo = () => {
                     </div>
                   </div>
                 </div>
+
                 <div className="col-span-12">
                   <div className="relative border border-dashed border-orange-300 bg-[#fffaf6] p-4 rounded-md mb-3">
                     {/* Floating Title */}
@@ -862,9 +882,15 @@ const FundReleaseInfo = () => {
                           </div>
                         );
                       })}
+                      {geoTagImg?.length === 0 && (
+                        <div className="col-span-12 text-center text-gray-500">
+                          No geotag images available
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
+
                 <div className="col-span-12">
                   <div className="relative border border-dashed border-orange-300 bg-[#fffaf6] p-4 rounded-md mb-3">
                     {/* Floating Title */}
@@ -878,7 +904,7 @@ const FundReleaseInfo = () => {
                           required={true}
                           name="sanctionOrderNo"
                           value={sanctionOrderNo}
-                          // type="number"
+                          maxLength={30}
                           placeholder="Enter sanction order number"
                           onChange={handleChangeInput}
                           disabled={
@@ -908,8 +934,8 @@ const FundReleaseInfo = () => {
                           required={true}
                           name="releaseLetterNo"
                           value={releaseLetterNo}
-                          // type="number"
-                          placeholder="Enter release order date"
+                          maxLength={30}
+                          placeholder="Enter release letter number"
                           onChange={handleChangeInput}
                           disabled={
                             workOrderIdDetails?.fundReleaseId ? true : false
@@ -917,6 +943,7 @@ const FundReleaseInfo = () => {
                           error={errors.releaseLetterNo}
                         />
                       </div>
+
                       <div className="col-span-2">
                         <InputField
                           label={"Release Letter Date"}
@@ -924,11 +951,9 @@ const FundReleaseInfo = () => {
                           name="releaseLetterDate"
                           value={releaseLetterDate}
                           type="date"
-                          placeholder="Enter release order date"
+                          placeholder="Enter release letter date"
                           onChange={handleChangeInput}
-                          disabled={
-                            workOrderIdDetails?.fundReleaseId ? true : false
-                          }
+                          disabled={workOrderIdDetails?.fundReleaseId ? true : false}
                           error={errors.releaseLetterDate}
                         />
                       </div>
@@ -940,28 +965,15 @@ const FundReleaseInfo = () => {
           </div>
         </div>
 
-        {/* Footer (Optional) */}
+        {/* Footer */}
         <div className="flex justify-center gap-2 text-[13px] bg-[#42001d0f] border-t border-[#ebbea6] px-4 py-3 rounded-b-md">
           <ResetBackBtn />
-          {!workOrderIdDetails && <SubmitBtn type={"submit"} />}
-          {/* {
-            button?.map((i, index) => {
-              return (
-                <button
-                  type={'submit'}
-                  key={index}
-                  className={i?.actionType.color}
-                >
-                  <GrSave /> {i?.actionType.actionNameEn}
-                </button>
-              )
-            })
-          } */}
+          {!workOrderIdDetails?.fundReleaseId && <SubmitBtn type={"submit"} />}
         </div>
       </div>
+
       <ReusableDialog
         open={open}
-        // title="Submit"
         description="Are you sure you want to submit?"
         onClose={() => setOpen(false)}
         onConfirm={handleSubmit}

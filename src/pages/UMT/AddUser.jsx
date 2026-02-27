@@ -59,6 +59,7 @@ const AddUser = () => {
         setErrors((prev) => ({
           ...prev,
           userName: 'Enter valid username',
+
         }));
       }
       else {
@@ -134,7 +135,7 @@ const AddUser = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // console.log(formData);
+
     const sendData = {
       userId,
       userName: userName.trim(),

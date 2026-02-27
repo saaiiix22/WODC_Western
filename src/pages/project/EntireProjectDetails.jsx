@@ -295,7 +295,7 @@ const EntireProjectDetails = () => {
                             </span>
                             :
                             <span className="text-slate-900 font-semibold uppercase">
-                              {agency.agencyName || "N/A"}
+                              {agency?.agencyName || "N/A"}
                             </span>
                           </div>
                           <div className="col-span-3 flex gap-1">
@@ -304,7 +304,7 @@ const EntireProjectDetails = () => {
                             </span>
                             :
                             <span className="text-slate-900 font-semibold uppercase">
-                              {agency.email || "N/A"}
+                              {agency?.email || "N/A"}
                             </span>
                           </div>
                           <div className="col-span-3 flex gap-1">
@@ -313,7 +313,7 @@ const EntireProjectDetails = () => {
                             </span>
                             :
                             <span className="text-slate-900 font-semibold uppercase">
-                              {agency.contactNo || "N/A"}
+                              {agency?.contactNo || "N/A"}
                             </span>
                           </div>
                         </div>
@@ -333,7 +333,7 @@ const EntireProjectDetails = () => {
                             </span>
                             :
                             <span className="text-slate-900 font-semibold uppercase">
-                              {vendor.vendorName || "N/A"}
+                              {vendor?.vendorName || "N/A"}
                             </span>
                           </div>
                           <div className="col-span-3 flex gap-1">
@@ -342,7 +342,7 @@ const EntireProjectDetails = () => {
                             </span>
                             :
                             <span className="text-slate-900 font-semibold uppercase">
-                              {vendor.email || "N/A"}
+                              {vendor?.email || "N/A"}
                             </span>
                           </div>
                           <div className="col-span-3 flex gap-1">
@@ -351,7 +351,7 @@ const EntireProjectDetails = () => {
                             </span>
                             :
                             <span className="text-slate-900 font-semibold uppercase">
-                              {vendor.contactNo || "N/A"}
+                              {vendor?.contactNo || "N/A"}
                             </span>
                           </div>
                           <div className="col-span-3 flex gap-1">
@@ -360,7 +360,7 @@ const EntireProjectDetails = () => {
                             </span>
                             :
                             <span className="text-slate-900 font-semibold uppercase">
-                              {vendor.address || "N/A"}
+                              {vendor?.address || "N/A"}
                             </span>
                           </div>
                         </div>

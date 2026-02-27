@@ -13,6 +13,7 @@ import {
   getTemplateFileService,
   saveBeneficaryByExcelService,
   saveTempBenListService,
+
 } from "../../services/projectService";
 import { GrDocumentExcel, GrSave } from "react-icons/gr";
 import { GrDocumentUpload } from "react-icons/gr";
@@ -32,6 +33,11 @@ import InputField from "../../components/common/InputField";
 import { getUpdatedBankListService } from "../../services/budgetService";
 import { useLocation } from "react-router-dom";
 import { forwardListByMenuService } from "../../services/workflowService";
+import {
+  empTypeService,
+  empSkillService,
+  getFilteredBeneficiariesService,
+} from "../../services/beneficiaryService";
 
 
 const modalStyle = {
@@ -82,6 +88,8 @@ const AddBeneficiary = () => {
     municipalityId: "",
     areaType: "BLOCK",
     objectId: "",
+    skillType: "",
+    employeeType: "",
   });
   const {
     projectId,
@@ -92,6 +100,8 @@ const AddBeneficiary = () => {
     municipalityId,
     areaType,
     objectId,
+    skillType,
+    employeeType,
   } = formData;
   const [uploadType, setUploadType] = useState("");
   const [distListOpts, setDistListOpts] = useState([]);
@@ -100,6 +110,8 @@ const AddBeneficiary = () => {
   const [villageOpts, setVillageOpts] = useState([]);
   const [municipalityOpts, setMunicipalityOpts] = useState([]);
   const [wardOpts, setWardOpts] = useState([]);
+  const [skillOpts, setSkillOpts] = useState([]);
+  const [empTypeOpts, setEmpTypeOpts] = useState([]);
 
   const load = async (serviceFn, payload, setter) => {
     try {
@@ -140,9 +152,17 @@ const AddBeneficiary = () => {
       setWardOpts
     );
 
+  const loadEmpType = () =>
+    load(empTypeService, null, setEmpTypeOpts);
+
+  const loadSkillOptions = () =>
+    load(empSkillService, null, setSkillOpts);
+
   useEffect(() => {
     getWorkFlow();
     getAllDistOpts();
+    loadEmpType();
+    loadSkillOptions();
   }, []);
 
   useEffect(() => {
@@ -163,9 +183,9 @@ const AddBeneficiary = () => {
       getAllWardOptions();
     }
   }, [districtId, blockId, gpId, municipalityId]);
+
   const handleInp = (e) => {
     const value = e.target.value;
-
     setUploadType(value);
   };
 
@@ -195,7 +215,6 @@ const AddBeneficiary = () => {
       const milestoneRes = await getMilestoneByProjectIdService(
         milestonePayload
       );
-      // console.log(milestoneRes);
       if (milestoneRes?.status === 200 && milestoneRes?.data.outcome) {
         setMilestoneDropdown(milestoneRes?.data.data);
       }
@@ -222,7 +241,6 @@ const AddBeneficiary = () => {
         milestoneId: formData.milestoneId,
       });
       const res = await getProjectAgencyMilestoneMapDetailsService(payload);
-      // console.log(res);
       if (res?.status === 200 && res?.data.outcome) {
         setProjectOverView(res?.data.data);
       }
@@ -234,14 +252,49 @@ const AddBeneficiary = () => {
   const [selectedBeneficiaries, setSelectedBeneficiaries] = useState([]);
 
   const [tableData, setTableData] = useState([]);
-  const getTableFormData = async () => {
+
+  // Function to fetch filtered beneficiaries
+  const getFilteredBeneficiaries = async () => {
+    // debugger;
+    try {
+      const filterPayload = {
+        objectId: objectId,
+        areaType: areaType,
+      };
+
+      // Set objectType properly
+      if (areaType === "BLOCK") {
+        filterPayload.objectType = "VILLAGE";
+      } else if (areaType === "MUNICIPALITY") {
+        filterPayload.objectType = "WARD";
+      }
+
+      // Add optional filters
+      if (skillType) filterPayload.employeeSkill = skillType;
+      if (employeeType) filterPayload.employeeType = employeeType;
+
+      console.log("Filter payload:", filterPayload);
+
+      const payload = encryptPayload(filterPayload);
+      const res = await getFilteredBeneficiariesService(payload);
+
+      console.log("Filtered data:", res);
+      setTableData(res?.data?.data || []);
+
+    } catch (error) {
+      console.error("Error fetching filtered beneficiaries:", error);
+      toast.error("Failed to fetch beneficiary data");
+    }
+  };
+
+
+  const getAllBeneficiaries = async () => {
     try {
       const payload = encryptPayload({ isActive: true });
       const res = await getBeneficaryDetailsServiceInProject(payload);
-      // console.log(res);
-      setTableData(res?.data.data);
+      setTableData(res?.data.data || []);
     } catch (error) {
-      throw error;
+      console.error("Error fetching all beneficiaries:", error);
     }
   };
 
@@ -263,7 +316,6 @@ const AddBeneficiary = () => {
   const getAllBankOptions = async () => {
     try {
       const res = await getUpdatedBankListService();
-      // console.log(res);
       setBankOptions(res?.data.data);
     } catch (error) {
       throw error;
@@ -283,17 +335,36 @@ const AddBeneficiary = () => {
     address: "",
     aadhaarNo: "",
     dob: "",
-
     bankId: "",
     branchName: "",
     accountNo: "",
     ifscCode: ""
   }]);
+
   const formatDateForInput = (dateStr) => {
     if (!dateStr) return "";
     return dateStr?.split("/").reverse().join("-");
   };
 
+  useEffect(() => {
+    if (uploadType === "ADD_BENEFICIARY") {
+      if ((districtId && blockId && gpId && municipalityId && objectId) || employeeType || skillType) {
+        getFilteredBeneficiaries();
+      } else {
+        getAllBeneficiaries();
+      }
+    }
+  }, [
+    uploadType,
+    districtId,
+    blockId,
+    gpId,
+    municipalityId,
+    objectId,
+    areaType,
+    skillType,
+    employeeType
+  ]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -315,20 +386,16 @@ const AddBeneficiary = () => {
 
         if (res?.status === 200 && res?.data.outcome) {
           toast.success(res?.data.message);
-
           setUploadType("");
           setActiveArr([]);
         } else {
           toast.error(res?.data?.message);
-
         }
       }
 
       if (uploadType === "EXCEL") {
-        // toast.info("Excel upload will be handled separately");
         if (!beneficiaryDoc) {
           toast.error("Please upload an Excel file");
-          toast
           return;
         }
         const dataTobeSent = {
@@ -336,7 +403,6 @@ const AddBeneficiary = () => {
           objectType: areaType === "BLOCK" ? "VILLAGE" : "WARD",
           objectId: objectId,
         };
-        // console.log(dataTobeSent)
         const payload = encryptPayload(dataTobeSent);
         const fmData = new FormData();
         fmData.append("beneficiaryExcel", beneficiaryDoc);
@@ -350,7 +416,6 @@ const AddBeneficiary = () => {
             ...row,
             dob: formatDateForInput(row.tempDob),
             bankId: row?.bankId?.bankId
-
           }));
           setTableFormData(formattedData)
           handleOpen()
@@ -375,8 +440,7 @@ const AddBeneficiary = () => {
       if (res?.data.outcome && res?.status === 200) {
         handleClose()
         toast.success(res?.data.message)
-      }
-      else {
+      } else {
         handleClose()
         toast.error(res?.data.message)
       }
@@ -430,7 +494,7 @@ const AddBeneficiary = () => {
 
   useEffect(() => {
     getAllDropdowns();
-    getAllBankOptions()
+    getAllBankOptions();
   }, []);
 
   useEffect(() => {
@@ -442,7 +506,6 @@ const AddBeneficiary = () => {
   useEffect(() => {
     if (uploadType === "ADD_BENEFICIARY") {
       activeBeneficiaryArray();
-      getTableFormData();
     }
   }, [uploadType]);
 
@@ -451,6 +514,19 @@ const AddBeneficiary = () => {
       getAllMappedRows();
     }
   }, [formData.milestoneId, formData.projectId]);
+
+  const resetFilters = () => {
+    setFormData(prev => ({
+      ...prev,
+      districtId: "",
+      blockId: "",
+      gpId: "",
+      municipalityId: "",
+      objectId: "",
+      skillType: "",
+      employeeType: "",
+    }));
+  };
 
   return (
     <>
@@ -528,7 +604,7 @@ const AddBeneficiary = () => {
 
                     {/* Information Grid */}
                     <div className="grid grid-cols-12  gap-4">
-                      {/* Project Name (Blue - Primary Identity) */}
+                      {/* Project Name */}
                       <div className="flex flex-col col-span-3 p-4 bg-blue-100 rounded-lg shadow-sm">
                         <span className="text-xs font-medium uppercase text-blue-700 mb-1">
                           Project Name
@@ -538,7 +614,7 @@ const AddBeneficiary = () => {
                         </p>
                       </div>
 
-                      {/* Agency Name (Violet - Secondary Identity) */}
+                      {/* Agency Name */}
                       <div className="flex flex-col p-4 bg-violet-100 rounded-lg shadow-sm col-span-3">
                         <span className="text-xs font-medium uppercase text-violet-700 mb-1">
                           Agency Name
@@ -548,7 +624,7 @@ const AddBeneficiary = () => {
                         </p>
                       </div>
 
-                      {/* Milestone (Green - Status/Progress) */}
+                      {/* Milestone */}
                       <div className="flex flex-col p-4 bg-green-100 rounded-lg shadow-sm col-span-3">
                         <span className="text-xs font-medium uppercase text-green-700 mb-1">
                           Milestone
@@ -558,7 +634,7 @@ const AddBeneficiary = () => {
                         </p>
                       </div>
 
-                      {/* Amount (Pink - Financial) */}
+                      {/* Amount */}
                       <div className="flex flex-col p-4 bg-pink-100 rounded-lg shadow-sm col-span-3">
                         <span className="text-xs font-medium uppercase text-pink-700 mb-1">
                           Amount
@@ -571,7 +647,7 @@ const AddBeneficiary = () => {
                         </p>
                       </div>
 
-                      {/* Start Date (Teal - Planned Timeline) */}
+                      {/* Start Date */}
                       <div className="flex flex-col p-4 bg-teal-100 rounded-lg shadow-sm col-span-3">
                         <span className="text-xs font-medium uppercase text-teal-700 mb-1">
                           Start Date
@@ -581,7 +657,7 @@ const AddBeneficiary = () => {
                         </p>
                       </div>
 
-                      {/* End Date (Orange - Planned Deadline) */}
+                      {/* End Date */}
                       <div className="flex flex-col p-4 bg-orange-100 rounded-lg shadow-sm col-span-3">
                         <span className="text-xs font-medium uppercase text-orange-700 mb-1">
                           End Date
@@ -591,7 +667,7 @@ const AddBeneficiary = () => {
                         </p>
                       </div>
 
-                      {/* Actual Start Date (Sky Blue - Actual Timeline) */}
+                      {/* Actual Start Date */}
                       <div className="flex flex-col p-4 bg-sky-100 rounded-lg shadow-sm col-span-3">
                         <span className="text-xs font-medium uppercase text-sky-700 mb-1">
                           Actual Start
@@ -601,7 +677,7 @@ const AddBeneficiary = () => {
                         </p>
                       </div>
 
-                      {/* Actual End Date (Lime - Actual Completion) */}
+                      {/* Actual End Date */}
                       <div className="flex flex-col p-4 bg-lime-100 rounded-lg shadow-sm col-span-3">
                         <span className="text-xs font-medium uppercase text-lime-700 mb-1">
                           Actual End
@@ -663,27 +739,10 @@ const AddBeneficiary = () => {
                     </label>
                   </div>
                 </div>
-
-
               }
+
               {uploadType === "EXCEL" && (
                 <>
-                  {/* <div className="col-span-2 pt-5">
-                    <div className="flex items-center">
-                      <button
-                        className="me-3 text-sm flex items-center gap-1 px-3 py-1 rounded-sm bg-green-600/25 text-green-700"
-                        onClick={getTemplateFile}
-                        type="button"
-                      >
-                        <GrDocumentExcel />
-                        Excel
-                      </button>
-
-                    </div>
-
-                  </div> */}
-
-
                   <div className="col-span-2">
                     <SelectField
                       label="District"
@@ -695,7 +754,6 @@ const AddBeneficiary = () => {
                         value: d.districtId,
                         label: d.districtName,
                       }))}
-                      // error={errors.districtId}
                       placeholder="Select"
                     />
                   </div>
@@ -709,9 +767,6 @@ const AddBeneficiary = () => {
                           type="radio"
                           value={"BLOCK"}
                           name="areaType"
-                          // checked={
-                          //   stateSelect?.areaType === "BLOCK" ? true : false
-                          // }
                           checked={formData.areaType === "BLOCK"}
                           id="radio1"
                           onChange={handleInput}
@@ -728,11 +783,6 @@ const AddBeneficiary = () => {
                           type="radio"
                           value={"MUNICIPALITY"}
                           name="areaType"
-                          // checked={
-                          //   stateSelect?.areaType === "MUNICIPALITY"
-                          //     ? true
-                          //     : false
-                          // }
                           checked={formData.areaType === "MUNICIPALITY"}
                           id="radio2"
                           onChange={handleInput}
@@ -760,7 +810,6 @@ const AddBeneficiary = () => {
                             label: d.blockNameEN,
                           }))}
                           disabled={districtId ? false : true}
-                          //   error={errors.districtId}
                           placeholder="Select "
                         />
                       </div>
@@ -776,7 +825,6 @@ const AddBeneficiary = () => {
                             label: d.gpNameEN,
                           }))}
                           disabled={blockId ? false : true}
-                          //   error={errors.districtId}
                           placeholder="Select "
                         />
                       </div>
@@ -792,38 +840,9 @@ const AddBeneficiary = () => {
                             label: d.villageNameEn,
                           }))}
                           disabled={gpId ? false : true}
-                          // error={errors.objectId}
                           placeholder="Select"
                         />
                       </div>
-                      {/* <div className="col-span-2 pt-7">
-                        <div className="flex items-center">
-                          <button
-                        className="me-3 text-sm flex items-center gap-1 px-3 py-1 rounded-sm bg-green-600/25 text-green-700"
-                        onClick={getTemplateFile}
-                        type="button"
-                      >
-                        <GrDocumentExcel />
-                        Excel
-                      </button>
-                          <button
-                            type="button"
-                            className="me-3 text-sm flex items-center gap-1 px-3 py-1 rounded-sm bg-blue-600/25 text-blue-700"
-                            onClick={() =>
-                              document.getElementById("fileUpload").click()
-                            }
-                          >
-                            <GrDocumentUpload /> Upload
-                          </button>
-                        </div>
-                        <input
-                          type="file"
-                          id="fileUpload"
-                          className="hidden"
-                          name="beneficiaryDoc"
-                          onChange={handleInput}
-                        />
-                      </div> */}
                     </>
                   )}
                   {areaType === "MUNICIPALITY" && (
@@ -840,7 +859,6 @@ const AddBeneficiary = () => {
                             label: d.municipalityName,
                           }))}
                           disabled={districtId ? false : true}
-                          //   error={errors.districtId}
                           placeholder="Select"
                         />
                       </div>
@@ -856,7 +874,6 @@ const AddBeneficiary = () => {
                             label: d.wardName,
                           }))}
                           disabled={municipalityId ? false : true}
-                          // error={errors.objectId}
                           placeholder="Select "
                         />
                       </div>
@@ -893,107 +910,275 @@ const AddBeneficiary = () => {
                   </div>
                 </>
               )}
+
               {uploadType === "ADD_BENEFICIARY" && (
-                <div className="col-span-12">
-                  <table className="table-fixed w-full border border-slate-300">
-                    <thead className="bg-slate-100">
-                      <tr>
-                        <td className="w-[60px] text-center text-sm font-semibold px-2 py-2 border-r border-slate-200">
-                          SL No
-                        </td>
-                        <td className="text-center text-sm font-semibold px-4 py-2 border-r border-slate-200">
-                          Beneficiary Name
-                        </td>
-                        <td className="text-center text-sm font-semibold px-4 py-2 border-r border-slate-200">
-                          Beneficiary Code
-                        </td>
-                        <td className="text-center text-sm font-semibold px-4 py-2 border-r border-slate-200">
-                          Contact No
-                        </td>
-                        <td className="text-center text-sm font-semibold px-4 py-2 border-r border-slate-200">
-                          Email
-                        </td>
-                        <td className="text-center text-sm font-semibold px-4 py-2 border-r border-slate-200">
-                          Aadhaar No
-                        </td>
-                        <td className="text-center text-sm font-semibold px-4 py-2 border-r border-slate-200">
-                          Select/Unselect
-                        </td>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {tableData?.map((i, index) => {
-                        return (
-                          <tr className="border-b border-slate-200" key={index}>
-                            <td className="w-[60px] border-r text-sm border-slate-200 px-2 py-2 text-center">
-                              {index + 1}
-                            </td>
-                            <td className="border-r text-sm border-slate-200 px-2 py-2">
-                              {i.beneficiaryName}
-                            </td>
-                            <td className="border-r text-sm border-slate-200 px-2 py-2">
-                              {i.beneficiaryCode}
-                            </td>
-                            <td className="border-r text-sm border-slate-200 px-2 py-2">
-                              {i.contactNo}
-                            </td>
-                            <td className="border-r text-sm border-slate-200 px-2 py-2">
-                              {i.email}
-                            </td>
-                            <td className="border-r text-center text-sm border-slate-200 px-2 py-2">
-                              {i.aadhaarNo}
-                            </td>
-                            <td className=" text-sm  px-2 py-1 flex justify-center pt-3">
-                              <input
-                                type="checkbox"
-                                // checked={selectedBeneficiaries.includes(
-                                //   i.beneficiaryId
-                                // )}
-                                checked={activeArr?.includes(i.beneficiaryId)}
-                                onChange={() =>
-                                  handleCheckboxChange(i.beneficiaryId)
-                                }
-                              />
-                            </td>
-                          </tr>
-                        );
-                      })}
-                      {tableData?.length === 0 && (
+                <>
+                  <div className="col-span-12">
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="text-lg font-semibold text-gray-700">Filter Beneficiaries</h4>
+                      <button
+                        type="button"
+                        onClick={resetFilters}
+                        className="px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                      >
+                        Reset Filters
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="col-span-2">
+                    <SelectField
+                      label="District"
+                      name="districtId"
+                      value={districtId}
+                      onChange={handleInput}
+                      options={distListOpts?.map((d) => ({
+                        value: d.districtId,
+                        label: d.districtName,
+                      }))}
+                      placeholder="Select District (Optional)"
+                    />
+                  </div>
+
+                  <div className="col-span-2">
+                    <label className="text-[13px] font-medium text-gray-700">
+                      Select Area Type
+                    </label>
+                    <div className="flex gap-5 items-center mt-1">
+                      <div className="flex gap-1">
+                        <input
+                          type="radio"
+                          value={"BLOCK"}
+                          name="areaType"
+                          checked={formData.areaType === "BLOCK"}
+                          id="radio1"
+                          onChange={handleInput}
+                        />
+                        <label
+                          htmlFor="radio1"
+                          className="text-sm text-slate-800"
+                        >
+                          Block
+                        </label>
+                      </div>
+                      <div className="flex gap-1">
+                        <input
+                          type="radio"
+                          value={"MUNICIPALITY"}
+                          name="areaType"
+                          checked={formData.areaType === "MUNICIPALITY"}
+                          id="radio2"
+                          onChange={handleInput}
+                        />
+                        <label
+                          htmlFor="radio2"
+                          className="text-sm text-slate-800"
+                        >
+                          Municipality
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  {areaType === "BLOCK" && (
+                    <>
+                      <div className="col-span-2">
+                        <SelectField
+                          label="Block Name"
+                          name="blockId"
+                          value={blockId}
+                          onChange={handleInput}
+                          options={blockOpts?.map((d) => ({
+                            value: d.blockId,
+                            label: d.blockNameEN,
+                          }))}
+                          disabled={districtId ? false : true}
+                          placeholder="Select Block (Optional)"
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <SelectField
+                          label="GP Name"
+                          name="gpId"
+                          value={gpId}
+                          onChange={handleInput}
+                          options={gpOpts?.map((d) => ({
+                            value: d.gpId,
+                            label: d.gpNameEN,
+                          }))}
+                          disabled={blockId ? false : true}
+                          placeholder="Select GP (Optional)"
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <SelectField
+                          label="Village Name"
+                          name="objectId"
+                          value={objectId}
+                          onChange={handleInput}
+                          options={villageOpts?.map((d) => ({
+                            value: d.villageId,
+                            label: d.villageNameEn,
+                          }))}
+                          disabled={gpId ? false : true}
+                          placeholder="Select Village (Optional)"
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  {areaType === "MUNICIPALITY" && (
+                    <>
+                      <div className="col-span-2">
+                        <SelectField
+                          label="Municipality Name"
+                          name="municipalityId"
+                          value={municipalityId}
+                          onChange={handleInput}
+                          options={municipalityOpts?.map((d) => ({
+                            value: d.municipalityId,
+                            label: d.municipalityName,
+                          }))}
+                          disabled={districtId ? false : true}
+                          placeholder="Select Municipality (Optional)"
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <SelectField
+                          label="Ward Name"
+                          name="objectId"
+                          value={objectId}
+                          onChange={handleInput}
+                          options={wardOpts?.map((d) => ({
+                            value: d.wardId,
+                            label: d.wardName,
+                          }))}
+                          disabled={municipalityId ? false : true}
+                          placeholder="Select Ward (Optional)"
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  <div className="col-span-2">
+                    <SelectField
+                      label="Skill Type"
+                      name="skillType"
+                      value={skillType}
+                      onChange={handleInput}
+                      options={skillOpts?.map(s => ({
+                        label: s.lookupValueEn,
+                        value: s.lookupValueCode
+                      }))}
+                      disabled={objectId ? false : true}
+                    />
+                  </div>
+
+                  <div className="col-span-2">
+                    <SelectField
+                      label="Employee Type"
+                      name="employeeType"
+                      value={employeeType}
+                      onChange={handleInput}
+                      options={empTypeOpts?.map(g => ({
+                        label: g.lookupValueEn,
+                        value: g.lookupValueCode
+                      }))}
+                      disabled={skillType ? false : true}
+                    />
+                  </div>
+
+                  <div className="col-span-12 mt-4">
+                    <div className="flex justify-between items-center mb-2">
+                      <h4 className="text-md font-semibold text-gray-700">
+                        Beneficiary List {tableData?.length > 0 && `(${tableData.length} records)`}
+                      </h4>
+                    </div>
+                    <table className="table-fixed w-full border border-slate-300">
+                      <thead className="bg-slate-100">
                         <tr>
-                          <td colSpan={7} className="text-sm p-2 text-center">
-                            No Data Found
+                          <td className="w-[60px] text-center text-sm font-semibold px-2 py-2 border-r border-slate-200">
+                            SL No
+                          </td>
+                          <td className="text-center text-sm font-semibold px-4 py-2 border-r border-slate-200">
+                            Beneficiary Name
+                          </td>
+                          <td className="text-center text-sm font-semibold px-4 py-2 border-r border-slate-200">
+                            Beneficiary Code
+                          </td>
+                          <td className="text-center text-sm font-semibold px-4 py-2 border-r border-slate-200">
+                            Contact No
+                          </td>
+                          <td className="text-center text-sm font-semibold px-4 py-2 border-r border-slate-200">
+                            Email
+                          </td>
+                          <td className="text-center text-sm font-semibold px-4 py-2 border-r border-slate-200">
+                            Aadhaar No
+                          </td>
+                          <td className="text-center text-sm font-semibold px-4 py-2 border-r border-slate-200">
+                            Select/Unselect
                           </td>
                         </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody>
+                        {tableData?.length > 0 ? (
+                          tableData?.map((i, index) => {
+                            return (
+                              <tr className="border-b border-slate-200" key={index}>
+                                <td className="w-[60px] border-r text-sm border-slate-200 px-2 py-2 text-center">
+                                  {index + 1}
+                                </td>
+                                <td className="border-r text-sm border-slate-200 px-2 py-2">
+                                  {i.beneficiaryName}
+                                </td>
+                                <td className="border-r text-sm border-slate-200 px-2 py-2">
+                                  {i.beneficiaryCode}
+                                </td>
+                                <td className="border-r text-sm border-slate-200 px-2 py-2">
+                                  {i.contactNo}
+                                </td>
+                                <td className="border-r text-sm border-slate-200 px-2 py-2">
+                                  {i.email}
+                                </td>
+                                <td className="border-r text-center text-sm border-slate-200 px-2 py-2">
+                                  {i.aadhaarNo}
+                                </td>
+                                <td className=" text-sm  px-2 py-1 flex justify-center pt-3">
+                                  <input
+                                    type="checkbox"
+                                    checked={activeArr?.includes(i.beneficiaryId)}
+                                    onChange={() =>
+                                      handleCheckboxChange(i.beneficiaryId)
+                                    }
+                                  />
+                                </td>
+                              </tr>
+                            );
+                          })
+                        ) : (
+                          <tr>
+                            <td colSpan={7} className="text-sm p-4 text-center text-gray-500">
+                              No beneficiaries found. Try adjusting your filters.
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
               )}
             </div>
           </div>
 
-          {/* Footer (Optional) */}
+          {/* Footer */}
           <div className="flex justify-center gap-2 text-[13px] bg-[#42001d0f] border-t border-[#ebbea6] px-4 py-3 rounded-b-md">
             <ResetBackBtn />
             <SubmitBtn type={"submit"} />
-            {/* {
-              button?.map((i, index) => {
-                return (
-                  <button
-                    type={'submit'}
-                    key={index}
-                    className={i?.actionType.color}
-                  >
-                    <GrSave /> {i?.actionType.actionNameEn}
-                  </button>
-                )
-              })
-            } */}
           </div>
         </div>
       </form>
+
       <div>
-        {/* <Button onClick={handleOpen}>Open modal</Button> */}
         <Modal open={open} onClose={handleClose}>
           <Box sx={modalStyle}>
             {/* Header */}
@@ -1078,7 +1263,6 @@ const AddBeneficiary = () => {
                             name="dob"
                             value={row.dob}
                             onChange={(e) => handleRowInput(index, "dob", e.target.value)}
-
                           />
                         </td>
                         <td className="border-r border-orange-300 text-center p-2">
@@ -1086,7 +1270,6 @@ const AddBeneficiary = () => {
                             name="aadhaarNo"
                             value={row.aadhaarNo}
                             onChange={(e) => handleRowInput(index, "aadhaarNo", e.target.value)}
-
                           />
                         </td>
                         <td className="border-r border-orange-300 text-center p-2">
@@ -1094,7 +1277,6 @@ const AddBeneficiary = () => {
                             name="contactNo"
                             value={row.contactNo}
                             onChange={(e) => handleRowInput(index, "contactNo", e.target.value)}
-
                           />
                         </td>
                         <td className="border-r border-orange-300 text-center p-2">
@@ -1102,7 +1284,6 @@ const AddBeneficiary = () => {
                             name="email"
                             value={row.email}
                             onChange={(e) => handleRowInput(index, "email", e.target.value)}
-
                           />
                         </td>
                         <td className="border-r border-orange-300 text-center p-2">
@@ -1110,7 +1291,6 @@ const AddBeneficiary = () => {
                             name="address"
                             value={row.address}
                             onChange={(e) => handleRowInput(index, "address", e.target.value)}
-
                           />
                         </td>
                         <td className="border-r border-orange-300 text-center p-2">
@@ -1123,7 +1303,6 @@ const AddBeneficiary = () => {
                             }))}
                             placeholder="Select"
                             onChange={(e) => handleRowInput(index, "bankId", e.target.value)}
-
                           />
                         </td>
                         <td className="border-r border-orange-300 text-center p-2">
@@ -1131,7 +1310,6 @@ const AddBeneficiary = () => {
                             name="branchName"
                             value={row.branchName}
                             onChange={(e) => handleRowInput(index, "branchName", e.target.value)}
-
                           />
                         </td>
                         <td className="border-r border-orange-300 text-center p-2">
@@ -1139,7 +1317,6 @@ const AddBeneficiary = () => {
                             name="accountNo"
                             value={row.accountNo}
                             onChange={(e) => handleRowInput(index, "accountNo", e.target.value)}
-
                           />
                         </td>
                         <td className="border-r border-orange-300 text-center p-2">
@@ -1147,21 +1324,17 @@ const AddBeneficiary = () => {
                             name="ifscCode"
                             value={row.ifscCode}
                             onChange={(e) => handleRowInput(index, "ifscCode", e.target.value)}
-
                           />
                         </td>
                       </tr>
                     ))}
-
                   </tbody>
                 </table>
                 <div className="flex justify-center gap-2 text-[13px]  px-4 pt-3 rounded-b-md">
                   <ResetBackBtn />
                   <SubmitBtn type={"submit"} />
-
                 </div>
               </form>
-
             </Box>
           </Box>
         </Modal>

@@ -313,23 +313,29 @@ const BudgetDetails = () => {
                 <tr>
                   <td className="w-[60px] text-center text-sm font-semibold px-2 py-1 border-r border-slate-200">
                     SL No
+                    
                   </td>
                   <td className="text-center text-sm font-semibold px-4 py-1 border-r border-slate-200">
                     GIA Type
+                    <span className="text-red-500 text-xs"> *</span>
                   </td>
 
                   <td className="text-center text-sm font-semibold px-4 py-1 border-r border-slate-200">
                     Bank Name
+                    <span className="text-red-500 text-xs"> *</span>
                   </td>
                   <td className="text-center text-sm font-semibold px-4 py-1 border-r border-slate-200">
                     {/* Account Information */}
                     Branch | Account Number | IFSC
+                    <span className="text-red-500 text-xs"> *</span>
                   </td>
                   <td className="text-center text-sm font-semibold px-4 py-1 border-r border-slate-200">
-                    Amount
+                    Amount(₹)
+                    <span className="text-red-500 text-xs"> *</span>
                   </td>
                   <td className="text-center text-sm font-semibold px-4 py-1 border-r border-slate-200">
                     Budget Date
+                    <span className="text-red-500 text-xs"> *</span>
                   </td>
                   {/* <td className="text-center text-sm font-semibold px-4 py-1 border-r border-slate-200">
                     Branch

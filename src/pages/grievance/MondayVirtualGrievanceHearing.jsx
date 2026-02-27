@@ -3,7 +3,7 @@ import SelectField from '../../components/common/SelectField';
 import InputField from '../../components/common/InputField';
 import { ResetBackBtn, SubmitBtn } from '../../components/common/CommonButtons';
 import ReusableDialog from '../../components/common/ReusableDialog';
-import { getCategoryListService, getSlotListService, saveAndUpdateMondatyGrievanceHearing } from '../../services/grievanceService';
+import { getCategoryListService, getCategoryListVirtualService, getSlotListService, saveAndUpdateMondatyGrievanceHearing } from '../../services/grievanceService';
 import { encryptPayload } from '../../crypto.js/encryption';
 import { toast } from 'react-toastify';
 import { cleanContactNoUtil, cleanEmailUtil } from '../../utils/validationUtils';
@@ -42,6 +42,14 @@ const MondayVirtualGrievanceHearing = () => {
         grievanceInBrief,
     
       } = formData;
+
+      const [zoomLevel, setZoomLevel] = useState(1); // current zoom
+      const [position, setPosition] = useState({ x: 0, y: 0 }); // for drag
+      const [dragging, setDragging] = useState(false);
+      const [startDrag, setStartDrag] = useState({ x: 0, y: 0 });
+      
+
+
       const [allSlotConfigs, setAllSlotConfigs] = useState([]);
       const [slotDateList, setSlotDateList] = useState([]);
       const [slotTimeList, setSlotTimeList] = useState([]);
@@ -52,10 +60,11 @@ const MondayVirtualGrievanceHearing = () => {
       const [openSubmit, setOpenSubmit] = useState(false);
       const [expanded, setExpanded] = useState("panel2");
 
-    
+      const [zoomImage, setZoomImage] = useState(null);
+
       const getGrievanceCategoryName = async () => {
         try {
-          const res = await getCategoryListService();
+          const res = await getCategoryListVirtualService();
           setCategoryList(res?.data?.data || []);
         } catch (error) {
           console.error(error);
@@ -188,23 +197,23 @@ const MondayVirtualGrievanceHearing = () => {
       return;
     }
   
-    if (!grievanceSlot   ) {
-      newErrors.grievanceSlot    = "Grievance Slot is required";
+    if (!grievanceSlot) {
+      newErrors.grievanceSlot = "Grievance Slot is required";
       setErrors(newErrors);
       return;
     }
-  
+    if (!petitionerName) {
+      newErrors.petitionerName = "Petitioner Name is required";
+      setErrors(newErrors);
+      return;
+    }
     if (!subjectLine) {
       newErrors.subjectLine = "Subject is required";
       setErrors(newErrors);
       return;
     }
   
-    if (!petitionerName) {
-      newErrors.petitionerName = "Petitioner Name is required";
-      setErrors(newErrors);
-      return;
-    }
+
     
     if (!contactNo) {
         newErrors.contactNo = "Contact No is required";
@@ -299,6 +308,12 @@ const MondayVirtualGrievanceHearing = () => {
       toast.error("Something went wrong");
     }
   };
+
+
+
+  const [identityPreview, setIdentityPreview] = useState(null);
+const [grievancePreview, setGrievancePreview] = useState(null);
+
 // During view Cases------------------
   useEffect(() => {
     if (location.state) {
@@ -308,6 +323,9 @@ const MondayVirtualGrievanceHearing = () => {
         grvSlotDateId: location?.state.grvSlotDateId,
         grievanceSlot: location?.state.grievanceSlot,
       });
+      
+    setIdentityPreview(location.state.identityProofPathStr);
+    setGrievancePreview(location.state.grievanceDocumentPathStr);
     }
   }, [location.state]);
   
@@ -352,7 +370,7 @@ useEffect(() => {
         <div className="mt-3 bg-white rounded-md border border-[#f1f1f1] shadow-md">
           {/* Header */}
           <h3 className="text-white text-[18px] px-4 py-2 bg-light-dark border-b-2 border-[#ff9800] rounded-t-md">
-          {isViewMode ? "View Monday Grievance Hearing List" : "Add Monday Virtual Grievance Hearing"}    
+          {isViewMode ? "View Monday Grievance Hearing List" : "Add  Virtual Grievance Hearing"}    
                 </h3>
 
           {/* Body */}
@@ -394,11 +412,13 @@ useEffect(() => {
                   label="Grievance Slot Time"
                   name="grievanceSlot"
                   required
+                  error={errors.grievanceSlot}
                   value={grievanceSlot || ""}
                   onChange={handleChangeInput}
                   options={slotTimeList.map((slot) => ({
                   label: `${slot.fromTime} - ${slot.toTime}`,
                   value: slot.virtualGrvSlotDtlsId,
+
                 }))}
                 placeholder={grvSlotDateId ? "Select Slot Time" : "Select Date First"}
                  disabled={isViewMode ||!grvSlotDateId}
@@ -441,7 +461,7 @@ useEffect(() => {
                 />
               </div>
 
-              <div className="col-span-2">
+              <div className="col-span-3">
               <InputField
                   label="Email Id "
                   required={true}
@@ -485,7 +505,89 @@ useEffect(() => {
                 />
               </div>
             )}
-              <div className="col-span-2">
+            
+            {isViewMode && identityPreview && (
+  <div className="col-span-3">
+    <label className="block text-sm mb-1">Identity Proof</label>
+    <img
+      src={`data:image/*;base64,${identityPreview}`}
+      alt="Identity"
+      onClick={() =>
+        setZoomImage(`data:image/*;base64,${identityPreview}`)
+      }
+      className="h-28 w-68 object-cover rounded border"
+    />
+  </div>
+)}
+
+{isViewMode && grievancePreview && (
+  <div className="col-span-3">
+    <label className="block text-sm mb-1">Grievance Document</label>
+    <img
+      src={`data:image/*;base64,${grievancePreview}`}
+      alt="Grievance"
+      onClick={() =>
+        setZoomImage(`data:image/*;base64,${grievancePreview}`)
+      }
+      className="h-28 w-68 object-cover rounded border"
+    />
+{zoomImage && (
+  <div
+    className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-80"
+    onClick={() => {
+      setZoomImage(null);
+      setZoomLevel(1);
+      setPosition({ x: 0, y: 0 });
+    }}
+  >
+    <img
+      src={zoomImage}
+      alt="Zoomed"
+      style={{
+        transform: `scale(${zoomLevel}) translate(${position.x}px, ${position.y}px)`,
+        transition: dragging ? "none" : "transform 0.2s ease",
+        cursor: zoomLevel > 1 ? "grab" : "zoom-in",
+        maxHeight: "90vh",
+        maxWidth: "90vw",
+      }}
+      onClick={(e) => {
+        e.stopPropagation(); // prevent closing overlay
+        setZoomLevel((prev) => Math.min(prev + 0.5, 5)); // zoom in per click
+      }}
+      onMouseDown={(e) => {
+        if (zoomLevel <= 1) return;
+        e.preventDefault();
+        setDragging(true);
+        setStartDrag({ x: e.clientX - position.x, y: e.clientY - position.y });
+      }}
+      onMouseMove={(e) => {
+        if (!dragging) return;
+        setPosition({ x: e.clientX - startDrag.x, y: e.clientY - startDrag.y });
+      }}
+      onMouseUp={() => setDragging(false)}
+      onMouseLeave={() => setDragging(false)}
+      onWheel={(e) => {
+        e.preventDefault();
+        setZoomLevel((prev) => Math.min(Math.max(prev - e.deltaY * 0.001, 1), 5));
+      }}
+    />
+    {/* Zoom Out Button */}
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        setZoomLevel((prev) => Math.max(prev - 0.5, 1));
+      }}
+      className="absolute top-5 right-5 bg-white px-3 py-1 rounded shadow"
+    >
+      -
+    </button>
+  </div>
+)}
+
+  </div>
+)}
+
+              <div className="col-span-3">
               <InputField
                   label=" Address"
                   required={true}
@@ -498,17 +600,21 @@ useEffect(() => {
                 />
               </div>
 
-              <div className="col-span-2">
-              <InputField
-                  label=" Grievance In Brief"
-                  required={true}
-                  textarea={true}
-                  name="grievanceInBrief"
-                  maxLength={255}
-                   value={grievanceInBrief}
-                   error={errors.grievanceInBrief}
-                  onChange={handleChangeInput}
+             <div className="col-span-4">
+                   <label className="block text-sm font-small mb-1">
+                        Grievance In Brief <span className="text-red-500">*</span>
+                   </label>
+                <textarea
+                     className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400"
+                     rows={3}
+                     name="grievanceInBrief"
+                     value={grievanceInBrief}
+                     onChange={handleChangeInput}
+                     placeholder="Describe the grievance in Brief..."
                 />
+                {errors?.grievanceInBrief && (
+                  <p className="text-red-500 text-xs mt-1">{errors.grievanceInBrief}</p>
+                )}
               </div>
 
             </div>
@@ -522,12 +628,15 @@ useEffect(() => {
         </div>
       </form>
       
-      <ReusableDialog
-        open={openSubmit}
-        description="Are you sure you want submit?"
-        onClose={() => setOpenSubmit(false)}
-        onConfirm={handleSubmit}
-      />
+      {!isViewMode && (
+  <ReusableDialog
+    open={openSubmit}
+    description="Are you sure you want submit?"
+    onClose={() => setOpenSubmit(false)}
+    onConfirm={handleSubmit}
+  />
+)}
+
     </div>
   );
 };

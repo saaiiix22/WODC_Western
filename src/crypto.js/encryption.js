@@ -8,6 +8,9 @@ const key = CryptoJS.enc.Utf8.parse(SECRET_KEY);
 const iv = CryptoJS.enc.Utf8.parse(SECRET_IV);
 
 export const encryptPayload = (payload) => {
+  
+  // console.log("PAYLOAD-->"+payload);
+  
   try {
     const payloadString = typeof payload === "string" ? payload : JSON.stringify(payload);
 
