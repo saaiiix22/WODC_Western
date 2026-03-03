@@ -57,6 +57,7 @@ const menuSlice = createSlice({
     menuData: [],
     allPaths: [],
     userDetails: {},
+    isNewUser:true,
     activeMenu: null,
     isLoading: false,
     error: null,
@@ -125,8 +126,10 @@ const menuSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchUserDetails.fulfilled, (state, action) => {
+        // console.log(action.payload);
         state.isLoading = false;
         state.userDetails = action.payload || {};
+        state.isNewUser = action.payload.userDetails?.isPasswordReset || false
       })
       .addCase(fetchUserDetails.rejected, (state, action) => {
         state.isLoading = false;

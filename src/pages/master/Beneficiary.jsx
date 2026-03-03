@@ -642,7 +642,7 @@ const Beneficiary = () => {
       sortable: true,
     },
     {
-      name: "Education", // NEW
+      name: "Education", 
       selector: (row) => {
         const edu = educationOpts?.find(e => e.lookupValueCode === row.employeeEdu);
         return edu?.lookupValueEn || row.employeeEdu || "N/A";
@@ -650,7 +650,7 @@ const Beneficiary = () => {
       sortable: true,
     },
     {
-      name: "Income Range", // NEW
+      name: "Income Range", 
       selector: (row) => {
         const income = incomeRangeOpts?.find(i => i.lookupValueCode === row.employeeIncome);
         return income?.lookupValueEn || row.employeeIncome || "N/A";
@@ -667,7 +667,7 @@ const Beneficiary = () => {
       width: "120px",
       cell: (row) => (
         <div className="flex items-center gap-2">
-          {/* EDIT BUTTON */}
+        
           <Tooltip title="Edit" arrow>
             <button
               type="button"
@@ -678,7 +678,7 @@ const Beneficiary = () => {
             </button>
           </Tooltip>
 
-          {/* ACTIVE / INACTIVE BUTTON */}
+         
           <Tooltip title={row.isActive ? "Deactivate" : "Activate"} arrow>
             <button
               className={`flex items-center justify-center h-8 w-8 rounded-full transition-colors
@@ -708,7 +708,7 @@ const Beneficiary = () => {
 
   return (
     <div className="mt-3">
-      {/* ---------- Accordion 1: Add/Edit Beneficiary Form ---------- */}
+    
       <Accordion
         expanded={expanded === "panel1"}
         onChange={handleChange("panel1")}

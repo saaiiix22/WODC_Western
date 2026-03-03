@@ -430,7 +430,9 @@ const endpoints = {
         getByIdPayment:'/mst/get-payment-config-by-id'
     },
     DMS:{
-        DMSModuleList:"/dms/list"
+        DMSModuleList:"/dms/list",
+        DMSCreateFolder:"/dms/createFolder",
+        fetchFileAndFolderList:"/dms/getFolderAndFiles",
     }
 
 }

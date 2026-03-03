@@ -2034,7 +2034,10 @@ const Project = () => {
                           setRejectionModal(true);
                           e.preventDefault();
                         } else {
-                          setForwardedId(i.forwardedId);
+                          
+                          if(Object.keys(errors).length === 0){
+                            setForwardedId(i.forwardedId);
+                          }
                         }
                       }}
                     >

@@ -450,6 +450,7 @@ const BudgetDetails = () => {
                       <input
                         type="text"
                         style={{ textAlign: "right" }}
+                        maxLength={40}
                         value={formatWithCommas(row.amount)}
                         onChange={(e) => {
                           const rawValue = removeCommas(e.target.value);

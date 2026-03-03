@@ -346,7 +346,7 @@ const Login = () => {
             focus:ring-2 focus:ring-blue-600 focus:outline-none"
           />
 
-          {/* Captcha */}
+       
           <label className="text-sm font-medium text-gray-700 mb-1">
             Captcha Code
           </label>

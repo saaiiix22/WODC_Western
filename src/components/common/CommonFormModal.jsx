@@ -19,7 +19,14 @@ const CommonFormModal = ({
   width = 520,
 }) => {
   return (
-    <Modal open={open} onClose={onClose}>
+    <Modal open={open} onClose={onClose}
+      BackdropProps={{
+        sx: {
+          backdropFilter: "blur(6px)",
+          backgroundColor: "rgba(0,0,0,0.3)",
+        },
+      }}
+    >
       <Box
         sx={{
           position: "absolute",

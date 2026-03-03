@@ -186,7 +186,13 @@ const Navbar = () => {
               className="group flex items-center gap-2.5 p-1 pr-3 rounded-full hover:bg-slate-50 transition-all"
             >
               <div className="relative">
-                <img src={images.profileImage} alt="profile" className="w-8 h-8 rounded-full object-cover ring-2 ring-white shadow-sm" />
+                <img
+                  src={
+                    selectState?.userDetails?.profileBase64
+                      ? `data:image/${selectState.userDetails.extension};base64,${selectState.userDetails.profileBase64}`
+                      : images.profileImage
+                  }
+                  alt="profile" className="w-8 h-8 rounded-full object-cover ring-2 ring-white shadow-sm" />
                 <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-white rounded-full"></div>
               </div>
               <div className="hidden sm:block text-left">

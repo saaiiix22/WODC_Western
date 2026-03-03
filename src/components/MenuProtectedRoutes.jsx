@@ -14,7 +14,6 @@ const MenuProtectedRoutes = () => {
   const basePath = location.pathname
   // console.log(basePath);
 
-
   const allowed = allPaths.includes(basePath);
 
   if (!allowed) {

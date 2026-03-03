@@ -176,7 +176,7 @@ const AppRouter = () => {
         <Route element={<ProtectedRoutes />}>
 
           <Route element={<MainLayout />}>
-            {/* <Route element={<MenuProtectedRoutes />}> */}
+            <Route element={<MenuProtectedRoutes />}>
             <Route path="*" element={<ErrorPage />} />
 
             <Route path={routes.dashboard.path} element={<Dashboard />} />
@@ -284,7 +284,7 @@ const AppRouter = () => {
             <Route path={routes.myFilesDMS.path} element={<MyFilesDMS />} />
             <Route path={routes.fileTabDMS.path} element={<FilesTabDMS />} />
           </Route>
-          {/* </Route> */}
+          </Route>
         </Route>
 
       </Routes>
