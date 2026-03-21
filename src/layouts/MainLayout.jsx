@@ -21,9 +21,7 @@ const IDLE_TIMEOUT = 15 * 60 * 1000;
 const MainLayout = () => {
 
   const resetPassword = useSelector(state => state.menu.userDetails.userDetails)
-  
   const doubleCheck = useSelector(state=>state.menu.isNewUser)
-  // console.log(doubleCheck);
 
   const dispatch = useDispatch()
 

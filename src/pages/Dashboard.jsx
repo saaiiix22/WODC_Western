@@ -546,7 +546,7 @@ const Dashboard = () => {
         </div>
 
         <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-4">
-          
+
           <div className="bg-gradient-to-br from-[#234341] to-[#234341dd] rounded-lg p-3 text-white shadow-lg transform transition-all duration-300 hover:scale-105">
             <div className="flex items-center justify-between mb-1">
               <h4 className="text-sm font-medium opacity-90">Total Projects</h4>
@@ -569,95 +569,95 @@ const Dashboard = () => {
             </div>
           </div>
 
-  <div className="bg-gradient-to-br from-[#574827] to-[#574827dd] rounded-lg p-3 text-white shadow-lg transform transition-all duration-300 hover:scale-105">
-    <div className="flex items-center justify-between mb-1">
-      <h4 className="text-sm font-medium opacity-90">Fund Released</h4>
-      <FiCreditCard className="text-[#ff7900] text-2xl" />
-    </div>
-    <div className="mb-2 flex justify-between items-center">
-      <div className="text-lg font-bold">
-        ₹{cards?.totalFundRels?.toLocaleString() || 0}
-      </div>
-      <div className="text-lg font-bold">{cards?.totalFundExpPerc || 0}%</div>
-    </div>
-    <div className="text-xs opacity-75 mb-2">
-      Released out of ₹{cards?.totalFundAlloc?.toLocaleString() || 0}
-    </div>
-    <div className="w-full bg-black bg-opacity-20 rounded-full h-1.5">
-      <div
-        className="bg-[#ff7900] h-1.5 rounded-full transition-all duration-500"
-        style={{ width: `${cards?.totalFundExpPerc || 0}%` }}
-      ></div>
-    </div>
-  </div>
+          <div className="bg-gradient-to-br from-[#574827] to-[#574827dd] rounded-lg p-3 text-white shadow-lg transform transition-all duration-300 hover:scale-105">
+            <div className="flex items-center justify-between mb-1">
+              <h4 className="text-sm font-medium opacity-90">Fund Released</h4>
+              <FiCreditCard className="text-[#ff7900] text-2xl" />
+            </div>
+            <div className="mb-2 flex justify-between items-center">
+              <div className="text-lg font-bold">
+                ₹{cards?.totalFundRels?.toLocaleString() || 0}
+              </div>
+              <div className="text-lg font-bold">{cards?.totalFundExpPerc || 0}%</div>
+            </div>
+            <div className="text-xs opacity-75 mb-2">
+              Released out of ₹{cards?.totalFundAlloc?.toLocaleString() || 0}
+            </div>
+            <div className="w-full bg-black bg-opacity-20 rounded-full h-1.5">
+              <div
+                className="bg-[#ff7900] h-1.5 rounded-full transition-all duration-500"
+                style={{ width: `${cards?.totalFundExpPerc || 0}%` }}
+              ></div>
+            </div>
+          </div>
 
-  <div className="bg-gradient-to-br from-[#3b3954] to-[#3b3954dd] rounded-lg p-3 text-white shadow-lg transform transition-all duration-300 hover:scale-105">
-    <div className="flex items-center justify-between mb-1">
-      <h4 className="text-sm font-medium opacity-90">
-        Expenditure Made
-      </h4>
-      <FiPieChart className="text-[#ff7900] text-2xl" />
-    </div>
-    <div className="mb-2 flex justify-between items-center">
-      <div className="text-lg font-bold">
-        ₹{cards?.totalFundExp?.toLocaleString() || 0}
-      </div>
-      <div className="text-lg font-bold">{cards?.expenditurePercentage || 0}%</div>
-    </div>
-    <div className="text-xs opacity-75 mb-2">
-      Spent out of ₹{cards?.totalFundRels?.toLocaleString() || 0}
-    </div>
-    <div className="w-full bg-black bg-opacity-20 rounded-full h-1.5">
-      <div
-        className="bg-[#ff7900] h-1.5 rounded-full transition-all duration-500"
-        style={{ width: `${cards?.expenditurePercentage || 0}%` }}
-      ></div>
-    </div>
-  </div>
+          <div className="bg-gradient-to-br from-[#3b3954] to-[#3b3954dd] rounded-lg p-3 text-white shadow-lg transform transition-all duration-300 hover:scale-105">
+            <div className="flex items-center justify-between mb-1">
+              <h4 className="text-sm font-medium opacity-90">
+                Expenditure Made
+              </h4>
+              <FiPieChart className="text-[#ff7900] text-2xl" />
+            </div>
+            <div className="mb-2 flex justify-between items-center">
+              <div className="text-lg font-bold">
+                ₹{cards?.totalFundExp?.toLocaleString() || 0}
+              </div>
+              <div className="text-lg font-bold">{cards?.expenditurePercentage || 0}%</div>
+            </div>
+            <div className="text-xs opacity-75 mb-2">
+              Spent out of ₹{cards?.totalFundRels?.toLocaleString() || 0}
+            </div>
+            <div className="w-full bg-black bg-opacity-20 rounded-full h-1.5">
+              <div
+                className="bg-[#ff7900] h-1.5 rounded-full transition-all duration-500"
+                style={{ width: `${cards?.expenditurePercentage || 0}%` }}
+              ></div>
+            </div>
+          </div>
 
-  <div className="bg-gradient-to-br from-[#1e3a5f] to-[#1e3a5fdd] rounded-lg p-3 text-white shadow-lg transform transition-all duration-300 hover:scale-105">
-    <div className="flex items-center justify-between mb-1">
-      <h4 className="text-sm font-medium opacity-90">Male Beneficiary</h4>
-      <FaMale className="text-[#ff7900] text-2xl" />
-    </div>
-    <div className="mb-2 flex justify-between items-center">
-      <div className="text-lg font-bold">
-        {cards?.totalMaleBeneficiaries || 0}
-      </div>
-      <div className="text-lg font-bold">{cards?.maleBeneficiariesPerc || 0}%</div>
-    </div>
-    <div className="text-xs opacity-75 mb-2">Out of {cards?.totalBeneficiaries || 0} Beneficiaries</div>
-    <div className="w-full bg-black bg-opacity-20 rounded-full h-1.5">
-      <div
-        className="bg-[#ff7900] h-1.5 rounded-full transition-all duration-500"
-        style={{ width: `${cards?.maleBeneficiariesPerc || 0}%` }}
-      ></div>
-    </div>
-  </div>
+          <div className="bg-gradient-to-br from-[#1e3a5f] to-[#1e3a5fdd] rounded-lg p-3 text-white shadow-lg transform transition-all duration-300 hover:scale-105">
+            <div className="flex items-center justify-between mb-1">
+              <h4 className="text-sm font-medium opacity-90">Male Beneficiary</h4>
+              <FaMale className="text-[#ff7900] text-2xl" />
+            </div>
+            <div className="mb-2 flex justify-between items-center">
+              <div className="text-lg font-bold">
+                {cards?.totalMaleBeneficiaries || 0}
+              </div>
+              <div className="text-lg font-bold">{cards?.maleBeneficiariesPerc || 0}%</div>
+            </div>
+            <div className="text-xs opacity-75 mb-2">Out of {cards?.totalBeneficiaries || 0} Beneficiaries</div>
+            <div className="w-full bg-black bg-opacity-20 rounded-full h-1.5">
+              <div
+                className="bg-[#ff7900] h-1.5 rounded-full transition-all duration-500"
+                style={{ width: `${cards?.maleBeneficiariesPerc || 0}%` }}
+              ></div>
+            </div>
+          </div>
 
-  <div className="bg-gradient-to-br from-[#5f1e3a] to-[#5f1e3add] rounded-lg p-3 text-white shadow-lg transform transition-all duration-300 hover:scale-105">
-    <div className="flex items-center justify-between mb-1">
-      <h4 className="text-sm font-medium opacity-90">Female Beneficiary</h4>
-      <FaFemale className="text-[#ff7900] text-2xl" />
-    </div>
-    <div className="mb-2 flex justify-between items-center">
-      <div className="text-lg font-bold">
-        {cards?.totalFemaleBeneficiaries || 0}
-      </div>
-      <div className="text-lg font-bold">{cards?.femaleBeneficiariesPerc || 0}%</div>
-    </div>
-    <div className="text-xs opacity-75 mb-2">Out of {cards?.totalBeneficiaries || 0} Beneficiaries</div>
-    <div className="w-full bg-black bg-opacity-20 rounded-full h-1.5">
-      <div
-        className="bg-[#ff7900] h-1.5 rounded-full transition-all duration-500"
-        style={{ width: `${cards?.femaleBeneficiariesPerc || 0}%` }}
-      ></div>
-    </div>
-  </div>
-</div>
+          <div className="bg-gradient-to-br from-[#5f1e3a] to-[#5f1e3add] rounded-lg p-3 text-white shadow-lg transform transition-all duration-300 hover:scale-105">
+            <div className="flex items-center justify-between mb-1">
+              <h4 className="text-sm font-medium opacity-90">Female Beneficiary</h4>
+              <FaFemale className="text-[#ff7900] text-2xl" />
+            </div>
+            <div className="mb-2 flex justify-between items-center">
+              <div className="text-lg font-bold">
+                {cards?.totalFemaleBeneficiaries || 0}
+              </div>
+              <div className="text-lg font-bold">{cards?.femaleBeneficiariesPerc || 0}%</div>
+            </div>
+            <div className="text-xs opacity-75 mb-2">Out of {cards?.totalBeneficiaries || 0} Beneficiaries</div>
+            <div className="w-full bg-black bg-opacity-20 rounded-full h-1.5">
+              <div
+                className="bg-[#ff7900] h-1.5 rounded-full transition-all duration-500"
+                style={{ width: `${cards?.femaleBeneficiariesPerc || 0}%` }}
+              ></div>
+            </div>
+          </div>
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6">
-          <div className="lg:col-span-4 bg-white rounded-lg border border-gray-200 shadow-sm">
+          <div className="lg:col-span-4 bg-white rounded-lg border border-gray-200 shadow-sm p-4">
             <h4 className="text-xl font-medium mb-4 flex items-center gap-2 text-gray-800">
               <FiTrendingUp className="text-[#ff7900]" />
               Projects Status
@@ -984,7 +984,7 @@ const Dashboard = () => {
           </div>
         </div> */}
 
-       
+
         <div className="bg-white rounded-lg mt-6 p-2 border border-gray-200 shadow-sm">
           <h4 className="text-xl font-medium mb-4 flex items-center gap-2 text-gray-800">
             <FiTrendingUp className="text-[#ff7900]" />

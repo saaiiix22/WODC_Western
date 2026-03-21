@@ -11,7 +11,7 @@ import { useTranslation } from "react-i18next";
 import ReusableDialog from "./common/ReusableDialog";
 import { notificationsService } from "../services/dashboardService";
 import { addAllowedPath } from "../redux/slices/menuSlice";
-
+import { RiFullscreenLine } from "react-icons/ri";
 const Navbar = () => {
   const [openNotif, setOpenNotif] = useState(false);
   const notifRef = useRef(null);
@@ -92,6 +92,15 @@ const Navbar = () => {
     notificationsMenu()
   }, [])
 
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch((err) => {
+        console.error("Error attempting to enable fullscreen:", err);
+      });
+    } else {
+      document.exitFullscreen();
+    }
+  };
 
 
 
@@ -108,7 +117,7 @@ const Navbar = () => {
           </div>
 
           <div className="hidden lg:block ml-2 ">
-            <h1 className="text-lg font-bold tracking-tight text-slate-900 leading-tight">
+            <h1 className="text-lg uppercase font-bold tracking-tight text-slate-900 leading-tight">
               {t("projectName")} <span className="text-[#fe8b00] font-bold">(WODC)</span>
             </h1>
             <p className="text-[11px] mt-1 font-medium uppercase tracking-wider text-slate-400">
@@ -119,6 +128,7 @@ const Navbar = () => {
 
         {/* ================= RIGHT ACTIONS: Modern UI Elements ================= */}
         <div className="flex items-center gap-2 sm:gap-3">
+          <button title="Full Screen" className="group relative text-xl text-slate-600 flex items-center justify-center rounded-xl font-bold transition-all duration-200" onClick={toggleFullscreen}><RiFullscreenLine /></button>
 
           {/* ---------- NOTIFICATION: Sleek Badge ---------- */}
           <div className="relative" ref={notifRef}>
@@ -168,7 +178,6 @@ const Navbar = () => {
               </div>
             )}
           </div>
-
           {/* ---------- LANGUAGE: Capsule Style ---------- */}
           <button
             onClick={toggleLang}
@@ -196,7 +205,7 @@ const Navbar = () => {
                 <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-white rounded-full"></div>
               </div>
               <div className="hidden sm:block text-left">
-                <p className="text-[13px] font-bold text-slate-800 leading-none">{selectState?.description}</p>
+                <p className="text-[13px] font-bold text-slate-800 leading-none uppercase">{selectState?.description}</p>
                 <p className="text-[10px] font-medium text-slate-400 mt-0.5 capitalize">{selectState?.roleCode?.toLowerCase()}</p>
               </div>
               <FiChevronDown size={14} className={`text-slate-400 transition-transform duration-300 ${open ? 'rotate-180' : ''}`} />

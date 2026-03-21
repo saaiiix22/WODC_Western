@@ -76,7 +76,7 @@ const Sidebar = ({ collapse, setCollapse }) => {
       {/* HEADER */}
       <div className={`flex items-center  mb-6 w-full mt-3 ${collapse ? "justify-center" : "justify-between"}`}>
         {!collapse && (
-          <div className="flex flex-col ">
+          <div className="flex flex-col uppercase">
             <span className="text-white text-lg font-semibold tracking-wide">
               IFPMS Portal
             </span>
