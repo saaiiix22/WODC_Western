@@ -7,3 +7,4 @@ export const saveUCdetailsService = (data) => Api.post(endpoints.ucSubmission.sa
         "Content-Type": "multipart/form-data",
     },
 })
+export const getUCtableDetailsByTabCodeService=(data)=>Api.post(endpoints.ucSubmission.getUCtableDetailsByTabCode,data)

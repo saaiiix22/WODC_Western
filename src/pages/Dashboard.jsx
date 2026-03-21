@@ -1,37 +1,64 @@
-import React, { useEffect, useState } from "react";
-import { FiFileText, FiTrendingUp, FiDollarSign, FiActivity, FiMessageSquare, FiCheckCircle, FiPieChart, FiCreditCard, FiInbox, FiImage, FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import React, { use, useEffect, useState } from "react";
+import {
+  FiFileText,
+  FiTrendingUp,
+  FiActivity,
+  FiCheckCircle,
+  FiPieChart,
+  FiCreditCard,
+  FiInbox,
+
+} from "react-icons/fi";
+
+import {
+  FaMale,
+  FaFemale
+} from "react-icons/fa";
 import { ResetBackBtn, SubmitBtn } from "../components/common/CommonButtons";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  Cell,
+  PieChart,
+  Pie,
+} from "recharts";
 import { getFinancialYearService } from "../services/budgetService";
 import SelectField from "../components/common/SelectField";
 import { encryptPayload } from "../crypto.js/encryption";
-import { useSelector } from "react-redux";
+import { load } from "../hooks/load";
+import { getAllDists } from "../services/blockService";
+import { getSectorService } from "../services/projectService";
+import { getAllCardsDataService, getDelayedProjectsService, getDistrictWiseFundDataService, getDistrictWiseWorkStatusService, getProjectSummaryService } from "../services/dashboardService";
 
 const Dashboard = () => {
-  // Mobile detection hook
   const [isMobile, setIsMobile] = useState(false);
   const [showAllDistricts, setShowAllDistricts] = useState(false);
-
-  // New state for input fields
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [selectedDistrict, setSelectedDistrict] = useState("all");
   const [finyearId, setFinyearId] = useState("");
+  const [districtId, setDistrictId] = useState("");
+  const [sectorId, setSectorId] = useState("");
+  const [districtMasterList, setDistrictMasterList] = useState([]);
+  const [districtListOptions, setDistrictListOptions] = useState([]);
+  const [sectorList, setSectorList] = useState([]);
+  const [sectorMasterList, setSectorMasterList] = useState([]);
 
-  
 
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    
     handleResize();
-    window.addEventListener('resize', handleResize);
-    
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
 
-const [finyearOption, setFinyearOptions] = useState([]);
+  const [finyearOption, setFinyearOptions] = useState([]);
   const getFinYear = async () => {
     try {
       const payload = encryptPayload({ isActive: true });
@@ -43,211 +70,325 @@ const [finyearOption, setFinyearOptions] = useState([]);
     }
   };
 
+  const loadDistricts = async () => {
+    await load(getAllDists, { isActive: true }, (result) => {
+      const data = result || [];
+      setDistrictMasterList(data);
+      const opts = data.map((d) => ({
+        value: d.districtId,
+        label: d.districtName || d.districtNameEN || `District ${d.districtId}`,
+      }));
+      setDistrictListOptions(opts);
+    });
+  };
+
+  const loadSector = async () => {
+    const payload = encryptPayload({ isActive: true });
+    const res = await getSectorService(payload);
+    const result = res?.data?.data || [];
+    setSectorMasterList(result);
+    const sectorOptions = result.map((s) => ({
+      value: s.sectorId,
+      label: s.sectorName,
+    }));
+    setSectorList(sectorOptions);
+  };
+
   useEffect(() => {
     getFinYear();
+    loadDistricts();
+    loadSector();
   }, []);
   // Calculate percentages
-  const projectPercentage = Math.round((16888 / 23969) * 100);
-  const fundPercentage = Math.round((1322.73 / 1363.39) * 100);
-  const expenditurePercentage = Math.round((893.51 / 1322.73) * 100);
-  const complainsPercentage = Math.round((385 / 2599) * 100);
-
+  const projectPercentage = Math.round((68 / 239) * 100);
+  const fundPercentage = Math.round((13.2 / 13.6) * 100);
+  const expenditurePercentage = Math.round((8.9 / 13.2) * 100);
+  const complainsPercentage = Math.round((38 / 259) * 100);
+  const maleBeneficiaryPercentage = Math.round((134 / 207) * 100);
+  const femaleBeneficiaryPercentage = Math.round((149 / 207) * 100);
   // State for image slider
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const imagesPerView = isMobile ? 1 : (window.innerWidth < 1024 ? 2 : 4); // Responsive images per view
+  const imagesPerView = isMobile ? 1 : window.innerWidth < 1024 ? 2 : 4;
+
+  const [cards, setCards] = useState(null);
+  const fetchCardsDetails = async () => {
+    try {
+      const res = await getAllCardsDataService();
+      setCards(res?.data || null);
+    } catch (error) {
+    }
+  };
+
+  const [districtFundData, setDistrictFundData] = useState([]);
+  const fetchDistrictFundData = async () => {
+    try {
+      const res = await getDistrictWiseFundDataService();
+      const formattedData = (res.data || []).map((item) => ({
+        district: item.district,
+        projects: item.projects,
+        approved: item.approved,
+        releasedWODC: item.fund_allocated_cr,
+        releasedDist: item.fund_released_cr,
+        expenditure: item.expenditure_cr,
+      }));
+      setDistrictFundData(formattedData);
+    } catch (error) {
+    }
+  };
+
+  const [workStatusData, setWorkStatusData] = useState([]);
+  const fetchWorkStatusData = async () => {
+    try {
+      const res = await getDistrictWiseWorkStatusService();
+      setWorkStatusData(res.data || []);
+    } catch (error) {
+    }
+  };
+
+  const [delayedProjectsData, setDelayedProjectsData] = useState([]);
+  const fetchDelayedProjectsData = async () => {
+    try {
+      const res = await getDelayedProjectsService();
+      const colors = [
+        "#ff7900",
+        "#ff9900",
+        "#ffcc00",
+        "#ffdd66",
+        "#ffeecc",
+      ];
+      const formattedData = (res.data || []).map((item, index) => ({
+        delayPeriod: item.delay_period,   // match XAxis
+        count: item.projects,             // match Bar
+        fill: colors[index % colors.length],
+      }));
+      setDelayedProjectsData(formattedData);
+    } catch (error) {
+    }
+  };
+
+
+  const [districtProjectSummaryData, setDistrictProjectSummaryData] = useState([]);
+  const fetchDistrictProjectSummaryData = async () => {
+    try {
+      const res = await getProjectSummaryService();
+      const formattedData = (res?.data || []).map((item) => ({
+        district: item.district_name,
+        kalyanMandaps: Number(item.sector_counts?.["Construction "] || 0),
+        communityCenters: Number(item.sector_counts?.["Water Resources"] || 0),
+        mmsg: 0,
+        openMandaps: 0,
+      }));
+      setDistrictProjectSummaryData(formattedData);
+    } catch (error) {
+      console.error("Error fetching district project summary:", error);
+      setDistrictProjectSummaryData([]);
+    }
+  };
+
+
+  useEffect(() => {
+    fetchCardsDetails();
+    fetchDistrictFundData();
+    fetchWorkStatusData();
+    fetchDelayedProjectsData();
+    fetchDistrictProjectSummaryData();
+  }, []);
+
 
   // Project status data for the chart
-  const projectStatusData = [
-    { name: 'Not Started', value: 4293, fill: '#532f3c' },
-    { name: 'In Progress', value: 1743, fill: '#3b3954' },
-    { name: 'Completed', value: 16005, fill: '#234341' },
- 
-  ];
+  const projectStatusData = cards
+    ? [
+      {
+        name: "Completed",
+        value: cards?.cmplPrjctsCnt || 0,
+        fill: "#234341",
+      },
+      {
+        name: "Ongoing",
+        value: cards?.onGoingPrjctsCnt || 0,
+        fill: "#3b3954",
+      },
+      {
+        name: "Yet To Start",
+        value: cards?.yetToStartPrjctsCnt || 0,
+        fill: "#532f3c",
+      },
+    ]
+    : [];
 
-  // Work type data for the new chart
-  const workTypeData = [
-    { category: 'Road & Communication', subcategory: 'Subbase', count: 43, fill: '#511409' },
-    { category: 'Road & Communication', subcategory: 'Metal Concrete', count: 37, fill: '#511409' },
-    { category: 'Road & Communication', subcategory: 'Chips Concrete', count: 39, fill: '#511409' },
-    { category: 'Roads & Communication(Black Toping)', subcategory: 'SUB BASE', count: 4, fill: '#7a1f13' },
-    { category: 'Roads & Communication(Black Toping)', subcategory: 'METALLING GRADE 1', count: 1, fill: '#7a1f13' },
-    { category: 'Irrigation/Water Body', subcategory: 'Excavation', count: 67, fill: '#234341' },
-    { category: 'Irrigation/Water Body', subcategory: 'EMBANKMENT', count: 7, fill: '#234341' },
-    { category: 'Irrigation/Water Body', subcategory: 'STRUCTURE IF ANY', count: 26, fill: '#234341' },
-    { category: 'Irrigation/Water Body', subcategory: 'IN-LET/OUT-LET', count: 1, fill: '#234341' },
-    { category: 'Building', subcategory: 'Foundation', count: 1, fill: '#574827' },
-    { category: 'Building', subcategory: 'Plinth', count: 1, fill: '#574827' },
-    { category: 'Building', subcategory: 'Roof', count: 6, fill: '#574827' },
-    { category: 'Building', subcategory: 'Complete', count: 3, fill: '#574827' }
-  ];
+  //     count: 43,
+  //     fill: "#511409",
+  //   },
+  //   {
+  //     category: "Road & Communication",
+  //     subcategory: "Metal Concrete",
+  //     count: 37,
+  //     fill: "#511409",
+  //   },
+  //   {
+  //     category: "Road & Communication",
+  //     subcategory: "Chips Concrete",
+  //     count: 39,
+  //     fill: "#511409",
+  //   },
+  //   {
+  //     category: "Roads & Communication(Black Toping)",
+  //     subcategory: "SUB BASE",
+  //     count: 4,
+  //     fill: "#7a1f13",
+  //   },
+  //   {
+  //     category: "Roads & Communication(Black Toping)",
+  //     subcategory: "METALLING GRADE 1",
+  //     count: 1,
+  //     fill: "#7a1f13",
+  //   },
+  //   {
+  //     category: "Irrigation/Water Body",
+  //     subcategory: "Excavation",
+  //     count: 67,
+  //     fill: "#234341",
+  //   },
+  //   {
+  //     category: "Irrigation/Water Body",
+  //     subcategory: "EMBANKMENT",
+  //     count: 7,
+  //     fill: "#234341",
+  //   },
+  //   {
+  //     category: "Irrigation/Water Body",
+  //     subcategory: "STRUCTURE IF ANY",
+  //     count: 26,
+  //     fill: "#234341",
+  //   },
+  //   {
+  //     category: "Irrigation/Water Body",
+  //     subcategory: "IN-LET/OUT-LET",
+  //     count: 1,
+  //     fill: "#234341",
+  //   },
+  //   {
+  //     category: "Building",
+  //     subcategory: "Foundation",
+  //     count: 1,
+  //     fill: "#574827",
+  //   },
+  //   { category: "Building", subcategory: "Plinth", count: 1, fill: "#574827" },
+  //   { category: "Building", subcategory: "Roof", count: 6, fill: "#574827" },
+  //   {
+  //     category: "Building",
+  //     subcategory: "Complete",
+  //     count: 3,
+  //     fill: "#574827",
+  //   },
+  // ];
 
-  // District-wise work status data
-  const districtWorkStatusData = [
-    { district: 'Angul', notStarted: 120, inProgress: 85, completed: 320 },
-    { district: 'Balangir', notStarted: 150, inProgress: 95, completed: 280  },
-    { district: 'Bargarh', notStarted: 110, inProgress: 75, completed: 350},
-    { district: 'Boudh', notStarted: 80, inProgress: 60, completed: 180 },
-    { district: 'Cuttack', notStarted: 200, inProgress: 150, completed: 520 },
-    { district: 'Deogarh', notStarted: 386, inProgress: 49, completed: 590 },
-    { district: 'Dhenkanal', notStarted: 130, inProgress: 90, completed: 380 },
-    { district: 'Gajapati', notStarted: 70, inProgress: 50, completed: 160 },
-    { district: 'Ganjam', notStarted: 180, inProgress: 120, completed: 450 },
-    { district: 'Jagatsinghpur', notStarted: 90, inProgress: 70, completed: 290 },
-    { district: 'Jajpur', notStarted: 140, inProgress: 100, completed: 400 },
-    { district: 'Kalahandi', notStarted: 160, inProgress: 110, completed: 2617 },
-    { district: 'Kandhamal', notStarted: 100, inProgress: 80, completed: 220 },
-    { district: 'Kendrapara', notStarted: 120, inProgress: 85, completed: 310 },
-    { district: 'Keonjhar', notStarted: 170, inProgress: 120, completed: 420 },
-    { district: 'Khordha', notStarted: 190, inProgress: 140, completed: 480 },
-    { district: 'Koraput', notStarted: 150, inProgress: 105, completed: 380 },
-    { district: 'Malkangiri', notStarted: 85, inProgress: 65, completed: 200 },
-    { district: 'Mayurbhanj', notStarted: 180, inProgress: 130, completed: 460 },
-    { district: 'Nabarangpur', notStarted: 95, inProgress: 70, completed: 240 },
-    { district: 'Nuapada', notStarted: 75, inProgress: 55, completed: 190 },
-    { district: 'Puri', notStarted: 130, inProgress: 95, completed: 340 },
-    { district: 'Rayagada', notStarted: 110, inProgress: 80, completed: 300 },
-    { district: 'Sambalpur', notStarted: 160, inProgress: 115, completed: 410 },
-    { district: 'Sonepur', notStarted: 85, inProgress: 60, completed: 210 },
-    { district: 'Sundargarh', notStarted: 190, inProgress: 140, completed: 490 }
-  ];
-
-  // Delayed projects data - using your theme colors
-  const delayedProjectsData = [
-    { delayPeriod: 'More than 12 mo.', count: 4131, fill: '#ff7900' },
-    { delayPeriod: '9 - 12 months', count: 778, fill: '#ff9900' },
-    { delayPeriod: '6 - 9 months', count: 0, fill: '#ffcc00' },
-    { delayPeriod: '3 - 6 months', count: 0, fill: '#ffdd66' },
-    { delayPeriod: 'Less than 3 months', count: 0, fill: '#ffeecc' }
-  ];
+  // // Delayed projects data - using your theme colors
+  // const delayedProjectsData = [
+  //   { delayPeriod: "More than 12 mo.", count: 4131, fill: "#ff7900" },
+  //   { delayPeriod: "9 - 12 months", count: 778, fill: "#ff9900" },
+  //   { delayPeriod: "6 - 9 months", count: 0, fill: "#ffcc00" },
+  //   { delayPeriod: "3 - 6 months", count: 0, fill: "#ffdd66" },
+  //   { delayPeriod: "Less than 3 months", count: 0, fill: "#ffeecc" },
+  // ];
 
   // District-wise summary of projects data - using your theme colors
-  const districtProjectSummaryData = [
-    { district: 'Angul', kalyanMandaps: 120, communityCenters: 85, mmsg: 65, openMandaps: 40 },
-    { district: 'Balangir', kalyanMandaps: 95, communityCenters: 70, mmsg: 55, openMandaps: 35 },
-    { district: 'Bargarh', kalyanMandaps: 110, communityCenters: 80, mmsg: 70, openMandaps: 45 },
-    { district: 'Boudh', kalyanMandaps: 65, communityCenters: 50, mmsg: 40, openMandaps: 25 },
-    { district: 'Cuttack', kalyanMandaps: 150, communityCenters: 120, mmsg: 95, openMandaps: 75 },
-    { district: 'Deogarh', kalyanMandaps: 78, communityCenters: 60, mmsg: 45, openMandaps: 30 },
-    { district: 'Dhenkanal', kalyanMandaps: 90, communityCenters: 70, mmsg: 55, openMandaps: 40 },
-    { district: 'Gajapati', kalyanMandaps: 60, communityCenters: 45, mmsg: 35, openMandaps: 20 },
-    { district: 'Ganjam', kalyanMandaps: 140, communityCenters: 110, mmsg: 85, openMandaps: 65 },
-    { district: 'Jagatsinghpur', kalyanMandaps: 75, communityCenters: 60, mmsg: 45, openMandaps: 30 },
-    { district: 'Jajpur', kalyanMandaps: 100, communityCenters: 80, mmsg: 65, openMandaps: 50 },
-    { district: 'Kalahandi', kalyanMandaps: 120, communityCenters: 95, mmsg: 75, openMandaps: 60 },
-    { district: 'Kandhamal', kalyanMandaps: 85, communityCenters: 65, mmsg: 50, openMandaps: 35 },
-    { district: 'Kendrapara', kalyanMandaps: 95, communityCenters: 75, mmsg: 60, openMandaps: 45 },
-    { district: 'Keonjhar', kalyanMandaps: 115, communityCenters: 90, mmsg: 70, openMandaps: 55 },
-    { district: 'Khordha', kalyanMandaps: 130, communityCenters: 105, mmsg: 80, openMandaps: 65 },
-    { district: 'Koraput', kalyanMandaps: 100, communityCenters: 80, mmsg: 65, openMandaps: 50 },
-    { district: 'Malkangiri', kalyanMandaps: 70, communityCenters: 55, mmsg: 40, openMandaps: 25 },
-    { district: 'Mayurbhanj', kalyanMandaps: 125, communityCenters: 100, mmsg: 80, openMandaps: 65 },
-    { district: 'Nabarangpur', kalyanMandaps: 80, communityCenters: 65, mmsg: 50, openMandaps: 35 },
-    { district: 'Nuapada', kalyanMandaps: 65, communityCenters: 50, mmsg: 40, openMandaps: 25 },
-    { district: 'Puri', kalyanMandaps: 105, communityCenters: 85, mmsg: 65, openMandaps: 50 },
-    { district: 'Rayagada', kalyanMandaps: 90, communityCenters: 70, mmsg: 55, openMandaps: 40 },
-    { district: 'Sambalpur', kalyanMandaps: 110, communityCenters: 85, mmsg: 70, openMandaps: 55 },
-    { district: 'Sonepur', kalyanMandaps: 70, communityCenters: 55, mmsg: 40, openMandaps: 25 },
-    { district: 'Sundargarh', kalyanMandaps: 120, communityCenters: 95, mmsg: 75, openMandaps: 60 }
-  ];
+
 
   // Colors for different categories
   const categoryColors = {
-    'Road & Communication': '#511409',
-    'Roads & Communication(Black Toping)': '#7a1f13',
-    'Irrigation/Water Body': '#234341',
-    'Building': '#574827'
+    "Road & Communication": "#511409",
+    "Roads & Communication(Black Toping)": "#7a1f13",
+    "Irrigation/Water Body": "#234341",
+    Building: "#574827",
   };
 
   // Colors for work status
   const workStatusColors = {
-    'Not Started': '#ff7900',
-    'In Progress': '#3b3954',
-    'Completed': '#234341',
+    "Not Started": "#ff7900",
+    "In Progress": "#3b3954",
+    Completed: "#234341",
   };
 
   // Colors for project types - using your theme colors
   const projectTypeColors = {
-    'Kalyan Mandaps': '#511409',
-    'Community Centers': '#7a1f13',
-    'MMSG': '#234341',
-    'Open Mandaps': '#574827'
+    "Kalyan Mandaps": "#511409",
+    "Community Centers": "#7a1f13",
+    MMSG: "#234341",
+    "Open Mandaps": "#574827",
   };
 
   // Updated district-wise fund distribution data with additional columns
   const districtData = [
-    { district: 'DEOGARH', projects: 1057, approved: 56.43, releasedWODC: 45.20, releasedDist: 11.23, expenditure: 38.45 },
-    { district: 'MAYURBHANJ', projects: 2341, approved: 123.45, releasedWODC: 98.50, releasedDist: 24.95, expenditure: 87.20 },
-    { district: 'BALASORE', projects: 1876, approved: 98.76, releasedWODC: 78.90, releasedDist: 19.86, expenditure: 65.30 },
-    { district: 'KENDRAPARA', projects: 1543, approved: 87.65, releasedWODC: 70.12, releasedDist: 17.53, expenditure: 58.90 },
-    { district: 'CUTTACK', projects: 2109, approved: 145.32, releasedWODC: 116.26, releasedDist: 29.06, expenditure: 98.50 },
-    { district: 'JAGATSINGHPUR', projects: 1234, approved: 76.54, releasedWODC: 61.23, releasedDist: 15.31, expenditure: 52.10 },
-    { district: 'PURI', projects: 1876, approved: 109.87, releasedWODC: 87.90, releasedDist: 21.97, expenditure: 78.40 },
-    { district: 'KHORDHA', projects: 1987, approved: 134.56, releasedWODC: 107.65, releasedDist: 26.91, expenditure: 95.30 },
-    { district: 'GANJAM', projects: 2109, approved: 156.78, releasedWODC: 125.42, releasedDist: 31.36, expenditure: 110.80 },
-    { district: 'GAJAPATI', projects: 987, approved: 65.43, releasedWODC: 52.34, releasedDist: 13.09, expenditure: 45.20 },
-    { district: 'KANDHAMAL', projects: 1234, approved: 87.65, releasedWODC: 70.12, releasedDist: 17.53, expenditure: 58.90 },
-    { district: 'BOUDH', projects: 876, approved: 54.32, releasedWODC: 43.46, releasedDist: 10.86, expenditure: 36.50 },
-    { district: 'SONEPUR', projects: 765, approved: 43.21, releasedWODC: 34.57, releasedDist: 8.64, expenditure: 29.10 },
-    { district: 'BALANGIR', projects: 1543, approved: 98.76, releasedWODC: 79.01, releasedDist: 19.75, expenditure: 67.30 },
-    { district: 'NUAPADA', projects: 654, approved: 32.10, releasedWODC: 25.68, releasedDist: 6.42, expenditure: 21.80 },
-    { district: 'KALAHANDI', projects: 1432, approved: 87.65, releasedWODC: 70.12, releasedDist: 17.53, expenditure: 58.90 },
-    { district: 'RAYAGADA', projects: 1098, approved: 65.43, releasedWODC: 52.34, releasedDist: 13.09, expenditure: 45.20 },
-    { district: 'KORAPUT', projects: 1321, approved: 76.54, releasedWODC: 61.23, releasedDist: 15.31, expenditure: 52.10 },
-    { district: 'NABARANGPUR', projects: 987, approved: 54.32, releasedWODC: 43.46, releasedDist: 10.86, expenditure: 36.50 },
-    { district: 'MALKANGIRI', projects: 765, approved: 43.21, releasedWODC: 34.57, releasedDist: 8.64, expenditure: 29.10 },
-    { district: 'Total', projects: 22933, approved: 1363.39, releasedWODC: 1090.71, releasedDist: 272.68, expenditure: 893.51 }
+
+    {
+      district: "MALKANGIRI",
+      projects: 765,
+      approved: 43.21,
+      releasedWODC: 34.57,
+      releasedDist: 8.64,
+      expenditure_cr: 29.1,
+    },
+    {
+      district: "Total",
+      projects: 22933,
+      approved: 1363.39,
+      releasedWODC: 1090.71,
+      releasedDist: 272.68,
+      expenditure: 893.51,
+    },
   ];
 
   // Gallery data - replace with your actual image paths
   const galleryData = [
-    { 
-      id: 1, 
-      src: '/src/assets/dashboardimg/wodcdashboardimg1.jpg', 
-      title: 'Inauguration',
-      description: 'New community center inauguration ceremony'
+    {
+      id: 1,
+      src: "/src/assets/dashboardimg/wodcdashboardimg1.jpg",
+      title: "Inauguration",
+      description: "New community center inauguration ceremony",
     },
-    { 
-      id: 2, 
-      src: '/src/assets/dashboardimg/wodcdashboardimg2.jpeg', 
-      title: 'Meeting',
-      description: 'District officials quarterly review meeting'
+    {
+      id: 2,
+      src: "/src/assets/dashboardimg/wodcdashboardimg2.jpeg",
+      title: "Meeting",
+      description: "District officials quarterly review meeting",
     },
-    { 
-      id: 3, 
-      src: '/src/assets/dashboardimg/wodcdashboard3.jpg', 
-      title: 'Distribution',
-      description: 'Women empowerment program distribution'
+    {
+      id: 3,
+      src: "/src/assets/dashboardimg/wodcdashboard3.jpg",
+      title: "Distribution",
+      description: "Women empowerment program distribution",
     },
-    { 
-      id: 4, 
-      src: '/src/assets/dashboardimg/wodcdashboard4.jpg', 
-      title: 'Foundation',
-      description: 'Rural development project foundation ceremony'
+    {
+      id: 4,
+      src: "/src/assets/dashboardimg/wodcdashboard4.jpg",
+      title: "Foundation",
+      description: "Rural development project foundation ceremony",
     },
-    { 
-      id: 5, 
-      src: '/src/assets/dashboardimg/wodcdashboardimg1.jpg', 
-      title: 'Inauguration 2',
-      description: 'New school building inauguration'
+    {
+      id: 5,
+      src: "/src/assets/dashboardimg/wodcdashboardimg1.jpg",
+      title: "Inauguration 2",
+      description: "New school building inauguration",
     },
-    { 
-      id: 6, 
-      src: '/src/assets/dashboardimg/wodcdashboardimg2.jpeg', 
-      title: 'Meeting 2',
-      description: 'Annual review meeting with stakeholders'
+    {
+      id: 6,
+      src: "/src/assets/dashboardimg/wodcdashboardimg2.jpeg",
+      title: "Meeting 2",
+      description: "Annual review meeting with stakeholders",
     },
-    { 
-      id: 7, 
-      src: '/src/assets/dashboardimg/wodcdashboard3.jpg', 
-      title: 'Distribution 2',
-      description: 'Agricultural equipment distribution'
+    {
+      id: 7,
+      src: "/src/assets/dashboardimg/wodcdashboard3.jpg",
+      title: "Distribution 2",
+      description: "Agricultural equipment distribution",
     },
-    { 
-      id: 8, 
-      src: '/src/assets/dashboardimg/wodcdashboard4.jpg', 
-      title: 'Foundation 2',
-      description: 'Hospital foundation stone laying ceremony'
-    }
+    {
+      id: 8,
+      src: "/src/assets/dashboardimg/wodcdashboard4.jpg",
+      title: "Foundation 2",
+      description: "Hospital foundation stone laying ceremony",
+    },
   ];
 
   // Calculate visible images based on current index
@@ -262,14 +403,14 @@ const [finyearOption, setFinyearOptions] = useState([]);
 
   // Functions to handle slider navigation - ONE image at a time
   const handlePrevImage = () => {
-    setCurrentImageIndex((prevIndex) => 
-      prevIndex === 0 ? galleryData.length - 1 : prevIndex - 1
+    setCurrentImageIndex((prevIndex) =>
+      prevIndex === 0 ? galleryData.length - 1 : prevIndex - 1,
     );
   };
 
   const handleNextImage = () => {
-    setCurrentImageIndex((prevIndex) => 
-      prevIndex === galleryData.length - 1 ? 0 : prevIndex + 1
+    setCurrentImageIndex((prevIndex) =>
+      prevIndex === galleryData.length - 1 ? 0 : prevIndex + 1,
     );
   };
 
@@ -335,7 +476,9 @@ const [finyearOption, setFinyearOptions] = useState([]);
   };
 
   // Extract district names for the dropdown
-  const districtNames = districtData.slice(0, -1).map(district => district.district);
+  const districtNames = districtData
+    .slice(0, -1)
+    .map((district) => district.district);
 
   return (
     <div
@@ -363,105 +506,155 @@ const [finyearOption, setFinyearOptions] = useState([]);
       </div>
 
       <div className="p-4">
-       
-     <div className="flex justify-end mb-6">
-  <div className={`flex items-end ${isMobile ? "flex-col gap-3" : "gap-4"}`}>
-    
-    {/* Financial Year */}
-    <div className="flex flex-col min-w-[180px]">
-      <SelectField
-        label="Financial Year"
-        required={true}
-        name="finyearId"
-        placeholder="Select"
-        value={finyearId}
-        options={finyearOption?.map((d) => ({
-          value: d.finyearId,
-          label: d.finYear,
-        }))}
-        onChange={(e) => setFinyearId(Number(e.target.value))}
-      />
-    </div>
+        <div className="flex justify-start mb-6">
+          <div
+            className={`flex items-end ${isMobile ? "flex-col gap-3" : "gap-4"}`}
+          >
+            {/* Financial Year */}
+            <div className="flex flex-row gap-2 min-w-[500px]">
+              <SelectField
+                label="Financial Year"
+                required={true}
+                name="finyearId"
+                placeholder="Select"
+                value={finyearId}
+                options={finyearOption?.map((d) => ({
+                  value: d.finyearId,
+                  label: d.finYear,
+                }))}
+                onChange={(e) => setFinyearId(Number(e.target.value))}
+              />
+              <SelectField
+                label="District"
+                name="districtId"
+                value={districtData}
+                options={districtListOptions}
+                placeholder="Select"
+                onChange={(e) => handleDistrictChange(e.target.value)}
+              />
 
-  
-
-  </div>
-</div>
-
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-gradient-to-br from-[#234341] to-[#234341dd] rounded-lg p-4 text-white shadow-lg transform transition-all duration-300 hover:scale-105">
-            <div className="flex items-center justify-between mb-2">
-              <h4 className="text-xl font-medium opacity-90">Total Projects</h4>
-              <FiCheckCircle className="text-[#ff7900] text-3xl" />
-            </div>
-            <div className="mb-3 flex justify-between items-center">
-              <div className="text-2xl font-bold">16,888</div>
-              <div className="text-2xl font-bold">{projectPercentage}%</div>
-            </div>
-            <div className="text-xs opacity-75 mb-3">Completed out of 23,969</div>
-            <div className="w-full bg-black bg-opacity-20 rounded-full h-2 mb-3">
-              <div 
-                className="bg-[#ff7900] h-2 rounded-full transition-all duration-500"
-                style={{ width: `${projectPercentage}%` }}
-              ></div>
-            </div>
-          </div>
-
-          <div className="bg-gradient-to-br from-[#574827] to-[#574827dd] rounded-lg p-4 text-white shadow-lg transform transition-all duration-300 hover:scale-105">
-            <div className="flex items-center justify-between mb-2">
-              <h4 className="text-xl font-medium opacity-90">Fund Released</h4>
-              <FiCreditCard className="text-[#ff7900] text-3xl" />
-            </div>
-            <div className="mb-3 flex justify-between items-center">
-              <div className="text-2xl font-bold">₹1,322.73</div>
-              <div className="text-2xl font-bold">{fundPercentage}%</div>
-            </div>
-            <div className="text-xs opacity-75 mb-3">Released out of ₹1,363.39 (In Crores)</div>
-            <div className="w-full bg-black bg-opacity-20 rounded-full h-2 mb-3">
-              <div 
-                className="bg-[#ff7900] h-2 rounded-full transition-all duration-500"
-                style={{ width: `${fundPercentage}%` }}
-              ></div>
-            </div>
-          </div>
-
-          <div className="bg-gradient-to-br from-[#3b3954] to-[#3b3954dd] rounded-lg p-4 text-white shadow-lg transform transition-all duration-300 hover:scale-105">
-            <div className="flex items-center justify-between mb-2">
-              <h4 className="text-xl font-medium opacity-90">Expenditure Made</h4>
-              <FiPieChart className="text-[#ff7900] text-3xl" />
-            </div>
-            <div className="mb-3 flex justify-between items-center">
-              <div className="text-2xl font-bold">₹893.51</div>
-              <div className="text-2xl font-bold">{expenditurePercentage}%</div>
-            </div>
-            <div className="text-xs opacity-75 mb-3">Spent out of ₹1,322.73 (In Crores)</div>
-            <div className="w-full bg-black bg-opacity-20 rounded-full h-2 mb-3">
-              <div 
-                className="bg-[#ff7900] h-2 rounded-full transition-all duration-500"
-                style={{ width: `${expenditurePercentage}%` }}
-              ></div>
-            </div>
-          </div>
-
-          <div className="bg-gradient-to-br from-[#532f3c] to-[#532f3cdd] rounded-lg p-4 text-white shadow-lg transform transition-all duration-300 hover:scale-105">
-            <div className="flex items-center justify-between mb-2">
-              <h4 className="text-xl font-medium opacity-90">Raised Complains</h4>
-              <FiInbox className="text-[#ff7900] text-3xl" />
-            </div>
-            <div className="mb-3 flex justify-between items-center">
-              <div className="text-2xl font-bold">385</div>
-              <div className="text-2xl font-bold">{complainsPercentage}%</div>
-            </div>
-            <div className="text-xs opacity-75 mb-3">Replied out of 2,599</div>
-            <div className="w-full bg-black bg-opacity-20 rounded-full h-2 mb-3">
-              <div 
-                className="bg-[#ff7900] h-2 rounded-full transition-all duration-500"
-                style={{ width: `${complainsPercentage}%` }}
-              ></div>
+              <SelectField
+                label="Sector"
+                name="sectorId"
+                value={sectorId}
+                placeholder="Select"
+                options={sectorList}
+                onChange={(e) => handleSectorChange(e.target.value)}
+              />
             </div>
           </div>
         </div>
+
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-4">
+          
+          <div className="bg-gradient-to-br from-[#234341] to-[#234341dd] rounded-lg p-3 text-white shadow-lg transform transition-all duration-300 hover:scale-105">
+            <div className="flex items-center justify-between mb-1">
+              <h4 className="text-sm font-medium opacity-90">Total Projects</h4>
+              <FiCheckCircle className="text-[#ff7900] text-2xl" />
+            </div>
+            <div className="mb-2 flex justify-between items-center">
+              <div className="text-lg font-bold">
+                {cards?.cmplPrjcts || 0}
+              </div>
+              <div className="text-lg font-bold">{cards?.cmplPrjctsPerc}%</div>
+            </div>
+            <div className="text-xs opacity-75 mb-2">
+              Completed out of {cards?.totalPrjcts || 0}
+            </div>
+            <div className="w-full bg-black bg-opacity-20 rounded-full h-1.5">
+              <div
+                className="bg-[#ff7900] h-1.5 rounded-full transition-all duration-500"
+                style={{ width: `${cards?.cmplPrjctsPerc}%` }}
+              ></div>
+            </div>
+          </div>
+
+  <div className="bg-gradient-to-br from-[#574827] to-[#574827dd] rounded-lg p-3 text-white shadow-lg transform transition-all duration-300 hover:scale-105">
+    <div className="flex items-center justify-between mb-1">
+      <h4 className="text-sm font-medium opacity-90">Fund Released</h4>
+      <FiCreditCard className="text-[#ff7900] text-2xl" />
+    </div>
+    <div className="mb-2 flex justify-between items-center">
+      <div className="text-lg font-bold">
+        ₹{cards?.totalFundRels?.toLocaleString() || 0}
+      </div>
+      <div className="text-lg font-bold">{cards?.totalFundExpPerc || 0}%</div>
+    </div>
+    <div className="text-xs opacity-75 mb-2">
+      Released out of ₹{cards?.totalFundAlloc?.toLocaleString() || 0}
+    </div>
+    <div className="w-full bg-black bg-opacity-20 rounded-full h-1.5">
+      <div
+        className="bg-[#ff7900] h-1.5 rounded-full transition-all duration-500"
+        style={{ width: `${cards?.totalFundExpPerc || 0}%` }}
+      ></div>
+    </div>
+  </div>
+
+  <div className="bg-gradient-to-br from-[#3b3954] to-[#3b3954dd] rounded-lg p-3 text-white shadow-lg transform transition-all duration-300 hover:scale-105">
+    <div className="flex items-center justify-between mb-1">
+      <h4 className="text-sm font-medium opacity-90">
+        Expenditure Made
+      </h4>
+      <FiPieChart className="text-[#ff7900] text-2xl" />
+    </div>
+    <div className="mb-2 flex justify-between items-center">
+      <div className="text-lg font-bold">
+        ₹{cards?.totalFundExp?.toLocaleString() || 0}
+      </div>
+      <div className="text-lg font-bold">{cards?.expenditurePercentage || 0}%</div>
+    </div>
+    <div className="text-xs opacity-75 mb-2">
+      Spent out of ₹{cards?.totalFundRels?.toLocaleString() || 0}
+    </div>
+    <div className="w-full bg-black bg-opacity-20 rounded-full h-1.5">
+      <div
+        className="bg-[#ff7900] h-1.5 rounded-full transition-all duration-500"
+        style={{ width: `${cards?.expenditurePercentage || 0}%` }}
+      ></div>
+    </div>
+  </div>
+
+  <div className="bg-gradient-to-br from-[#1e3a5f] to-[#1e3a5fdd] rounded-lg p-3 text-white shadow-lg transform transition-all duration-300 hover:scale-105">
+    <div className="flex items-center justify-between mb-1">
+      <h4 className="text-sm font-medium opacity-90">Male Beneficiary</h4>
+      <FaMale className="text-[#ff7900] text-2xl" />
+    </div>
+    <div className="mb-2 flex justify-between items-center">
+      <div className="text-lg font-bold">
+        {cards?.totalMaleBeneficiaries || 0}
+      </div>
+      <div className="text-lg font-bold">{cards?.maleBeneficiariesPerc || 0}%</div>
+    </div>
+    <div className="text-xs opacity-75 mb-2">Out of {cards?.totalBeneficiaries || 0} Beneficiaries</div>
+    <div className="w-full bg-black bg-opacity-20 rounded-full h-1.5">
+      <div
+        className="bg-[#ff7900] h-1.5 rounded-full transition-all duration-500"
+        style={{ width: `${cards?.maleBeneficiariesPerc || 0}%` }}
+      ></div>
+    </div>
+  </div>
+
+  <div className="bg-gradient-to-br from-[#5f1e3a] to-[#5f1e3add] rounded-lg p-3 text-white shadow-lg transform transition-all duration-300 hover:scale-105">
+    <div className="flex items-center justify-between mb-1">
+      <h4 className="text-sm font-medium opacity-90">Female Beneficiary</h4>
+      <FaFemale className="text-[#ff7900] text-2xl" />
+    </div>
+    <div className="mb-2 flex justify-between items-center">
+      <div className="text-lg font-bold">
+        {cards?.totalFemaleBeneficiaries || 0}
+      </div>
+      <div className="text-lg font-bold">{cards?.femaleBeneficiariesPerc || 0}%</div>
+    </div>
+    <div className="text-xs opacity-75 mb-2">Out of {cards?.totalBeneficiaries || 0} Beneficiaries</div>
+    <div className="w-full bg-black bg-opacity-20 rounded-full h-1.5">
+      <div
+        className="bg-[#ff7900] h-1.5 rounded-full transition-all duration-500"
+        style={{ width: `${cards?.femaleBeneficiariesPerc || 0}%` }}
+      ></div>
+    </div>
+  </div>
+</div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6">
           <div className="lg:col-span-4 bg-white rounded-lg border border-gray-200 shadow-sm">
@@ -485,13 +678,13 @@ const [finyearOption, setFinyearOptions] = useState([]);
                     <Cell key={`cell-${index}`} fill={entry.fill} />
                   ))}
                 </Pie>
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'white', 
-                    border: '1px solid #e0e0e0',
-                    borderRadius: '6px',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-                  }} 
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "white",
+                    border: "1px solid #e0e0e0",
+                    borderRadius: "6px",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                  }}
                 />
               </PieChart>
             </ResponsiveContainer>
@@ -502,32 +695,55 @@ const [finyearOption, setFinyearOptions] = useState([]);
               <FiCreditCard className="text-[#ff7900]" />
               District - Wise Fund Distribution (In Crores)
             </h4>
-            
+
             {isMobile ? (
               <div className="space-y-3 max-h-[420px] overflow-y-auto pr-2">
-                {districtData.map((district, index) => (
-                  <div key={index} className={`bg-white p-3 rounded-lg shadow border ${index === districtData.length - 1 ? 'font-semibold bg-gray-50' : ''}`}>
-                    <h3 className="font-bold text-base mb-2 text-gray-800">{district.district}</h3>
+                {districtFundData.map((district, index) => (
+                  <div
+                    key={index}
+                    className={`bg-white p-3 rounded-lg shadow border ${index === districtFundData.length - 1
+                      ? "font-semibold bg-gray-50"
+                      : ""
+                      }`}
+                  >
+                    <h3 className="font-bold text-base mb-2 text-gray-800">
+                      {district.district}
+                    </h3>
+
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       <div className="flex justify-between">
                         <span className="text-gray-600">Projects:</span>
-                        <span className="font-medium">{district.projects.toLocaleString()}</span>
+                        <span className="font-medium">
+                          {district.projects?.toLocaleString()}
+                        </span>
                       </div>
+
                       <div className="flex justify-between">
                         <span className="text-gray-600">Approved:</span>
-                        <span className="font-medium">{district.approved.toLocaleString()}</span>
+                        <span className="font-medium">
+                          {district.approved?.toLocaleString()}
+                        </span>
                       </div>
+
                       <div className="flex justify-between">
                         <span className="text-gray-600">WODC:</span>
-                        <span className="font-medium">{district.releasedWODC.toLocaleString()}</span>
+                        <span className="font-medium">
+                          {district.releasedWODC?.toLocaleString()}
+                        </span>
                       </div>
+
                       <div className="flex justify-between">
                         <span className="text-gray-600">Dist.:</span>
-                        <span className="font-medium">{district.releasedDist.toLocaleString()}</span>
+                        <span className="font-medium">
+                          {district.releasedDist?.toLocaleString()}
+                        </span>
                       </div>
+
                       <div className="col-span-2 flex justify-between">
                         <span className="text-gray-600">Expenditure:</span>
-                        <span className="font-medium">{district.expenditure.toLocaleString()}</span>
+                        <span className="font-medium">
+                          {district.expenditure?.toLocaleString()}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -539,49 +755,64 @@ const [finyearOption, setFinyearOptions] = useState([]);
                   <table className="w-full text-sm border-collapse">
                     <thead className="sticky top-0 z-10 bg-[linear-gradient(90deg,#f3d6cf,#f7e1db)] text-[#511409]">
                       <tr>
-                        <th className="px-3 py-3 text-left font-semibold tracking-wide">District</th>
-                        <th className="px-3 py-3 text-center font-semibold">Projects</th>
-                        <th className="px-3 py-3 text-center font-semibold">Approved</th>
-                        <th className="px-3 py-3 text-center font-semibold">Fund Allocated</th>
-                        <th className="px-3 py-3 text-center font-semibold">Fund Released</th>
-                        <th className="px-3 py-3 text-center font-semibold">Expenditure</th>
+                        <th className="px-3 py-3 text-left font-semibold tracking-wide">
+                          District
+                        </th>
+                        <th className="px-3 py-3 text-center font-semibold">
+                          Projects
+                        </th>
+                        <th className="px-3 py-3 text-center font-semibold">
+                          Approved
+                        </th>
+                        <th className="px-3 py-3 text-center font-semibold">
+                          Fund Allocated
+                        </th>
+                        <th className="px-3 py-3 text-center font-semibold">
+                          Fund Released
+                        </th>
+                        <th className="px-3 py-3 text-center font-semibold">
+                          Expenditure
+                        </th>
                       </tr>
                     </thead>
 
                     {/* TABLE BODY */}
                     <tbody className="divide-y divide-gray-200">
-                      {districtData.map((district, index) => (
+                      {districtFundData.map((district, index) => (
                         <tr
                           key={index}
                           className={`
-                            bg-white
-                            hover:bg-orange-50
-                            transition-colors duration-150
-                            ${index === districtData.length - 1 ? 'font-semibold bg-gray-50' : ''}
-                          `}
+        bg-white
+        hover:bg-orange-50
+        transition-colors duration-150
+        ${index === districtFundData.length - 1
+                              ? "font-semibold bg-gray-50"
+                              : ""
+                            }
+      `}
                         >
                           <td className="px-3 py-2.5 font-medium text-gray-800">
                             {district.district}
                           </td>
 
                           <td className="px-3 py-2.5 text-center text-gray-700">
-                            {district.projects.toLocaleString()}
-                          </td>
-
-                          <td className="px-3 py-2.5 text-center  text-gray-700">
-                            {district.approved.toLocaleString()}
+                            {district.projects?.toLocaleString()}
                           </td>
 
                           <td className="px-3 py-2.5 text-center text-gray-700">
-                            {district.releasedWODC.toLocaleString()}
+                            {district.approved?.toLocaleString()}
                           </td>
 
                           <td className="px-3 py-2.5 text-center text-gray-700">
-                            {district.releasedDist.toLocaleString()}
+                            {district.releasedWODC?.toLocaleString()}
                           </td>
 
                           <td className="px-3 py-2.5 text-center text-gray-700">
-                            {district.expenditure.toLocaleString()}
+                            {district.releasedDist?.toLocaleString()}
+                          </td>
+
+                          <td className="px-3 py-2.5 text-center text-gray-700">
+                            {district.expenditure?.toLocaleString()}
                           </td>
                         </tr>
                       ))}
@@ -594,14 +825,14 @@ const [finyearOption, setFinyearOptions] = useState([]);
         </div>
 
         {/* Photo Gallery Section - Responsive */}
-        <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm mt-6">
+        {/* <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm mt-6">
           <h4 className="text-xl font-medium mb-4 flex items-center gap-2 text-gray-800">
             <FiImage className="text-[#ff7900]" />
             Event Gallery
           </h4>
           
           <div className="flex items-center">
-            {/* Left Arrow Button */}
+           
             <button
               onClick={handlePrevImage}
               className="mr-2 sm:mr-4 bg-[#ff7900] text-white rounded-full p-2 shadow-md hover:bg-[#e56a00] transition-colors duration-300"
@@ -609,7 +840,7 @@ const [finyearOption, setFinyearOptions] = useState([]);
               <FiChevronLeft className="text-white" />
             </button>
             
-            {/* Image Container - Responsive grid */}
+            
             <div className="flex-1 overflow-hidden">
               <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-2 lg:grid-cols-4'}`}>
                 {getVisibleImages().map((item, index) => (
@@ -630,7 +861,7 @@ const [finyearOption, setFinyearOptions] = useState([]);
               </div>
             </div>
             
-            {/* Right Arrow Button */}
+           
             <button
               onClick={handleNextImage}
               className="ml-2 sm:ml-4 bg-[#ff7900] text-white rounded-full p-2 shadow-md hover:bg-[#e56a00] transition-colors duration-300"
@@ -639,7 +870,7 @@ const [finyearOption, setFinyearOptions] = useState([]);
             </button>
           </div>
           
-          {/* Dots Indicator */}
+       
           <div className="flex justify-center items-center mt-6">
             <div className="flex space-x-2">
               {galleryData.map((_, index) => (
@@ -657,17 +888,17 @@ const [finyearOption, setFinyearOptions] = useState([]);
               {currentImageIndex + 1} / {galleryData.length}
             </span>
           </div>
-        </div>
+        </div> */}
 
         {/* NEW SECTION: Types of work wise in Progress status project count - Responsive charts */}
-        <div className="bg-white rounded-lg  border border-gray-200 shadow-sm mt-6">
+        {/* <div className="bg-white rounded-lg  border border-gray-200 shadow-sm mt-6">
           <h4 className="text-xl font-medium mb-4 flex items-center gap-2 text-gray-800">
             <FiActivity className="text-[#ff7900]" />
             Types of work wise in Progress status project count
           </h4>
           
           <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-2 lg:grid-cols-4'}`}>
-            {/* Road & Communication */}
+          
             <div className="bg-white rounded-lg p-3 border border-gray-200 shadow-sm">
               <h5 className="text-base font-medium mb-2 text-gray-800">Road & Communication</h5>
               <ResponsiveContainer width="100%" height={isMobile ? 200 : 180}>
@@ -685,7 +916,7 @@ const [finyearOption, setFinyearOptions] = useState([]);
               </ResponsiveContainer>
             </div>
             
-            {/* Roads & Communication(Black Toping) */}
+          
             <div className="bg-white rounded-lg p-3 border border-gray-200 shadow-sm">
               <h5 className="text-base font-medium mb-2 text-gray-800">Roads & Communication(Black Toping)</h5>
               <ResponsiveContainer width="100%" height={isMobile ? 200 : 180}>
@@ -703,7 +934,7 @@ const [finyearOption, setFinyearOptions] = useState([]);
               </ResponsiveContainer>
             </div>
             
-            {/* Irrigation/Water Body */}
+            
             <div className="bg-white rounded-lg p-3 border border-gray-200 shadow-sm">
               <h5 className="text-base font-medium mb-2 text-gray-800">Irrigation/Water Body</h5>
               <ResponsiveContainer width="100%" height={isMobile ? 200 : 180}>
@@ -721,7 +952,7 @@ const [finyearOption, setFinyearOptions] = useState([]);
               </ResponsiveContainer>
             </div>
             
-            {/* Building */}
+           
             <div className="bg-white rounded-lg p-3 border border-gray-200 shadow-sm">
               <h5 className="text-base font-medium mb-2 text-gray-800">Building</h5>
               <ResponsiveContainer width="100%" height={isMobile ? 200 : 180}>
@@ -751,73 +982,98 @@ const [finyearOption, setFinyearOptions] = useState([]);
               </div>
             ))}
           </div>
-        </div>
+        </div> */}
 
-        {/* District-Wise Work Status - Responsive */}
-      <div className="bg-white rounded-lg mt-6 p-2 border border-gray-200 shadow-sm">
-  <h4 className="text-xl font-medium mb-4 flex items-center gap-2 text-gray-800">
-    <FiTrendingUp className="text-[#ff7900]" />
-    District-Wise Work Status
-  </h4>
-  
-  <div className="overflow-auto">
-    <ResponsiveContainer width="100%" height={isMobile ? 350 : 400}>
-      <BarChart 
-        data={showAllDistricts ? districtWorkStatusData : districtWorkStatusData.slice(0, isMobile ? 8 : 15)} 
-        margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
-      >
-        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-        <XAxis 
-          dataKey="district" 
-          stroke="#666" 
-          tick={{ fontSize: isMobile ? 8 : 10 }} 
-          angle={isMobile ? -90 : -45} 
-          textAnchor="end" 
-          height={isMobile ? 120 : 80}
-        />
-        <YAxis stroke="#666" tick={{ fontSize: isMobile ? 8 : 10 }} />
-        <Tooltip content={<DistrictWorkStatusTooltip />} />
-        <Legend 
-          iconType="rect"
-          wrapperStyle={{ fontSize: isMobile ? '8px' : '10px' }}
-        />
-        <Bar dataKey="notStarted" stackId="a" fill={workStatusColors['Not Started']} name="Not Started" />
-        <Bar dataKey="inProgress" stackId="a" fill={workStatusColors['In Progress']} name="In Progress" />
-        <Bar dataKey="completed" stackId="a" fill={workStatusColors['Completed']} name="Completed" />
-      </BarChart>
-    </ResponsiveContainer>
-    {isMobile && (
-      <div className="text-center mt-2">
-        <button 
-          onClick={() => setShowAllDistricts(!showAllDistricts)}
-          className="text-sm text-blue-600 hover:text-blue-800 underline"
-        >
-          {showAllDistricts ? 'Show Less Districts' : 'Show All Districts'}
-        </button>
-      </div>
-    )}
-  </div>
-</div>
+       
+        <div className="bg-white rounded-lg mt-6 p-2 border border-gray-200 shadow-sm">
+          <h4 className="text-xl font-medium mb-4 flex items-center gap-2 text-gray-800">
+            <FiTrendingUp className="text-[#ff7900]" />
+            District-Wise Work Status
+          </h4>
+
+          <div className="overflow-auto">
+            <ResponsiveContainer width="100%" height={isMobile ? 350 : 400}>
+              <BarChart
+                data={
+                  showAllDistricts
+                    ? workStatusData
+                    : workStatusData.slice(0, isMobile ? 8 : 15)
+                }
+                margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis
+                  dataKey="district"
+                  stroke="#666"
+                  tick={{ fontSize: isMobile ? 8 : 10 }}
+                  angle={isMobile ? -90 : -45}
+                  textAnchor="end"
+                  height={isMobile ? 120 : 80}
+                />
+                <YAxis stroke="#666" tick={{ fontSize: isMobile ? 8 : 10 }} />
+                <Tooltip content={<DistrictWorkStatusTooltip />} />
+                <Legend
+                  iconType="rect"
+                  wrapperStyle={{ fontSize: isMobile ? "8px" : "10px" }}
+                />
+                <Bar
+                  dataKey="notStarted"
+                  stackId="a"
+                  fill={workStatusColors["Not Started"]}
+                  name="Not Started"
+                />
+                <Bar
+                  dataKey="inProgress"
+                  stackId="a"
+                  fill={workStatusColors["In Progress"]}
+                  name="In Progress"
+                />
+                <Bar
+                  dataKey="completed"
+                  stackId="a"
+                  fill={workStatusColors["Completed"]}
+                  name="Completed"
+                />
+              </BarChart>
+            </ResponsiveContainer>
+            {isMobile && (
+              <div className="text-center mt-2">
+                <button
+                  onClick={() => setShowAllDistricts(!showAllDistricts)}
+                  className="text-sm text-blue-600 hover:text-blue-800 underline"
+                >
+                  {showAllDistricts
+                    ? "Show Less Districts"
+                    : "Show All Districts"}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
 
         <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm mt-6">
           <h4 className="text-xl font-medium mb-4 flex items-center gap-2 text-gray-800">
             <FiActivity className="text-[#ff7900]" />
             Project Analysis
           </h4>
-          
-          <div className={`grid gap-6 ${isMobile ? 'grid-cols-1' : 'lg:grid-cols-2'}`}>
+
+          <div
+            className={`grid gap-6 ${isMobile ? "grid-cols-1" : "lg:grid-cols-2"}`}
+          >
             {/* Delayed Projects Chart */}
             <div className="bg-white rounded-lg p-3 border border-gray-200 shadow-sm">
-              <h5 className="text-base font-medium mb-2 text-gray-800">Status of Delayed Projects</h5>
+              <h5 className="text-base font-medium mb-2 text-gray-800">
+                Status of Delayed Projects
+              </h5>
               <ResponsiveContainer width="100%" height={isMobile ? 250 : 300}>
                 <BarChart data={delayedProjectsData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis 
-                    dataKey="delayPeriod" 
-                    stroke="#666" 
-                    tick={{ fontSize: isMobile ? 8 : 10 }} 
-                    angle={isMobile ? -90 : -45} 
-                    textAnchor="end" 
+                  <XAxis
+                    dataKey="delayPeriod"
+                    stroke="#666"
+                    tick={{ fontSize: isMobile ? 8 : 10 }}
+                    angle={isMobile ? -90 : -45}
+                    textAnchor="end"
                     height={isMobile ? 100 : 80}
                   />
                   <YAxis stroke="#666" tick={{ fontSize: isMobile ? 8 : 10 }} />
@@ -830,43 +1086,70 @@ const [finyearOption, setFinyearOptions] = useState([]);
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            
+
             {/* District Project Summary Chart */}
             <div className="bg-white rounded-lg p-3 border border-gray-200 shadow-sm">
-              <h5 className="text-base font-medium mb-2 text-gray-800">District-Wise Summary of Projects</h5>
+              <h5 className="text-base font-medium mb-2 text-gray-800">
+                District-Wise Summary of Projects
+              </h5>
               <ResponsiveContainer width="100%" height={isMobile ? 250 : 300}>
-                <BarChart 
-                  data={showAllDistricts ? districtProjectSummaryData : districtProjectSummaryData.slice(0, isMobile ? 8 : 15)} 
+                <BarChart
+                  data={
+                    showAllDistricts
+                      ? districtProjectSummaryData
+                      : districtProjectSummaryData.slice(0, isMobile ? 8 : 15)
+                  }
                   margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis 
-                    dataKey="district" 
-                    stroke="#666" 
-                    tick={{ fontSize: isMobile ? 8 : 10 }} 
-                    angle={isMobile ? -90 : -45} 
-                    textAnchor="end" 
+                  <XAxis
+                    dataKey="district"
+                    stroke="#666"
+                    tick={{ fontSize: isMobile ? 8 : 10 }}
+                    angle={isMobile ? -90 : -45}
+                    textAnchor="end"
                     height={isMobile ? 100 : 80}
                   />
                   <YAxis stroke="#666" tick={{ fontSize: isMobile ? 8 : 10 }} />
                   <Tooltip content={<DistrictProjectSummaryTooltip />} />
-                  <Legend 
+                  <Legend
                     iconType="rect"
-                    wrapperStyle={{ fontSize: isMobile ? '10px' : '12px', paddingTop: '10px' }}
+                    wrapperStyle={{
+                      fontSize: isMobile ? "10px" : "12px",
+                      paddingTop: "10px",
+                    }}
                   />
-                  <Bar dataKey="kalyanMandaps" fill={projectTypeColors['Kalyan Mandaps']} name="Kalyan Mandaps" />
-                  <Bar dataKey="communityCenters" fill={projectTypeColors['Community Centers']} name="Community Centers" />
-                  <Bar dataKey="mmsg" fill={projectTypeColors['MMSG']} name="MMSG" />
-                  <Bar dataKey="openMandaps" fill={projectTypeColors['Open Mandaps']} name="Open Mandaps" />
+                  <Bar
+                    dataKey="kalyanMandaps"
+                    fill={projectTypeColors["Kalyan Mandaps"]}
+                    name="Kalyan Mandaps"
+                  />
+                  <Bar
+                    dataKey="communityCenters"
+                    fill={projectTypeColors["Community Centers"]}
+                    name="Community Centers"
+                  />
+                  <Bar
+                    dataKey="mmsg"
+                    fill={projectTypeColors["MMSG"]}
+                    name="MMSG"
+                  />
+                  <Bar
+                    dataKey="openMandaps"
+                    fill={projectTypeColors["Open Mandaps"]}
+                    name="Open Mandaps"
+                  />
                 </BarChart>
               </ResponsiveContainer>
               {isMobile && (
                 <div className="text-center mt-2">
-                  <button 
+                  <button
                     onClick={() => setShowAllDistricts(!showAllDistricts)}
                     className="text-sm text-blue-600 hover:text-blue-800 underline"
                   >
-                    {showAllDistricts ? 'Show Less Districts' : 'Show All Districts'}
+                    {showAllDistricts
+                      ? "Show Less Districts"
+                      : "Show All Districts"}
                   </button>
                 </div>
               )}

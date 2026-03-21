@@ -8,6 +8,8 @@ import { encryptPayload } from '../../crypto.js/encryption';
 import { toast } from 'react-toastify';
 import { cleanContactNoUtil, cleanEmailUtil } from '../../utils/validationUtils';
 import { useLocation } from 'react-router-dom';
+import { forwardListByMenuService } from '../../services/workflowService';
+import { GrSave } from 'react-icons/gr';
 
 const MondayVirtualGrievanceHearing = () => {
   const location = useLocation()
@@ -48,7 +50,9 @@ const MondayVirtualGrievanceHearing = () => {
       const [dragging, setDragging] = useState(false);
       const [startDrag, setStartDrag] = useState({ x: 0, y: 0 });
       
-
+      const [forwardedId, setForwardedId] = useState(null);
+      const [button, setButtons] = useState([]);
+      const [stageForwardedRuleStatus, setStageForwardedRuleStatus] = useState('');
 
       const [allSlotConfigs, setAllSlotConfigs] = useState([]);
       const [slotDateList, setSlotDateList] = useState([]);
@@ -70,7 +74,29 @@ const MondayVirtualGrievanceHearing = () => {
           console.error(error);
         }
       };
-
+      const getWorkFlow = async () => {
+        try {
+          const payload = encryptPayload({
+            appModuleUrl: location.pathname,
+            forwardedId: forwardedId ? Number(forwardedId) : null,
+          });
+      
+          const res = await forwardListByMenuService(payload);
+          console.log("Workflow Response:", res); 
+          if (res?.status === 200 && res?.data?.outcome) {
+            const filteredButtons = res?.data?.data.filter(
+              (btn) => btn.actionType.actionCode !== stageForwardedRuleStatus
+            );
+      
+            setButtons(filteredButtons);
+          } else {
+            setButtons([]);
+          }
+        } catch (error) {
+          console.log(error);
+          setButtons([]);
+        }
+      };
       const getAllSlotConfigs = async () => {
         try {
           const res = await getSlotListService();
@@ -142,7 +168,10 @@ const MondayVirtualGrievanceHearing = () => {
         getGrievanceCategoryName();
         getAllSlotConfigs();
       }, []);
-      
+
+      useEffect(() => {
+        getWorkFlow();
+      }, [forwardedId]);
 // Append For Grievance Related Document ----------------
   const addDocument = () => {
     setDocuments((prev) =>
@@ -402,7 +431,7 @@ useEffect(() => {
                     onChange={handleSlotDateChange}
                     options={slotDateList}
                     error={errors.grvSlotDateId}
-                    placeholder={grvCtgId ? "Select Slot Date" : "Select Category First"}
+                    placeholder={grvCtgId ? "Select Slot Date" : "Select"}
                     disabled={isViewMode || !grvCtgId}
                   />
                 </div>
@@ -420,7 +449,7 @@ useEffect(() => {
                   value: slot.virtualGrvSlotDtlsId,
 
                 }))}
-                placeholder={grvSlotDateId ? "Select Slot Time" : "Select Date First"}
+                placeholder={grvSlotDateId ? "Select Slot Time" : "Select"}
                  disabled={isViewMode ||!grvSlotDateId}
                 />
             </div>
@@ -623,6 +652,22 @@ useEffect(() => {
           {/* Footer */}
           <div className="flex justify-center gap-3 bg-[#42001d0f] border-t px-4 py-3 rounded-b-md">
             <ResetBackBtn />
+
+  {button?.map((i, index) => (
+    <button
+      type="button"
+      key={index}
+      className={i?.actionType.color}
+      onClick={() => {
+        setForwardedId(i.forwardedId);
+        setOpenSubmit(true);
+      }}
+    >
+      <GrSave /> {i?.actionType.actionNameEn}
+    </button>
+  ))}
+
+
             {!isViewMode && <SubmitBtn type="submit" />}
           </div>
         </div>

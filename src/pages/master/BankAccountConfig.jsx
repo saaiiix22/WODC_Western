@@ -398,7 +398,7 @@ const BankAccountConfig = () => {
         open={open}
         // title="Submit"
         description="Are you sure you want submit?"
-        onClose={() => setOpenSubmit(false)}
+        onClose={() => setOpen(false)}
         onConfirm={handleSubmit}
       />
       <ReusableDialog

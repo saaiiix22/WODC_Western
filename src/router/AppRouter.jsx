@@ -39,6 +39,10 @@ import BenificiaryPayment from "../pages/master/BenificiaryPayment";
 
 import MyFilesDMS from "../pages/DMS/MyFiles";
 import FilesTabDMS from "../pages/DMS/FilesTab";
+import EntryAddGrievance from "../pages/grievance/EntryAddGrievance";
+import EntryHearingGrievance from "../pages/grievance/EntryHearingGrievance";
+import InspectionList from "../pages/inspection/InspectionList";
+import FundReleaseInfoList from "../pages/project/FundReleaseInfoList";
 
 /* AUTH */
 const Login = lazy(() => import("../pages/auth/Login"));
@@ -71,9 +75,9 @@ const Project = lazy(() => import("../pages/project/Project"));
 const ProjectAgencyMilestone = lazy(() =>
   import("../pages/project/ProjectAgencyMilestone")
 );
-const ProjectAgencyMilestoneList = lazy(() =>
-  import("../pages/project/ProjectAgencyMilestoneList")
-);
+// const ProjectAgencyMilestoneList = lazy(() =>
+//   import("../pages/project/ProjectAgencyMilestoneList")
+// );
 const WorkOrderGeneration = lazy(() =>
   import("../pages/project/WorkOrderGeneration")
 );
@@ -85,6 +89,9 @@ const BeneficiaryList = lazy(() =>
 );
 const UCsubmission = lazy(() =>
   import("../pages/project/UCsubmission")
+);
+const UCsubmissionList = lazy(() =>
+  import("../pages/project/UCsubmissionList")
 );
 const EntireProjectDetails = lazy(() =>
   import("../pages/project/EntireProjectDetails")
@@ -137,7 +144,6 @@ const Inspection = lazy(() =>
   import("../pages/inspection/Inspection")
 );
 
-
 const InspectionCalender = lazy(() =>
   import("../pages/inspection/InspectionCalender")
 );
@@ -168,122 +174,124 @@ const AppRouter = () => {
         <Route element={<PublicRoute />}>
           <Route element={<AuthLayout />}>
             <Route path={routes.login.path} element={<Login />} />
+            {/* <Route path="/public-grievance" element={<EntryAddGrievance />} />
+            <Route path="/public-virtual-grievance" element={<EntryHearingGrievance />} /> */}
+
           </Route>
         </Route>
-        <Route path="*" element={<ErrorPage />} />
+
         <Route path="/error" element={<ErrorPage />} />
 
         <Route element={<ProtectedRoutes />}>
 
           <Route element={<MainLayout />}>
             <Route element={<MenuProtectedRoutes />}>
-            <Route path="*" element={<ErrorPage />} />
+              <Route path="*" element={<ErrorPage />} />
 
-            <Route path={routes.dashboard.path} element={<Dashboard />} />
+              <Route path={routes.dashboard.path} element={<Dashboard />} />
+              <Route path={routes.getDistrict.path} element={<GetDistrict />} />
+              <Route path={routes.block.path} element={<Block />} />
+              <Route path={routes.gramPanchayat.path} element={<GramPanchayatPage />} />
+              <Route path={routes.municipality.path} element={<Municipality />} />
+              <Route path={routes.ward.path} element={<Ward />} />
+              <Route path={routes.village.path} element={<VillagePage />} />
+              <Route path={routes.constituencyPage.path} element={<ConstituencyPage />} />
+              <Route path={routes.head.path} element={<GetHead />} />
+              <Route path={routes.subhead.path} element={<GetSubHead />} />
+              <Route path={routes.projectList.path} element={<ProjectList />} />
+              <Route path={routes.projectManagementPage.path} element={<Project />} />
+              <Route path={routes.projectAgencyMilestone.path} element={<ProjectAgencyMilestone />} />
 
-            <Route path={routes.getDistrict.path} element={<GetDistrict />} />
-            <Route path={routes.block.path} element={<Block />} />
-            <Route path={routes.gramPanchayat.path} element={<GramPanchayatPage />} />
-            <Route path={routes.municipality.path} element={<Municipality />} />
-            <Route path={routes.ward.path} element={<Ward />} />
-            <Route path={routes.village.path} element={<VillagePage />} />
-            <Route path={routes.constituencyPage.path} element={<ConstituencyPage />} />
-            <Route path={routes.head.path} element={<GetHead />} />
-            <Route path={routes.subhead.path} element={<GetSubHead />} />
+              {/* <Route path={routes.projectAgencyMilestoneList.path} element={<ProjectAgencyMilestoneList />} /> */}
 
-            <Route path={routes.projectList.path} element={<ProjectList />} />
-            <Route path={routes.projectManagementPage.path} element={<Project />} />
-            <Route path={routes.projectAgencyMilestone.path} element={<ProjectAgencyMilestone />} />
-            <Route path={routes.projectAgencyMilestoneList.path} element={<ProjectAgencyMilestoneList />} />
+              {/* <Route path={routes.projectAgencyMilestoneList.path} element={<ProjectAgencyMilestoneList />} /> */}
+              <Route path={routes.workOrderGeneration.path} element={<WorkOrderGeneration />} />
+              <Route path={routes.fundReleaseInfo.path} element={<FundReleaseInfo />} />
+              <Route path={routes.fundReleaseInfoList.path} element={<FundReleaseInfoList />} />
 
-            <Route path={routes.workOrderGeneration.path} element={<WorkOrderGeneration />} />
-            <Route path={routes.fundReleaseInfo.path} element={<FundReleaseInfo />} />
-            <Route path={routes.beneficiaryList.path} element={<BeneficiaryList />} />
-            <Route path={routes.ucSubmission.path} element={<UCsubmission />} />
-            <Route path={routes.EntireProjectDetails.path} element={<EntireProjectDetails />} />
-
-            <Route path={routes.proposalPage.path} element={<Proposal />} />
-            <Route path={routes.giaPage.path} element={<GIApage />} />
-
-            <Route path={routes.milestone.path} element={<Milestone />} />
-            <Route path={routes.agency.path} element={<Agency />} />
-            <Route path={routes.sectorPage.path} element={<SectorPage />} />
-            <Route path={routes.vendorPage.path} element={<VendorPage />} />
-            <Route path={routes.beneficiary.path} element={<Beneficiary />} />
-            <Route path={routes.sectorMilestoneMapping.path} element={<SectorMilestoneMapping />} />
-            <Route path={routes.bankAccoutConfig.path} element={<BankAccountConfig />} />
-            <Route path={routes.judictionMapConfiguration.path} element={<JudictionMapConfiguration />} />
-            <Route path={routes.districtConstituencyMap.path} element={<DistrictConstituencyMap />} />
-
-
-            <Route path={routes.budgetPage.path} element={<BudgetDetails />} />
-            <Route path={routes.editBudgetPage.path} element={<EditBudget />} />
-
-            <Route path={routes.manageRole.path} element={<ManageRole />} />
-            <Route path={routes.roleMenuMapping.path} element={<RoleMenuMap />} />
-            <Route path={routes.roleAccess.path} element={<AccessRole />} />
-            <Route path={routes.addUser.path} element={<AddUser />} />
-            <Route path={routes.userProfile.path} element={<UserProfilePage />} />
-            <Route path={routes.configureAccess.path} element={<ConfigureAccess />} />
-            <Route path={routes.userList.path} element={<UserList />} />
-            <Route path={routes.changePassword.path} element={<ChangePassword />} />
+              <Route path={routes.beneficiaryList.path} element={<BeneficiaryList />} />
+              <Route path={routes.ucSubmission.path} element={<UCsubmission />} />
+              <Route path={routes.ucSubmissionList.path} element={<UCsubmissionList />} />
+              <Route path={routes.EntireProjectDetails.path} element={<EntireProjectDetails />} />
+              <Route path={routes.proposalPage.path} element={<Proposal />} />
+              <Route path={routes.giaPage.path} element={<GIApage />} />
+              <Route path={routes.milestone.path} element={<Milestone />} />
+              <Route path={routes.agency.path} element={<Agency />} />
+              <Route path={routes.sectorPage.path} element={<SectorPage />} />
+              <Route path={routes.vendorPage.path} element={<VendorPage />} />
+              <Route path={routes.beneficiary.path} element={<Beneficiary />} />
+              <Route path={routes.sectorMilestoneMapping.path} element={<SectorMilestoneMapping />} />
+              <Route path={routes.bankAccoutConfig.path} element={<BankAccountConfig />} />
+              <Route path={routes.judictionMapConfiguration.path} element={<JudictionMapConfiguration />} />
+              <Route path={routes.districtConstituencyMap.path} element={<DistrictConstituencyMap />} />
+              <Route path={routes.budgetPage.path} element={<BudgetDetails />} />
+              <Route path={routes.editBudgetPage.path} element={<EditBudget />} />
+              <Route path={routes.manageRole.path} element={<ManageRole />} />
+              <Route path={routes.roleMenuMapping.path} element={<RoleMenuMap />} />
+              <Route path={routes.roleAccess.path} element={<AccessRole />} />
+              <Route path={routes.addUser.path} element={<AddUser />} />
+              <Route path={routes.userProfile.path} element={<UserProfilePage />} />
+              <Route path={routes.configureAccess.path} element={<ConfigureAccess />} />
+              <Route path={routes.userList.path} element={<UserList />} />
+              <Route path={routes.changePassword.path} element={<ChangePassword />} />
 
 
+              <Route path={routes.addBeneficiary.path} element={<AddBeneficiary />} />
+              <Route path={routes.inspection.path} element={<Inspection />} />
+              <Route path={routes.inspectionList.path} element={<InspectionList />} />
 
-            <Route path={routes.addBeneficiary.path} element={<AddBeneficiary />} />
-            <Route path={routes.inspection.path} element={<Inspection />} />
-            <Route path={routes.inspectionCalender.path} element={<InspectionCalender />} />
-            {/* GRIEVANCE */}
-            <Route path={routes.addWorkConfig.path} element={<AddWorkFlowConfig />} />
-            <Route path={routes.gisMap.path} element={<GisMain />} />
+              <Route path={routes.inspectionCalender.path} element={<InspectionCalender />} />
+              {/* GRIEVANCE */}
+              <Route path={routes.addWorkConfig.path} element={<AddWorkFlowConfig />} />
+              <Route path={routes.gisMap.path} element={<GisMain />} />
 
-
-
-
-            <Route path={routes.grievanceCategory.path} element={<AddCategory />} />
-            <Route path={routes.grievanceSubCategory.path} element={<AddSubCategory />} />
-            <Route path={routes.grievanceSlotConfiguration.path} element={<AddGrievanceSlotConfiguration />} />
-            <Route path={routes.addGrievance.path} element={<AddGrievance />} />
-            <Route path={routes.grievanceList.path} element={<GrievanceList />} />
-            <Route path={routes.grievanceRequestList.path} element={<GrievanceRequestList />} />
-            <Route path={routes.addWorkFlowConfiguration.path} element={<AddWorkFlowConfiguration />} />
-            <Route path={routes.virtualGrievanceHearing.path} element={<MondayVirtualGrievanceHearing />} />
-            <Route path={routes.virtualGrievanceHearingList.path} element={<GrievanceHearingList />} />
-
-
-            <Route path={routes.addWorkFlowConfiguration.path} element={<AddWorkFlowConfiguration />} />
-
-            <Route path={routes.virtualGrievanceHearingList.path} element={<GrievanceHearingList />} />
-            <Route path={routes.workflowConfig.path} element={<WorkflowConfig />} />
-
-            <Route path={routes.performanceMonitoringSystem.path} element={<PerformanceMonitoringSystem />} />
-            <Route path={routes.districtPerformanceRankings.path} element={<DistrictPerformanceRankings />} />
+              <Route path={routes.grievanceCategory.path} element={<AddCategory />} />
+              <Route path={routes.grievanceSubCategory.path} element={<AddSubCategory />} />
+              <Route path={routes.grievanceSlotConfiguration.path} element={<AddGrievanceSlotConfiguration />} />
+              <Route path={routes.addGrievance.path} element={<AddGrievance />} />
+              <Route path={routes.grievanceList.path} element={<GrievanceList />} />
+              <Route path={routes.grievanceRequestList.path} element={<GrievanceRequestList />} />
+              <Route path={routes.addWorkFlowConfiguration.path} element={<AddWorkFlowConfiguration />} />
+              <Route path={routes.virtualGrievanceHearing.path} element={<MondayVirtualGrievanceHearing />} />
+              <Route path={routes.virtualGrievanceHearingList.path} element={<GrievanceHearingList />} />
+              <Route path={routes.entryAddGrievance.path} element={<EntryAddGrievance />} />
+              <Route path={routes.entryHearingGrievance.path} element={<EntryHearingGrievance />} />
 
 
-            <Route path={routes.assetTypeMaster.path} element={<AssetTypeMaster />} />
-            <Route path={routes.assetCategoryMaster.path} element={<AssetCategoryMaster />} />
-            <Route path={routes.createAsset.path} element={<CreateAsset />} />
-            <Route path={routes.viewAsset.path} element={<ViewAsset />} />
-            <Route path={routes.importExportAsset.path} element={<ImportExportAsset />} />
+              <Route path={routes.addWorkFlowConfiguration.path} element={<AddWorkFlowConfiguration />} />
+
+              <Route path={routes.virtualGrievanceHearingList.path} element={<GrievanceHearingList />} />
+              <Route path={routes.workflowConfig.path} element={<WorkflowConfig />} />
+
+              <Route path={routes.performanceMonitoringSystem.path} element={<PerformanceMonitoringSystem />} />
+              <Route path={routes.districtPerformanceRankings.path} element={<DistrictPerformanceRankings />} />
 
 
-            <Route path={routes.inspectionDetailsReport.path} element={<InspectionDetailsReport />} />
+              <Route path={routes.assetTypeMaster.path} element={<AssetTypeMaster />} />
+              <Route path={routes.assetCategoryMaster.path} element={<AssetCategoryMaster />} />
+              <Route path={routes.createAsset.path} element={<CreateAsset />} />
+              <Route path={routes.viewAsset.path} element={<ViewAsset />} />
+              <Route path={routes.importExportAsset.path} element={<ImportExportAsset />} />
 
-            <Route path={routes.addFeedbackType.path} element={<AddFeedbackType />} />
-            <Route path={routes.addFeedbackQuestions.path} element={<AddFeedbackQuestions />} />
-            <Route path={routes.addFeedback.path} element={<AddFeedback />} />
-            <Route path={routes.feedbackListByStatus.path} element={<FeedbackListByStatus />} />
 
-            <Route path={routes.fundreconciliationreport.path} element={<FundReconciliationReport />} />
+              <Route path={routes.inspectionDetailsReport.path} element={<InspectionDetailsReport />} />
 
-            <Route path={routes.benificiaryWorkEntry.path} element={<BenificiaryWorkEntry />} />\
-            <Route path={routes.benificiaryPayment.path} element={<BenificiaryPayment />} />\
+              <Route path={routes.addFeedbackType.path} element={<AddFeedbackType />} />
+              <Route path={routes.addFeedbackQuestions.path} element={<AddFeedbackQuestions />} />
+              <Route path={routes.addFeedback.path} element={<AddFeedback />} />
+              <Route path={routes.feedbackListByStatus.path} element={<FeedbackListByStatus />} />
+
+              <Route path={routes.fundreconciliationreport.path} element={<FundReconciliationReport />} />
+
+              <Route path={routes.benificiaryWorkEntry.path} element={<BenificiaryWorkEntry />} />
+              <Route path={routes.benificiaryPayment.path} element={<BenificiaryPayment />} />
 
 
 
-            <Route path={routes.myFilesDMS.path} element={<MyFilesDMS />} />
-            <Route path={routes.fileTabDMS.path} element={<FilesTabDMS />} />
-          </Route>
+              <Route path={routes.myFilesDMS.path} element={<MyFilesDMS />} />
+              <Route path={routes.fileTabDMS.path} element={<FilesTabDMS />} />
+              <Route path="*" element={<ErrorPage />} />
+            </Route>
           </Route>
         </Route>
 

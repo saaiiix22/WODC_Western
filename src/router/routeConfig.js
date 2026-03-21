@@ -48,10 +48,15 @@ export const routes = {
    addBeneficiary: { path: "/addBeneficiary", label: "Add Beneficiary", protected: true },
    bankAccoutConfig: { path: "/bankAccoutConfig", label: "Bank Account Configuration", protected: true },
    fundReleaseInfo: { path: "/fundReleaseInfo", label: "Fund Release Information", protected: true },
+   fundReleaseInfoList: { path: "/fundReleaseInfoList", label: "Fund Release Information List", protected: true },
+
    beneficiaryList: { path: "/beneficiaryList", label: "Beneficiary List", protected: true },
    ucSubmission: { path: "/ucSubmission", label: "UC Submission", protected: true },
+   ucSubmissionList: { path: "/ucSubmissionList", label: "UC Submission List", protected: true },
+
 
    inspection: { path: "/inspection", label: "Inspection", protected: true },
+   inspectionList: { path: "/inspectionList", label: "Inspection List", protected: true },
    inspectionCalender: { path: "/inspection-calendar", label: "Inspection Calender", protected: true },
 
    // GRIEVANCE
@@ -65,12 +70,14 @@ export const routes = {
    grievanceCategory: { path: "/grievanceCategory", label: "Grievance Category", protected: true },
    grievanceSubCategory: { path: "/grievanceSubCategory", label: "Grievance Sub-Category", protected: true },
    grievanceSlotConfiguration: { path: "/grievanceSlotConfiguration", label: "Grievance Slot Configuration", protected: true },
-   addGrievance: { path: "/addGrievance/:id?", lebel: "Add-Grievance", protected: true },
+   addGrievance: { path: "/addGrievance/:id?", lebel: "Add-Grievance", protected: false},
    grievanceList: { path: "/grievanceList", lebel: "Grievance List", protected: true },
+   entryAddGrievance: { path: "/entryAddGrievance", label: " Add Grievance", protected: true },
+   entryHearingGrievance: { path: "/entryHearingGrievance", label: " Add Virtual Hearing Grievance", protected: true },
 
    grievanceRequestList: { path: "/grievanceRequestList", lebel: "Grievance Requested List", protected: true },
    addWorkFlowConfiguration: { path: "/addWorkFlowConfiguration", lebel: "Add WorkFlow ", protected: true },
-   virtualGrievanceHearing: { path: "/virtualGrievanceHearing", lebel: "Virtual Grievance Hearing ", protected: true },
+   virtualGrievanceHearing: { path: "/virtualGrievanceHearing", lebel: "Virtual Grievance Hearing ", protected: false },
 
    virtualGrievanceHearingList:{path:"/grievanceHearingList",lebel:"Virtual Grievance Hearing  List",protected:true},
 

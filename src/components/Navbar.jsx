@@ -55,7 +55,7 @@ const Navbar = () => {
       // console.log(res);
 
       if (res?.status === 200) {
-        setNotifications(res?.data)
+        setNotifications(res?.data || [])
       }
     } catch (error) {
       console.log(error);
@@ -107,7 +107,7 @@ const Navbar = () => {
             <img src={images.wodc} alt="WODC" className="w-11 transition-transform group-hover:scale-105" />
           </div>
 
-          <div className="hidden lg:block ml-2">
+          <div className="hidden lg:block ml-2 ">
             <h1 className="text-lg font-bold tracking-tight text-slate-900 leading-tight">
               {t("projectName")} <span className="text-[#fe8b00] font-bold">(WODC)</span>
             </h1>
@@ -146,7 +146,7 @@ const Navbar = () => {
                   {notifications.length === 0 ? (
                     <div className="py-10 text-center">
                       <FiBell className="mx-auto text-slate-200 mb-2" size={32} />
-                      <p className="text-sm text-slate-400">All caught up!</p>
+                      <p className="text-sm text-slate-400">No notification, All caught up! <span className="block"></span></p>
                     </div>
                   ) : (
                     notifications.map((item, i) => (
@@ -226,7 +226,7 @@ const Navbar = () => {
                     <div className="w-8 h-8 rounded-lg bg-teal-50 flex items-center justify-center">
                       <FiKey className="text-teal-600" size={16} />
                     </div>
-                    Security
+                    Change Password
                   </li>
                   <div className="my-1.5 border-t border-slate-100" />
                   <li

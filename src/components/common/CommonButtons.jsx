@@ -11,7 +11,7 @@ export const SubmitBtn = ({ type, btnText, disable }) => {
     <button
       type={type}
       disabled={disable ? true : false}
-      className="bg-[#bbef7f] text-[green] text-[13px] px-3 py-1 rounded-sm border border-[green] transition-all active:scale-95 uppercase flex items-center gap-1"
+      className="bg-green-100/25 text-[green] text-[13px] px-3 py-1 rounded-sm border border-[green] transition-all active:scale-95 uppercase flex items-center gap-1"
     >
       <GrSave /> {btnText ? "update" : "submit"}
     </button>

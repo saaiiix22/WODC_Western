@@ -10,7 +10,7 @@ i18n
   .init({
     lng: savedLng,
     fallbackLng: "en",
-    ns: ["manageRole", "addUser","getDistrict","block"],
+    ns: ["manageRole", "addUser","getDistrict","block","project"],
     defaultNS: "common",
     backend: {
       loadPath: "/locales/{{lng}}/{{ns}}.json",

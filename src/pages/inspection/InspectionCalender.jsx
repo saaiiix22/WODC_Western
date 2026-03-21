@@ -34,7 +34,6 @@ const InspectionCalendar = () => {
 
     const navigate = useNavigate();
 
-    // Fetch all dropdown data
     const getAllFinOpts = async () => {
         try {
             const res = await getFinancialYearService(
@@ -122,7 +121,6 @@ const InspectionCalendar = () => {
         try {
             setCalendarLoading(true);
 
-            // Build filter payload
             const payload = encryptPayload({
                 month: formData.month || null,
                 finYear: formData.finYear || null,
@@ -185,7 +183,6 @@ const InspectionCalendar = () => {
     const handleChangeInput = (e) => {
         const { name, value } = e.target;
         setFormData(prev => {
-            // Reset dependent fields when parent field changes
             if (name === 'finYear') {
                 return { ...prev, [name]: value, projectId: '', milestoneId: '' };
             }
@@ -224,38 +221,33 @@ const InspectionCalendar = () => {
         });
     };
 
-    // Initialize data
     useEffect(() => {
         getAllFinOpts();
         getAllAgencyList();
         loadCalendarData();
     }, []);
 
-    // Fetch projects when financial year changes
     useEffect(() => {
         getProjectOptsByFinYear();
     }, [formData.finYear]);
 
-    // Fetch milestones when project changes
     useEffect(() => {
         getAllMilestoneOpts();
     }, [formData.projectId]);
 
-    // Reload calendar data when any filter changes (with debounce)
     useEffect(() => {
         const timer = setTimeout(() => {
             loadCalendarData();
-        }, 500); // 500ms debounce
+        }, 500); 
 
         return () => clearTimeout(timer);
     }, [formData, loadCalendarData]);
 
-    // Fetch inspections when date is clicked
     useEffect(() => {
         if (inspDate) {
             getInspectionByDate();
         }
-    }, [inspDate, formData]); // Also refetch when filters change and date is selected
+    }, [inspDate, formData]);
 
     return (
         <div className="grid grid-cols-12 gap-2">

@@ -24,6 +24,8 @@ const iconColors = [
 
 const Sidebar = ({ collapse, setCollapse }) => {
 
+  
+
   const dispatch = useDispatch()
 
   const [menuList, setMenuList] = useState([])

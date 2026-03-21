@@ -93,17 +93,13 @@ const InspectionDetailsReport = () => {
           isActive: true,
           projectId: projectId ? parseInt(projectId) : null,
           milestoneId: milestoneId ? parseInt(milestoneId) : null,
-          status:
-            inspectionStatus &&
-            inspectionStatus !== "INS_SCHEDULED"
-              ? inspectionStatus
-              : null,
-        })
+          status: inspectionStatus ? inspectionStatus : null
+                })
       );
       if (res?.status === 200 && res?.data?.outcome) {
         let data = res.data.data || [];
       
-        if (inspectionStatus === "INS_SCHEDULED") {
+        if (inspectionStatus === "Upcoming") {
           const today = new Date();
           today.setHours(0, 0, 0, 0);
       
@@ -185,7 +181,8 @@ const InspectionDetailsReport = () => {
   const handleChangeInput = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-
+    console.log("Field:", name);
+    console.log("Value:", value);
     if (name === "projectId") {
       setMilestoneOpts([]);
       setFormData(prev => ({ ...prev, milestoneId: "" }));

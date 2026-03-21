@@ -6,6 +6,7 @@ import InputField from "../../components/common/InputField";
 import { encryptPayload } from "../../crypto.js/encryption";
 import { getFinancialYearService } from "../../services/budgetService";
 import {
+  getFundReleaseInfoDetailsService,
   getMilestoneByProjectIdService,
   getProjectByFinYearService,
 } from "../../services/projectService";
@@ -20,32 +21,22 @@ import { useLocation, useNavigate } from "react-router-dom";
 import Magnifier from "../../components/common/Magnifier";
 import ReusableDialog from "../../components/common/ReusableDialog";
 import { openDocument } from "../../utils/openDocument";
-import { forwardListByMenuService } from "../../services/workflowService";
 import { GrSave } from "react-icons/gr";
 import { addAllowedPath } from "../../redux/slices/menuSlice";
 import { avoidSpecialCharUtil } from "../../utils/validationUtils";
+import CommonFormModal from "../../components/common/CommonFormModal";
 
 const FundReleaseInfo = () => {
   const userSelect = useSelector((state) => state);
   const dispatch = useDispatch()
 
   const [button, setButtons] = useState([])
-
-
+  const [pendingAction, setPendingAction] = useState(null);
+  const [showRejectionModal, setRejectionModal] = useState(false)
   const location = useLocation()
-
-  const getWorkFlow = async () => {
-    try {
-      const payload = encryptPayload({ appModuleUrl: location.pathname })
-      const res = await forwardListByMenuService(payload)
-      console.log(res);
-      if (res?.status === 200 && res?.data.outcome) {
-        setButtons(res?.data.data)
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  }
+  // console.log(location.state);
+  const selector = useSelector(state => state.fund)
+  console.log(selector);
 
   const [formData, setFormData] = useState({
     finYear: "",
@@ -60,6 +51,7 @@ const FundReleaseInfo = () => {
     releaseLetterNo: "",
     releaseLetterDate: "",
     agencyBankId: "",
+    remarks: ""
   });
 
   const {
@@ -88,6 +80,9 @@ const FundReleaseInfo = () => {
   const [geoTagImg, setGeoTagImgs] = useState([]);
 
   const [workOrderIdDetails, setWorkOrderIdDetails] = useState(null);
+
+  const [forwardedId, setForwardedId] = useState(null);
+
 
   const navigate = useNavigate();
 
@@ -161,7 +156,7 @@ const FundReleaseInfo = () => {
           projectId: projectId,
           milestoneId: milestoneId,
         });
-        const res = await getDetailsByProjectAndMilestoneIdService(payload);
+        const res = await getFundReleaseInfoDetailsService(payload);
         if (res?.status === 200 && res?.data.outcome) {
           setWorkOrderDetails(res?.data.data.workOrderDto);
           setWorkOrderIdDetails(res?.data.data.workOrderDto?.fundReleaseDto);
@@ -170,12 +165,15 @@ const FundReleaseInfo = () => {
           setBeneficiaryDetails(res?.data.data.beneficiaryDto);
           setVendorDetails(res?.data.data.vendorDto);
           setGeoTagImgs(res?.data.data.geoTagResponsDto);
+          setButtons(res?.data.data.stageForwardedRuleDtos || [])
         }
       }
     } catch (error) {
       throw error;
     }
   };
+
+
 
   const handleChangeInput = (e) => {
     const { name, value } = e.target;
@@ -186,12 +184,10 @@ const FundReleaseInfo = () => {
     const milestoneAmount = Number(milestoneDetails?.amount) || 0;
     const workOrderDate = wordOrderDetails?.workOrderDate;
 
-    // 🔒 Prevent bank change if already saved
     if (name === "agencyBankId" && workOrderIdDetails?.agencyBankId) {
       return;
     }
 
-    // ✂️ Remove special characters where required
     if (name === "releaseLetterNo" || name === "sanctionOrderNo") {
       updatedVal = avoidSpecialCharUtil(value);
     }
@@ -266,7 +262,19 @@ const FundReleaseInfo = () => {
   };
 
   const [open, setOpen] = useState(false)
+  const handleRemarksSubmit = () => {
+    if ((!formData.remarks || !formData.remarks.trim()) && pendingAction.actionType.actionCode != "APPROVED") {
+      toast.error("Remarks are mandatory");
+      return;
+    }
+    setForwardedId(pendingAction?.forwardedId);
+    const id = pendingAction?.forwardedId;
 
+    setRejectionModal(false);
+    setPendingAction(null);
+
+    handleSubmit(id);
+  };
   const confirmSubmit = (e) => {
     e.preventDefault()
     let newErrors = {};
@@ -320,12 +328,10 @@ const FundReleaseInfo = () => {
     }
   }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (id) => {
     setOpen(false);
 
     try {
-      // Convert empty strings to null for numeric fields
       const sendData = {
         fundReleaseId: workOrderIdDetails?.fundReleaseId || null,
         sanctionOrderNo,
@@ -337,6 +343,7 @@ const FundReleaseInfo = () => {
         penaltyAmount: penaltyAmount === "" || penaltyAmount === null ? null : parseFloat(penaltyAmount),
         penaltyPercentage: penaltyPercentage === "" || penaltyPercentage === null ? null : parseInt(penaltyPercentage, 10),
         agencyBankId: agencyBankId === "" || agencyBankId === null ? null : parseInt(agencyBankId, 10),
+        forwardedId: id
       };
 
       console.log("Sending data:", sendData);
@@ -346,8 +353,8 @@ const FundReleaseInfo = () => {
       console.log("Response:", res);
 
       if (res?.status === 200 && res?.data?.outcome) {
-        toast.success("Fund release information saved successfully");
-        // Refresh data after save
+        toast.success(res?.data.message);
+        navigate("/fundReleaseInfoList")
         if (projectId && milestoneId) {
           getDeatilsByProjectMilestone();
         }
@@ -361,7 +368,6 @@ const FundReleaseInfo = () => {
   };
 
   useEffect(() => {
-    getWorkFlow();
     getAllFinOpts();
   }, []);
 
@@ -404,6 +410,19 @@ const FundReleaseInfo = () => {
     }
   }, [workOrderIdDetails]);
 
+  useEffect(() => {
+    if (selector?.fundObj) {
+      setFormData((prev) => ({
+        ...prev,
+        finYear: selector?.fundObj?.finYear || "",
+        milestoneId: selector?.fundObj?.milestoneId || "",
+        projectId: selector?.fundObj?.projectId || "",
+      }));
+    }
+  }, [selector]);
+
+  console.log(forwardedId);
+  
   return (
     <form onSubmit={confirmSubmit}>
       <div
@@ -583,7 +602,7 @@ const FundReleaseInfo = () => {
                         </span>
                         :
                         <span className="text-slate-900 font-semibold uppercase">
-                          {beneficiaryDetails.length}
+                          {beneficiaryDetails?.length}
                         </span>
                       </div>
 
@@ -968,7 +987,33 @@ const FundReleaseInfo = () => {
         {/* Footer */}
         <div className="flex justify-center gap-2 text-[13px] bg-[#42001d0f] border-t border-[#ebbea6] px-4 py-3 rounded-b-md">
           <ResetBackBtn />
-          {!workOrderIdDetails?.fundReleaseId && <SubmitBtn type={"submit"} />}
+          {button?.map((i, index) => {
+            return (
+              <button
+                type="button"
+                key={index}
+                className={i?.actionType.color}
+                // disabled={Object.keys(errors).length > 0 || phaseLoading}
+                onClick={(e) => {
+                  if (
+                    i?.actionType.actionCode === "REVERTED" ||
+                    i?.actionType.actionCode === "REJECTED" ||
+                    i?.actionType.actionCode === "APPROVED"
+                  ) {
+                    setPendingAction(i);
+                    setRejectionModal(true);
+                    e.preventDefault();
+                  } else {
+                    setForwardedId(i.forwardedId);
+                    // handleSubmit(i.forwardedId)
+                    setOpen(true);
+                  }
+                }}
+              >
+                <GrSave /> {i?.actionType.actionNameEn}
+              </button>
+            )
+          })}
         </div>
       </div>
 
@@ -976,8 +1021,37 @@ const FundReleaseInfo = () => {
         open={open}
         description="Are you sure you want to submit?"
         onClose={() => setOpen(false)}
-        onConfirm={handleSubmit}
+        onConfirm={()=>handleSubmit(forwardedId)}
       />
+
+
+      <CommonFormModal
+        open={showRejectionModal}
+        onClose={() => setRejectionModal(false)}
+        title="Add Remarks"
+        subtitle="Remarks are mandatory for this action"
+        footer={
+          <>
+            <button
+              type="button"
+              className="bg-green-500 text-white text-[13px] px-3 py-1 rounded-sm border border-green-600 transition-all active:scale-95 uppercase flex items-center gap-1"
+              onClick={handleRemarksSubmit}
+            >
+              Submit
+            </button>
+          </>
+        }
+      >
+        <InputField
+          label="Remarks"
+          type="text"
+          name="remarks"
+          value={formData.remarks}
+          textarea={true}
+          required={pendingAction?.status.statusCode != "APPROVED"}
+          onChange={handleChangeInput}
+        />
+      </CommonFormModal>
     </form>
   );
 };

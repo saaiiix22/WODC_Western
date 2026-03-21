@@ -51,6 +51,7 @@ import {
   getAllHeadListService,
   getSubHeadsByHeadIdlist,
 } from "../../services/headService";
+import { useTranslation } from "react-i18next";
 
 const Project = () => {
   const [expanded, setExpanded] = useState("panel1");
@@ -59,7 +60,7 @@ const Project = () => {
     setExpanded(newExpanded ? panel : false);
   };
   const stateSelect = useSelector((state) => state.project.selectedProject);
-
+  const { t } = useTranslation("project")
   const [formData, setFormData] = useState({
     districtId: "",
     blockId: "",
@@ -964,7 +965,7 @@ const Project = () => {
   };
 
   const [pendingAction, setPendingAction] = useState(null);
-  console.log(pendingAction);
+  // console.log(pendingAction);
 
 
   const handleRemarksSubmit = () => {
@@ -1109,6 +1110,8 @@ const Project = () => {
     }
 
   };
+
+
 
   const toYMD = (d) => {
     if (!d) return "";
@@ -1335,8 +1338,14 @@ const Project = () => {
   }, [stateSelect]);
 
   useEffect(() => {
-    getWorkFlow()
+      if(pendingAction?.actionType?.actionCode != "SUBMIT"){
+        getWorkFlow()
+      }
+
   }, [forwardedId])
+
+  // console.log(pendingAction);
+  
 
   return (
     <div className="mt-3">
@@ -1379,7 +1388,8 @@ const Project = () => {
 
                 <div className="col-span-2">
                   <SelectField
-                    label="Financial Year"
+                    // label="Financial Year"
+                    label={t("finYear")}
                     required={true}
                     name="finYear"
                     value={finYear}
@@ -1395,7 +1405,8 @@ const Project = () => {
                 </div>
                 <div className="col-span-2">
                   <InputField
-                    label="Project Name"
+                    // label="Project Name"
+                    label={t("projectName")}
                     required={true}
                     name="projectName"
                     placeholder="Enter project name"
@@ -1409,7 +1420,7 @@ const Project = () => {
                 </div>
                 <div className="col-span-2 ">
                   <InputField
-                    label="Project Code"
+                    label={t("projectCode")}
                     required={true}
                     name="projectCode"
                     placeholder="Project code"
@@ -1421,7 +1432,7 @@ const Project = () => {
                 </div>
                 <div className="col-span-2">
                   <InputField
-                    label="AA Order Number"
+                    label={t("aaOrderNo")}
                     required={true}
                     name="aaOrderNo"
                     maxLength={50}
@@ -1434,7 +1445,7 @@ const Project = () => {
                 </div>
                 <div className="col-span-2">
                   <InputField
-                    label="AA Order Date"
+                    label={t("aaOrderDate")}
                     required={true}
                     type="date"
                     name="aaOrderDate"
@@ -1447,7 +1458,7 @@ const Project = () => {
                 </div>
                 <div className="col-span-2">
                   <SelectField
-                    label="District"
+                    label={t("districtId")}
                     required={true}
                     name="districtId"
                     value={districtId}
@@ -1463,7 +1474,7 @@ const Project = () => {
                 </div>
                 <div className="col-span-2">
                   <label className="text-[13px] font-medium text-gray-700">
-                    Select Area Type <span className="text-red-500">*</span>
+                    {t("areaType")} <span className="text-red-500">*</span>
                   </label>
                   <div className="flex gap-5 items-center">
                     <div className="flex gap-1">
@@ -1506,7 +1517,7 @@ const Project = () => {
                   <>
                     <div className="col-span-2">
                       <SelectField
-                        label="Block Name"
+                        label={t("blockId")}
                         required={true}
                         name="blockId"
                         value={blockId}
@@ -1521,7 +1532,7 @@ const Project = () => {
                     </div>
                     <div className="col-span-2">
                       <SelectField
-                        label="GP Name"
+                        label={t("gpId")}
                         required={true}
                         name="gpId"
                         value={gpId}
@@ -1536,7 +1547,7 @@ const Project = () => {
                     </div>
                     <div className="col-span-2">
                       <SelectField
-                        label="Village Name"
+                        label={t("villageId")}
                         required={true}
                         name="objectId"
                         value={objectId}
@@ -1556,7 +1567,7 @@ const Project = () => {
                   <>
                     <div className="col-span-2">
                       <SelectField
-                        label="Municipality Name"
+                        label={t("municipalityId")}
                         required={true}
                         name="municipalityId"
                         value={municipalityId}
@@ -1571,7 +1582,7 @@ const Project = () => {
                     </div>
                     <div className="col-span-2">
                       <SelectField
-                        label="Ward Name"
+                        label={t("wardId")}
                         required={true}
                         name="objectId"
                         value={objectId}
@@ -1590,7 +1601,7 @@ const Project = () => {
 
                 <div className="col-span-2">
                   <SelectField
-                    label="Sector"
+                    label={t("sector")}
                     required={true}
                     name="sectorId"
                     value={sectorId}
@@ -1606,7 +1617,7 @@ const Project = () => {
                 </div>
                 <div className="col-span-2">
                   <SelectField
-                    label="Sub-Sector"
+                    label={t("subSector")}
                     name="subSector"
                     value={subSector}
                     onChange={handleChangeInput}
@@ -1621,7 +1632,7 @@ const Project = () => {
 
                 <div className="col-span-2">
                   <InputField
-                    label="Start Date"
+                    label={t("startDate")}
                     type="date"
                     required={true}
                     name="startDate"
@@ -1633,7 +1644,7 @@ const Project = () => {
                 </div>
                 <div className="col-span-2">
                   <InputField
-                    label="End Date"
+                    label={t("endDate")}
                     type="date"
                     required={true}
                     name="endDate"
@@ -1646,7 +1657,7 @@ const Project = () => {
                 </div>
                 <div className="col-span-2">
                   <InputField
-                    label="Actual Start Date"
+                    label={t("actualStartDate")}
                     type="date"
                     name="actualStartDate"
                     value={actualStartDate}
@@ -1657,7 +1668,7 @@ const Project = () => {
                 </div>
                 <div className="col-span-2">
                   <InputField
-                    label="Actual End Date"
+                    label={t("actualEndDate")}
                     type="date"
                     name="actualEndDate"
                     value={actualEndDate}
@@ -1685,7 +1696,7 @@ const Project = () => {
                 <div className="col-span-2">
                   <div className="flex flex-col items-start gap-1 w-full">
                     <label className="text-[13px] font-medium text-gray-700">
-                      Is Sub-project ? <strong>{checkSubProject ? "Yes" : "No"}</strong>
+                      {t("checkSubProject")} ? <strong>{checkSubProject ? "Yes" : "No"}</strong>
                     </label>
 
                     <input
@@ -1704,7 +1715,7 @@ const Project = () => {
                   checkSubProject && (
                     <div className="col-span-2">
                       <SelectField
-                        label="Parent Project"
+                        label={t("parentProject")}
                         name="parentProjectId"
                         value={parentProjectId}
                         onChange={handleChangeInput}
@@ -1731,7 +1742,7 @@ const Project = () => {
 
                 <div className="col-span-2">
                   <SelectField
-                    label="District"
+                    label={t("districtId")}
                     name="proposeByDist"
                     value={proposeByDist}
                     onChange={handleChangeInput}
@@ -1745,7 +1756,7 @@ const Project = () => {
                 </div>
                 <div className="col-span-2">
                   <SelectField
-                    label="Block Name"
+                    label={t("blockId")}
                     name="proposeByBlock"
                     value={proposeByBlock}
                     onChange={handleChangeInput}
@@ -1760,7 +1771,7 @@ const Project = () => {
 
                 <div className="col-span-2">
                   <SelectField
-                    label="Proposed by"
+                    label={t("proposedBy")}
                     name="proposedBy"
                     value={proposedBy}
                     disabled={!proposeByBlock || !isFieldEditable()}
@@ -1774,7 +1785,7 @@ const Project = () => {
                 </div>
                 <div className="col-span-2">
                   <InputField
-                    label="Proposed by Name"
+                    label={t("proposedByName")}
                     name="proposedByName"
                     placeholder="Enter propose by name"
                     value={proposedByName}
@@ -1863,7 +1874,7 @@ const Project = () => {
                     {/* Head Field */}
                     <div className="col-span-2">
                       <SelectField
-                        label="Head"
+                        label={t("head")}
                         name="headId"
                         required={true}
                         value={i.headId}
@@ -1880,7 +1891,7 @@ const Project = () => {
                     {/* Subhead Field - Updated to use row-specific options */}
                     <div className="col-span-2">
                       <SelectField
-                        label="Subhead"
+                        label={t("subHead")}
                         name="subHeadId"
                         required={true}
                         value={i.subHeadId}
@@ -1898,7 +1909,7 @@ const Project = () => {
 
                     <div className="col-span-2">
                       <SelectField
-                        label="GIA Year "
+                        label={t("giaYear")}
                         name="giaYear"
                         required={true}
                         value={i.giaYear}
@@ -1914,7 +1925,7 @@ const Project = () => {
 
                     <div className="col-span-2">
                       <SelectField
-                        label="GIA Type "
+                        label={t("giaType")}
                         name="giaTypeId"
                         required={true}
                         value={i.giaTypeId}
@@ -1929,7 +1940,7 @@ const Project = () => {
                     </div>
                     <div className="col-span-4">
                       <SelectField
-                        label="Bank Name"
+                        label={t("bankName")}
                         name="bankId"
                         required={true}
                         value={fundReleaseRows[index]?.bankId || ""}
@@ -1946,7 +1957,7 @@ const Project = () => {
                     </div>
                     <div className="col-span-3">
                       <SelectField
-                        label="Branch | Account Number | IFSC"
+                        label={t("bankConfig")}
                         name="bankAccConfigId"
                         value={fundReleaseRows[index]?.bankAccConfigId || ""}
                         onChange={(e) => handleRowChange(e, index)}
@@ -1962,7 +1973,7 @@ const Project = () => {
                     </div>
                     <div className="col-span-2">
                       <SelectField
-                        label="Mode of transfer"
+                        label={t("mode")}
                         name="modeOfTransfer"
                         required={true}
                         value={i.modeOfTransfer}
@@ -1978,7 +1989,7 @@ const Project = () => {
                     <div className="col-span-2">
                       <InputField
                         amount={true}
-                        label="Allocation Amount"
+                        label={t("allocatedAmount")}
                         required={true}
                         maxLength={26}
                         name="releaseAmount"
@@ -1990,7 +2001,7 @@ const Project = () => {
                     </div>
                     <div className="col-span-4">
                       <InputField
-                        label="Description"
+                        label={t("description")}
                         textarea={true}
                         name="remarks"
                         maxLength={255}
@@ -2033,11 +2044,11 @@ const Project = () => {
                           setPendingAction(i);
                           setRejectionModal(true);
                           e.preventDefault();
-                        } else {
+                        }
+                        else {
+                          setForwardedId(i.forwardedId);
+                          setPendingAction(i);
                           
-                          if(Object.keys(errors).length === 0){
-                            setForwardedId(i.forwardedId);
-                          }
                         }
                       }}
                     >
@@ -2045,7 +2056,6 @@ const Project = () => {
                     </button>
                   )
                 })}
-                {/* <SubmitBtn type={"submit"}/> */}
               </div>
             </div>
           </AccordionDetails>

@@ -1,0 +1,41 @@
+@font-face {
+  font-family: 'Anton';
+  src: url('./Anton/Anton-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Roboto Condensed';
+  src: url('./Roboto_Condensed/static/RobotoCondensed-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Roboto Condensed';
+  src: url('./Roboto_Condensed/static/RobotoCondensed-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Playfair';
+  src: url('./Playfair/static/Playfair_9pt-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Playfair';
+  src: url('./Playfair/static/Playfair_9pt-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Playfair';
+  src: url('./Playfair/static/Playfair_9pt-Italic.ttf') format('truetype');
+  font-weight: 400;
+  font-style: italic;
+}

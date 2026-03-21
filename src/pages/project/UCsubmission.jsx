@@ -21,11 +21,13 @@ import { useLocation } from "react-router-dom";
 import { forwardListByMenuService, getWorkflowTabService } from "../../services/workflowService";
 import PillTabs from "../../components/common/Styletab";
 import TabPanel from "@mui/lab/TabPanel";
-import { TabContext } from "@mui/lab";
+import CommonFormModal from "../../components/common/CommonFormModal";
 
 
 const UCsubmission = () => {
-  const userSelect = useSelector((state) => state);
+  const userSelect = useSelector(state => state.fund);
+  // console.log(userSelect);
+
 
   const [button, setButtons] = useState([])
 
@@ -56,6 +58,7 @@ const UCsubmission = () => {
     utilizationFromDate: "",
     utilizationToDate: "",
     ucSubmissionDate: "",
+    remarks: ""
   });
   const {
     finYear,
@@ -75,7 +78,8 @@ const UCsubmission = () => {
   const [value, setValue] = useState("");
   const [tabs, setTabs] = useState([])
   const [tabCodePro, setTabCodePro] = useState("");
-
+  const [pendingAction, setPendingAction] = useState(null);
+  const [showRejectionModal, setRejectionModal] = useState(false)
 
   const [ucDetailsDTO, setUCdetailsDTO] = useState({});
   // console.log(ucDetailsDTO);
@@ -224,7 +228,6 @@ const UCsubmission = () => {
         const payload = encryptPayload({
           projectId: projectId,
           milestoneId: milestoneId,
-          TABCODE: tabCodePro
         });
         const res = await getUCdetailsService(payload);
         if (res?.status === 200 && res?.data.outcome) {
@@ -325,6 +328,19 @@ const UCsubmission = () => {
       setOpen(false)
     }
   }
+  const handleRemarksSubmit = () => {
+    if ((!formData.remarks || !formData.remarks.trim()) && pendingAction.actionType.actionCode != "APPROVED") {
+      toast.error("Remarks are mandatory");
+      return;
+    }
+    setForwardedId(pendingAction?.forwardedId);
+    const id = pendingAction?.forwardedId;
+
+    setRejectionModal(false);
+    setPendingAction(null);
+
+    handleSubmit(id);
+  };
   const hasInvalidAmount = refDocList.some(
     (i) => !i.amount || Number(i.amount) <= 0
   );
@@ -346,8 +362,8 @@ const UCsubmission = () => {
   // console.log(tabs);
 
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (forwardId) => {
+    // e.preventDefault();
 
     // if (hasInvalidAmount) {
     //   setOpen(false)
@@ -357,7 +373,6 @@ const UCsubmission = () => {
 
     try {
       const payloadObj = {
-        forwardedId,
         ucId: ucDetailsDTO?.ucId,
         utilizationDesc,
         utilizationFromDate: utilizationFromDate.split("-").reverse().join("/"),
@@ -365,7 +380,8 @@ const UCsubmission = () => {
         ucSubmissionDate: ucSubmissionDate.split("-").reverse().join("/"),
         fundReleaseId: workOrderDTO?.fundReleaseDto?.fundReleaseId,
         extraExpenditure: extraExpenditure,
-
+        forwardedId: forwardId,
+        remarks: formData.remarks,
         refDocuments: refDocList?.map((i) => ({
           ucDocId: i.ucDocId || null,
           refDocName: i.refDocName || null,
@@ -502,7 +518,20 @@ const UCsubmission = () => {
     }
   }, [ucDetailsDTO]);
 
-  // console.log(ucDetailsDTO?.refDocuments);
+
+  useEffect(() => {
+    if (userSelect?.ucObj) {
+      setFormData((prev) => ({
+        ...prev,
+        finYear: userSelect?.ucObj?.finYear || "",
+        milestoneId: userSelect?.ucObj?.milestoneId || "",
+        projectId: userSelect?.ucObj?.projectId || "",
+      }));
+    }
+  }, [userSelect]);
+
+
+  console.log(userSelect);
 
   const totalAmount = refDocList.reduce(
     (sum, i) => sum + Number(i.amount || 0),
@@ -606,312 +635,292 @@ const UCsubmission = () => {
                 error={errors.milestoneId}
               />
             </div>
+            {
+              finYear && projectId && milestoneId && (
+
+              
             <div className="col-span-12">
 
 
-              <TabContext value={value}>
+              <div className="grid grid-cols-12 gap-6 mt-7">
+                <div className="col-span-12">
+                  <div className="relative border border-dashed border-orange-300 bg-[#fffaf6] p-4 rounded-md mb-3">
+                    {/* Floating Title */}
+                    <span className="absolute -top-3 left-4 bg-[#fffaf6] px-3 text-sm font-semibold text-orange-600">
+                      Work Order Details
+                    </span>
 
-                {pillTabData.length > 0 && (
-                  <div className="col-span-12 mb-3">
-                    <PillTabs
-                      value={value}
-                      tabs={pillTabData}
-                      onChange={handleChange}
-                      align="flex-start"
-                    />
-                  </div>
-                )}
-                {
-                  flag ?
-                    <>
-                      {pillTabData?.map((i) => (
-                        <TabPanel key={i.value} value={i.value} sx={{ p: 0, mt: 1 }}>
-                          <div className="grid grid-cols-12 gap-6 mt-7">
-                            <div className="col-span-12">
-                              <div className="relative border border-dashed border-orange-300 bg-[#fffaf6] p-4 rounded-md mb-3">
-                                {/* Floating Title */}
-                                <span className="absolute -top-3 left-4 bg-[#fffaf6] px-3 text-sm font-semibold text-orange-600">
-                                  Work Order Details
-                                </span>
+                    {/* GRID */}
+                    <div className="grid grid-cols-12 gap-y-3 gap-x-6 text-sm">
+                      {/* ---------- MILESTONE DETAILS ---------- */}
+                      <div className="col-span-3 flex gap-1">
+                        <span className="font-normal text-gray-700">
+                          Work Order Number
+                        </span>
+                        :
+                        <span className="text-slate-900 font-semibold uppercase">
+                          {workOrderDTO?.workOrderNo || "N/A"}
+                        </span>
+                      </div>
 
-                                {/* GRID */}
-                                <div className="grid grid-cols-12 gap-y-3 gap-x-6 text-sm">
-                                  {/* ---------- MILESTONE DETAILS ---------- */}
-                                  <div className="col-span-3 flex gap-1">
-                                    <span className="font-normal text-gray-700">
-                                      Work Order Number
-                                    </span>
-                                    :
-                                    <span className="text-slate-900 font-semibold uppercase">
-                                      {workOrderDTO?.workOrderNo || "N/A"}
-                                    </span>
-                                  </div>
+                      <div className="col-span-3 flex gap-1">
+                        <span className="font-normal text-gray-700">
+                          Work Order Date
+                        </span>
+                        :
+                        <span className="text-slate-900 font-semibold uppercase">
+                          {workOrderDTO?.workOrderDate || "N/A"}
+                        </span>
+                      </div>
 
-                                  <div className="col-span-3 flex gap-1">
-                                    <span className="font-normal text-gray-700">
-                                      Work Order Date
-                                    </span>
-                                    :
-                                    <span className="text-slate-900 font-semibold uppercase">
-                                      {workOrderDTO?.workOrderDate || "N/A"}
-                                    </span>
-                                  </div>
+                      <div className="col-span-3 flex gap-1">
+                        <span className="font-normal text-gray-700">
+                          Sanction Order Number
+                        </span>
+                        :
+                        <span className="text-slate-900 font-semibold uppercase">
+                          {workOrderDTO?.fundReleaseDto?.sanctionOrderNo ||
+                            "N/A"}
+                        </span>
+                      </div>
 
-                                  <div className="col-span-3 flex gap-1">
-                                    <span className="font-normal text-gray-700">
-                                      Sanction Order Number
-                                    </span>
-                                    :
-                                    <span className="text-slate-900 font-semibold uppercase">
-                                      {workOrderDTO?.fundReleaseDto?.sanctionOrderNo ||
-                                        "N/A"}
-                                    </span>
-                                  </div>
+                      <div className="col-span-3 flex gap-1">
+                        <span className="font-normal text-gray-700">
+                          Sanction Order Date
+                        </span>
+                        :
+                        <span className="text-slate-900 font-semibold uppercase">
+                          {workOrderDTO?.fundReleaseDto?.sanctionOrderDate ||
+                            "N/A"}
+                        </span>
+                      </div>
 
-                                  <div className="col-span-3 flex gap-1">
-                                    <span className="font-normal text-gray-700">
-                                      Sanction Order Date
-                                    </span>
-                                    :
-                                    <span className="text-slate-900 font-semibold uppercase">
-                                      {workOrderDTO?.fundReleaseDto?.sanctionOrderDate ||
-                                        "N/A"}
-                                    </span>
-                                  </div>
+                      <div className="col-span-3 flex gap-1">
+                        <span className="font-normal text-gray-700">
+                          Release Letter Number
+                        </span>
+                        :
+                        <span className="text-slate-900 font-semibold uppercase">
+                          {workOrderDTO?.fundReleaseDto?.releaseLetterNo ||
+                            "N/A"}
+                        </span>
+                      </div>
 
-                                  <div className="col-span-3 flex gap-1">
-                                    <span className="font-normal text-gray-700">
-                                      Release Letter Number
-                                    </span>
-                                    :
-                                    <span className="text-slate-900 font-semibold uppercase">
-                                      {workOrderDTO?.fundReleaseDto?.releaseLetterNo ||
-                                        "N/A"}
-                                    </span>
-                                  </div>
+                      <div className="col-span-3 flex gap-1">
+                        <span className="font-normal text-gray-700">
+                          Release Letter Date
+                        </span>
+                        :
+                        <span className="text-slate-900 font-semibold uppercase">
+                          {workOrderDTO?.fundReleaseDto?.releaseLetterDate ||
+                            "N/A"}
+                        </span>
+                      </div>
 
-                                  <div className="col-span-3 flex gap-1">
-                                    <span className="font-normal text-gray-700">
-                                      Release Letter Date
-                                    </span>
-                                    :
-                                    <span className="text-slate-900 font-semibold uppercase">
-                                      {workOrderDTO?.fundReleaseDto?.releaseLetterDate ||
-                                        "N/A"}
-                                    </span>
-                                  </div>
-
-                                  <div className="col-span-3 flex gap-1">
-                                    <span className="font-normal text-gray-700">
-                                      Release Amount
-                                    </span>
-                                    :
-                                    <span className="text-slate-900 font-semibold uppercase">
-                                      {workOrderDTO?.fundReleaseDto?.milestoneAllocationAmount ||
-                                        "N/A"}
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="col-span-12">
-                              <div className="relative border border-dashed border-orange-300 bg-[#fffaf6] p-4 rounded-md mb-3">
-                                <span className="absolute -top-3 left-4 bg-[#fffaf6] px-3 text-sm font-semibold text-orange-600">
-                                  UC Details
-                                </span>
-                                <div className="grid grid-cols-12 gap-6 text-sm">
-                                  <div className="col-span-4">
-                                    <InputField
-                                      label="Utilization Description"
-                                      required={true}
-                                      name="utilizationDesc"
-                                      textarea={true}
-                                      // disabled={utilizationDesc ? true : false}
-                                      value={utilizationDesc}
-                                      onChange={handleChangeInput}
-                                      error={errors.utilizationDesc}
-                                    />
-                                  </div>
-                                  <div className="col-span-2 ">
-
-
-                                    <InputField
-                                      label="Utilization From Date"
-                                      name="utilizationFromDate"
-                                      type="date"
-                                      required={true}
-                                      value={utilizationFromDate}
-                                      // disabled={utilizationFromDate ? true : false}
-                                      onChange={handleChangeInput}
-                                      error={errors.utilizationFromDate}
-                                    />
-                                  </div>
-                                  <div className="col-span-2">
-                                    <InputField
-                                      label="Utilization To Date"
-                                      name="utilizationToDate"
-                                      type="date"
-                                      required={true}
-                                      value={utilizationToDate}
-                                      // disabled={utilizationToDate ? true : false}
-                                      onChange={handleChangeInput}
-                                      error={errors.utilizationToDate}
-
-                                    />
-                                  </div>
-                                  <div className="col-span-2">
-                                    <InputField
-                                      label="Submission Date"
-                                      required={true}
-                                      value={ucSubmissionDate}
-                                      // disabled={ucSubmissionDate ? true : false}
-                                      name="ucSubmissionDate"
-                                      type="date"
-                                      onChange={handleChangeInput}
-                                      error={errors.ucSubmissionDate}
-                                    />
-                                  </div>
-                                  <div className="col-span-2">
-                                    <div className="col-span-2">
-                                      <InputField
-                                        label="UC Document"
-                                        required={true}
-                                        name="blockNameEN"
-                                        type="file"
-                                        onChange={(e) => {
-                                          const file = e.target.files[0];
-                                          if (!file) return;
-
-                                          if (validateFileSize(file)) {
-                                            setUcDoc(file);
-                                          } else {
-                                            e.target.value = "";
-                                            setUcDoc(null);
-                                          }
-                                        }}
-                                      // disabled={existingUcDocName ? true : false}
-                                      />
-                                      <span
-                                        className="text-[11px] text-blue-600"
-                                        onClick={() =>
-                                          openDocument(
-                                            ucDetailsDTO?.ucDocBase64,
-                                            "application/pdf"
-                                          )
-                                        }
-                                      >
-                                        {existingUcDocName}
-                                        {/* hello */}
-                                      </span>
-                                    </div>
-                                  </div>
-                                  <div className="col-span-12">
-                                    <div className="grid grid-cols-12 gap-4">
-                                      {refDocList.map((item, index) => (
-                                        <div key={item.id} className="col-span-4 flex gap-2 relative">
-                                          {/* Remove Button */}
-                                          {refDocList.length > 1 && (
-                                            <button
-                                              type="button"
-                                              className="absolute right-1 top-1 text-red-600 z-10"
-                                              onClick={() => removeRefDoc(item.id)}
-                                            >
-                                              <IoIosRemoveCircleOutline />
-                                            </button>
-                                          )}
-
-                                          <div className="flex flex-col justify-items-start">
-                                            <InputField
-                                              label={`Reference Document ${index + 1}`}
-                                              type="file"
-                                              onChange={(e) => {
-                                                const file = e.target.files[0];
-                                                if (!file) return;
-
-                                                if (validateFileSize(file)) {
-                                                  handleRefDocChange(item.id, "file", file);
-                                                } else {
-                                                  e.target.value = "";
-                                                  handleRefDocChange(item.id, "file", null);
-                                                }
-                                              }}
-                                            />
-
-                                            {item.refDocName && (
-                                              <span
-                                                className="block mt-1 text-sm text-blue-600 cursor-pointer text-[11px]"
-                                                onClick={() =>
-                                                  openDocument(
-                                                    item.refDocBase64,
-                                                    "application/pdf"
-                                                  )
-                                                }
-                                              >
-                                                {item.refDocName}
-                                              </span>
-                                            )}
-                                          </div>
-                                          <InputField
-                                            label={`Amount ${index + 1}`}
-                                            type="number"
-                                            min="0"
-                                            value={item.amount}
-                                            onChange={(e) =>
-                                              handleRefDocChange(item.id, "amount", e.target.value)
-                                            }
-                                          />
-
-
-                                          {/* Existing document */}
-
-
-                                          {/* Add Button */}
-                                          {index === refDocList.length - 1 && (
-                                            <button
-                                              type="button"
-                                              onClick={addRefDoc}
-                                              style={{ top: "25px" }}
-                                              // disabled={item}
-                                              className="absolute  right-0.5 bg-green-700 px-2 py-2 text-white rounded-r-md"
-                                            >
-                                              <FaSquarePlus />
-                                            </button>
-                                          )}
-                                        </div>
-                                      ))}
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="w-max flex justify-start mt-3 gap-2.5">
-                              <div className="px-4 py-2 bg-gray-100 rounded-md text-sm font-semibold text-gray-700">
-                                Total Amount :{" "}
-                                <span className="text-gray-900">
-                                  ₹{totalAmount.toLocaleString("en-IN")}
-                                </span>
-                              </div>
-                              <div className="px-4 py-2 bg-gray-100 rounded-md text-sm font-semibold text-gray-700">
-                                Extra Expenditure :{" "}
-                                <span className="text-gray-900">
-                                  ₹{extraExpenditure.toLocaleString("en-IN")}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        </TabPanel>
-                      ))}
-                    </>
-                    :
-                    <div className="flex items-center justify-center py-6 text-sm text-gray-500 border border-slate-200">
-                      <p>No records available</p>
+                      <div className="col-span-3 flex gap-1">
+                        <span className="font-normal text-gray-700">
+                          Release Amount
+                        </span>
+                        :
+                        <span className="text-slate-900 font-semibold uppercase">
+                          {workOrderDTO?.fundReleaseDto?.milestoneAllocationAmount ||
+                            "N/A"}
+                        </span>
+                      </div>
                     </div>
+                  </div>
+                </div>
+                <div className="col-span-12">
+                  <div className="relative border border-dashed border-orange-300 bg-[#fffaf6] p-4 rounded-md mb-3">
+                    <span className="absolute -top-3 left-4 bg-[#fffaf6] px-3 text-sm font-semibold text-orange-600">
+                      UC Details
+                    </span>
+                    <div className="grid grid-cols-12 gap-6 text-sm">
+                      <div className="col-span-4">
+                        <InputField
+                          label="Utilization Description"
+                          required={true}
+                          name="utilizationDesc"
+                          textarea={true}
+                          // disabled={utilizationDesc ? true : false}
+                          value={utilizationDesc}
+                          onChange={handleChangeInput}
+                          error={errors.utilizationDesc}
+                        />
+                      </div>
+                      <div className="col-span-2 ">
 
-                }
 
-              </TabContext>
+                        <InputField
+                          label="Utilization From Date"
+                          name="utilizationFromDate"
+                          type="date"
+                          required={true}
+                          value={utilizationFromDate}
+                          // disabled={utilizationFromDate ? true : false}
+                          onChange={handleChangeInput}
+                          error={errors.utilizationFromDate}
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <InputField
+                          label="Utilization To Date"
+                          name="utilizationToDate"
+                          type="date"
+                          required={true}
+                          value={utilizationToDate}
+                          // disabled={utilizationToDate ? true : false}
+                          onChange={handleChangeInput}
+                          error={errors.utilizationToDate}
+
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <InputField
+                          label="Submission Date"
+                          required={true}
+                          value={ucSubmissionDate}
+                          // disabled={ucSubmissionDate ? true : false}
+                          name="ucSubmissionDate"
+                          type="date"
+                          onChange={handleChangeInput}
+                          error={errors.ucSubmissionDate}
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <div className="col-span-2">
+                          <InputField
+                            label="UC Document"
+                            required={true}
+                            name="blockNameEN"
+                            type="file"
+                            onChange={(e) => {
+                              const file = e.target.files[0];
+                              if (!file) return;
+
+                              if (validateFileSize(file)) {
+                                setUcDoc(file);
+                              } else {
+                                e.target.value = "";
+                                setUcDoc(null);
+                              }
+                            }}
+                          // disabled={existingUcDocName ? true : false}
+                          />
+                          <span
+                            className="text-[11px] text-blue-600"
+                            onClick={() =>
+                              openDocument(
+                                ucDetailsDTO?.ucDocBase64,
+                                "application/pdf"
+                              )
+                            }
+                          >
+                            {existingUcDocName}
+                            {/* hello */}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="col-span-12">
+                        <div className="grid grid-cols-12 gap-4">
+                          {refDocList.map((item, index) => (
+                            <div key={item.id} className="col-span-4 flex gap-2 relative">
+                              {/* Remove Button */}
+                              {refDocList.length > 1 && (
+                                <button
+                                  type="button"
+                                  className="absolute right-1 top-1 text-red-600 z-10"
+                                  onClick={() => removeRefDoc(item.id)}
+                                >
+                                  <IoIosRemoveCircleOutline />
+                                </button>
+                              )}
+
+                              <div className="flex flex-col justify-items-start">
+                                <InputField
+                                  label={`Reference Document ${index + 1}`}
+                                  type="file"
+                                  onChange={(e) => {
+                                    const file = e.target.files[0];
+                                    if (!file) return;
+
+                                    if (validateFileSize(file)) {
+                                      handleRefDocChange(item.id, "file", file);
+                                    } else {
+                                      e.target.value = "";
+                                      handleRefDocChange(item.id, "file", null);
+                                    }
+                                  }}
+                                />
+
+                                {item.refDocName && (
+                                  <span
+                                    className="block mt-1 text-sm text-blue-600 cursor-pointer text-[11px]"
+                                    onClick={() =>
+                                      openDocument(
+                                        item.refDocBase64,
+                                        "application/pdf"
+                                      )
+                                    }
+                                  >
+                                    {item.refDocName}
+                                  </span>
+                                )}
+                              </div>
+                              <InputField
+                                label={`Amount ${index + 1}`}
+                                type="number"
+                                min="0"
+                                value={item.amount}
+                                onChange={(e) =>
+                                  handleRefDocChange(item.id, "amount", e.target.value)
+                                }
+                              />
+
+
+                              {/* Existing document */}
+
+
+                              {/* Add Button */}
+                              {index === refDocList.length - 1 && (
+                                <button
+                                  type="button"
+                                  onClick={addRefDoc}
+                                  style={{ top: "25px" }}
+                                  // disabled={item}
+                                  className="absolute  right-0.5 bg-green-700 px-2 py-2 text-white rounded-r-md"
+                                >
+                                  <FaSquarePlus />
+                                </button>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="w-max flex justify-start mt-3 gap-2.5">
+                  <div className="px-4 py-2 bg-gray-100 rounded-md text-sm font-semibold text-gray-700">
+                    Total Amount :{" "}
+                    <span className="text-gray-900">
+                      ₹{totalAmount.toLocaleString("en-IN")}
+                    </span>
+                  </div>
+                  <div className="px-4 py-2 bg-gray-100 rounded-md text-sm font-semibold text-gray-700">
+                    Extra Expenditure :{" "}
+                    <span className="text-gray-900">
+                      ₹{extraExpenditure.toLocaleString("en-IN")}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+
 
             </div>
+            )
+            }
           </div>
 
 
@@ -925,20 +934,33 @@ const UCsubmission = () => {
           {/* {userSelect?.menu.userDetails.roleCode === "ROLE_AGENCY" && (
             <SubmitBtn type="submit" />
           )} */}
-          {
-            flag && button?.map((i, index) => {
-              return (
-                <button
-                  type={'submit'}
-                  key={index}
-                  className={i?.actionType.color}
-                  onClick={() => setForwardedId(i.forwardedId)}
-                >
-                  <GrSave /> {i?.actionType.actionNameEn}
-                </button>
-              )
-            })
-          }
+          {button?.map((i, index) => {
+            return (
+              <button
+                key={index}
+                type="button"
+                className={i?.actionType.color}
+                onClick={(e) => {
+                  if (
+                    i?.actionType.actionCode === "REVERTED" ||
+                    i?.actionType.actionCode === "REJECTED" ||
+                    i?.actionType.actionCode === "APPROVED"
+                  ) {
+                    setPendingAction(i);
+                    setRejectionModal(true);
+                    e.preventDefault();
+                  } else {
+                    setForwardedId(i.forwardedId);
+                    // handleSubmit(forwardedId)
+                    setOpen(true)
+                  }
+                }}
+
+              >
+                <GrSave /> {i?.actionType.actionNameEn}
+              </button>
+            )
+          })}
         </div>
       </div>
       <ReusableDialog
@@ -948,6 +970,34 @@ const UCsubmission = () => {
         onClose={() => setOpen(false)}
         onConfirm={handleSubmit}
       />
+
+      <CommonFormModal
+        open={showRejectionModal}
+        onClose={() => setRejectionModal(false)}
+        title="Add Remarks"
+        subtitle="Remarks are mandatory for this action"
+        footer={
+          <>
+            <button
+              type="button"
+              className="bg-green-500 text-white text-[13px] px-3 py-1 rounded-sm border border-green-600 transition-all active:scale-95 uppercase flex items-center gap-1"
+              onClick={handleRemarksSubmit}
+            >
+              Submit
+            </button>
+          </>
+        }
+      >
+        <InputField
+          label="Remarks"
+          type="text"
+          name="remarks"
+          value={formData.remarks}
+          textarea={true}
+          required={pendingAction?.status.statusCode != "APPROVED"}
+          onChange={handleChangeInput}
+        />
+      </CommonFormModal>
     </form >
   );
 };

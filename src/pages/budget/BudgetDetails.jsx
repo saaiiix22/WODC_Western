@@ -19,8 +19,10 @@ import ReusableDataTable from "../../components/common/ReusableDataTable";
 import {
   alphaNumericUtil,
   convertIntoINRutil,
+  formatWithCommas,
   IFSCutil,
   prevDateUtil,
+  removeCommas,
 } from "../../utils/validationUtils";
 import InputField from "../../components/common/InputField";
 
@@ -181,16 +183,6 @@ const BudgetDetails = () => {
     if (!dateStr) return "";
     const [yyyy, mm, dd] = dateStr.split("-");
     return `${dd}/${mm}/${yyyy}`;
-  };
-
-  const formatWithCommas = (value) => {
-    if (!value) return "";
-    return Number(value).toLocaleString("en-IN");
-  };
-
-  const removeCommas = (value) => {
-    if (!value) return "";
-    return value.replace(/,/g, "");
   };
 
   const [errors, setErrors] = useState({});
@@ -407,51 +399,13 @@ const BudgetDetails = () => {
                       />
                     </td>
 
-                    {/* <td className="border-r border-slate-200 px-2 py-1">
-                      <input
-                        type="number"
-                        maxLength={17}
-                        value={row.branch}
-                        onChange={(e) =>
-                          handleInput(index, "branch", e.target.value)
-                        }
-                        className="w-full rounded-md border border-gray-300 px-2.5 py-1.5 mt-1 text-sm"
-                      />
-                    </td>
-
                     <td className="border-r border-slate-200 px-2 py-1">
-                      <input
+                      <InputField
                         type="text"
-                        value={row.accNo}
-                        minLength={9}
-                        maxLength={18}
-                        onChange={(e) =>
-                          handleInput(index, "accNo", e.target.value)
-                        }
-                        className="w-full rounded-md border border-gray-300 px-2.5 py-1.5 mt-1 text-sm"
-                      />
-                    </td>
-
-                    <td className="border-r border-slate-200 px-2 py-1">
-                      <input
-                        type="text"
-                        value={IFSCutil(row.ifsc)}
-                        maxLength={11}
-                        onChange={(e) => {
-                          const cleaned = alphaNumericUtil(
-                            e.target.value.toUpperCase()
-                          );
-                          handleInput(index, "ifsc", cleaned);
-                        }}
-                        className="w-full rounded-md border border-gray-300 px-2.5 py-1.5 mt-1 text-sm"
-                      />
-                    </td> */}
-                    <td className="border-r border-slate-200 px-2 py-1">
-                      <input
-                        type="text"
-                        style={{ textAlign: "right" }}
-                        maxLength={40}
+                        amount
+                        maxLength={30}
                         value={formatWithCommas(row.amount)}
+                        
                         onChange={(e) => {
                           const rawValue = removeCommas(e.target.value);
 
@@ -459,7 +413,6 @@ const BudgetDetails = () => {
                             handleInput(index, "amount", rawValue);
                           }
                         }}
-                        className="w-full rounded-md border border-gray-300 px-2.5 py-1.5 mt-1 text-sm"
                       />
                     </td>
 

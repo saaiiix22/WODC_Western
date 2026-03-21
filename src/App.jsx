@@ -19,6 +19,19 @@ const App = () => {
     }
   }, []);
 
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+
+    if (parts.length === 2) {
+      return parts.pop().split(";").shift();
+    }
+  }
+
+  const token = getCookie("SESSION_SECRET_TOKEN");
+  console.log(token);
+
+
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>

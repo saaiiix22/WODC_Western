@@ -5,6 +5,9 @@
     /* --color-light-dark:#404040; */
     --color-light-dark:#2a2e34;
 }
+.layout {
+  font-family: 'Roboto Condensed', sans-serif;
+}
 .page-enter {
   opacity: 0;
   transform: translateY(10px);
@@ -22,16 +25,16 @@ button{
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: #fe8b00 #1f1f1f;
+  scrollbar-color: #fe8b00 #fff;
 }
 
 ::-webkit-scrollbar {
   width: 8px;
 }
 
-::-webkit-scrollbar-track {
+/* ::-webkit-scrollbar-track {
   background: #1f1f1f;
-}
+} */
 
 ::-webkit-scrollbar-thumb {
   background-color: #fe8b00;

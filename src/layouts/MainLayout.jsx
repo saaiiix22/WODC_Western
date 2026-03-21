@@ -23,7 +23,7 @@ const MainLayout = () => {
   const resetPassword = useSelector(state => state.menu.userDetails.userDetails)
   
   const doubleCheck = useSelector(state=>state.menu.isNewUser)
-  console.log(doubleCheck);
+  // console.log(doubleCheck);
 
   const dispatch = useDispatch()
 
@@ -123,7 +123,7 @@ const MainLayout = () => {
   
 
   return (
-    <>
+    <div className="layout">
       {loading && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-500/30">
           <Loader />
@@ -223,7 +223,7 @@ const MainLayout = () => {
         )
       }
 
-      <div className="flex min-h-screen bg-[#f5f6fa]">
+      <div className="flex min-h-screen bg-[#f5f6fa] ">
         {/* SIDEBAR */}
         <aside
           className="fixed top-0 left-0 h-screen transition-all duration-300 z-50"
@@ -257,7 +257,7 @@ const MainLayout = () => {
           </main>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

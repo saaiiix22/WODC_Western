@@ -7,6 +7,8 @@ import { encryptPayload } from "../../crypto.js/encryption";
 import { toast } from "react-toastify";
 import ReusableDialog from "../../components/common/ReusableDialog";
 import { validateContactNoUtil } from "../../utils/validationUtils";
+import { useDispatch } from "react-redux";
+import { fetchUserDetails } from "../../redux/slices/menuSlice";
 
 const UserProfilePage = () => {
   const [selectedImage, setSelectedImage] = useState(null);
@@ -35,6 +37,7 @@ const UserProfilePage = () => {
     setSelectedImage(URL.createObjectURL(file));
   };
 
+  const dispatch = useDispatch()
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -137,6 +140,7 @@ const UserProfilePage = () => {
       if (res?.status === 200 && res?.data.outcome) {
         setOpen(false)
         toast.success(res?.data.message)
+        dispatch(fetchUserDetails())
         const userData = res.data.data;
 
         setFormData({

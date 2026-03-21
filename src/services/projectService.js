@@ -59,3 +59,6 @@ export const getJuridictionService = (data) => Api.get(endpoints.project.getJuri
 export const getTabsService=()=>Api.get(endpoints.project.getTabs)
 
 export const getProjectByTabCodeService=(data)=>Api.get(endpoints.project.getProjectByTabCode,{params:{cipherText:data}})
+export const getFundReleaseInfoByTabCodeService=(data)=>Api.post(endpoints.project.getFundReleaseInfoByTabCode,data)
+
+export const getFundReleaseInfoDetailsService=(data)=>Api.get(endpoints.fundReleaseInfo.getFundReleaseInfoDetails,{params:{cipherText:data}})

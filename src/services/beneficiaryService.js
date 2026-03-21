@@ -18,5 +18,9 @@ export const empIncomeService=()=>Api.get(endpoints.beneficiary.empIncome)
 export const empEducationService=()=>Api.get(endpoints.beneficiary.empEducation)
 export const empSkillService=()=>Api.get(endpoints.beneficiary.empSkill)
 
+export const saveBeneficiaryPaymentSerice =(data)=>Api.post(endpoints.benPayment.savebenPayment,{obj:data})
+export const listBenPaymentService=()=>Api.get(endpoints.benPayment.getListPayment)
+export const editBeneficiaryPaymentSerice = (data) =>Api.get(endpoints.benPayment.getByIdPayment, { params: { cipherText: data } });
+
 export const getFilteredBeneficiariesService=(data)=>Api.get(endpoints.beneficiary.getBeneficiaryDetailsbyFilter,{params:{cipherText:data}})
 export const getListBenTrackDraftService = (data) => Api.get(endpoints.beneficiary.listBenTrackDraft, { params: { cipherText: data } });

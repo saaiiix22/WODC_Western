@@ -53,7 +53,6 @@ const AddGrievanceSlotConfiguration = () => {
   const [formData, setFormData] = useState({
     virtualGrvSlotId: null,
     grievanceSubCategory: null,
-    // meetingLink: "",
     grvConfigDate: "",
     virtualGrievanceSlotDetailsDto: "",
   });
@@ -122,6 +121,7 @@ const AddGrievanceSlotConfiguration = () => {
   //   updated.splice(index, 1);
   //   setRows(updated);
   // };
+  
   const handleRemoveRow = (rowKey) => {
     setRows((prev) => prev.filter((row) => row._rowKey !== rowKey));
   };
@@ -644,7 +644,7 @@ const AddGrievanceSlotConfiguration = () => {
                     }}
                     dateFormat="dd/MM/yyyy"
                     minDate={new Date()}
-                    placeholderText="Select a slot date"
+                    placeholderText="DD/MM/YYYY"
                     className={`w-full rounded-md border border-gray-300 px-2.5 py-1.5 pr-10 text-sm ${
                       errors.grvConfigDate ? "border-red-500" : ""
                     }`}

@@ -14,6 +14,7 @@ import {
 import { ResetBackBtn, SubmitBtn } from "../../components/common/CommonButtons";
 import { toast } from "react-toastify";
 import ReusableDialog from "../../components/common/ReusableDialog";
+import { useDispatch } from "react-redux";
 
 const RoleMenuMap = () => {
   const [selectedItems, setSelectedItems] = useState([]);
@@ -33,6 +34,7 @@ const RoleMenuMap = () => {
     setFormData({ ...formData, [name]: value });
   };
 
+  const dispatch = useDispatch()
 
   const addParentIds = (selectedIds = [], menus = []) => {
     const result = new Set(selectedIds.map(String));
